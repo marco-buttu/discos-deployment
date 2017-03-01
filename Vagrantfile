@@ -9,7 +9,6 @@ sudo python get-pip.py
 rm get-pip.py
 sudo yum remove -y python-crypto
 sudo pip install ansible
-yum --enablerepo=epel -y install sshpass
 SCRIPT
 
 VAGRANTFILE_API_VERSION = "2"
