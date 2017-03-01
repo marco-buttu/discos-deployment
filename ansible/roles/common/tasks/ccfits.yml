@@ -1,31 +1,33 @@
 ---
 
 - set_fact:
-    cfitsio_file: cfitsio3370.tar.gz
-    ccfits_file: CCfits-2.4.tar.gz
+    cfitsio: { file: 'cfitsio3370.tar.gz', build_dir: 'cfitsio'}
+    ccfits: { file: 'CCfits-2.4.tar.gz', build_dir: 'CCfits'}
 
 
-- name: "Check if the cfitsio sources exists in the local repository"
-  stat: path={{ local_repository_path }}/lib/{{ cfitsio_file }}
+- name: "Check if the cfitsio sources exist in the local repository"
+  stat: path={{ local_repository_path }}/lib/{{ cfitsio.file }}
+  delegate_to: 127.0.0.1
   register: cfitsio_rule
 
 
 - name: "Check if the ccfits sources exist in the local repository"
-  stat: path={{ local_repository_path }}/lib/{{ ccfits_file }}
+  stat: path={{ local_repository_path }}/lib/{{ ccfits.file }}
+  delegate_to: 127.0.0.1
   register: ccfits_rule
 
 
-- name: Download cfitsio, if it does not exist in the local repo
+- name: Download cfitsio (if it does not exist in the local repo)
   get_url:
-    url: ftp://heasarc.gsfc.nasa.gov/software/fitsio/c/{{ cfitsio_file }}
+    url: ftp://heasarc.gsfc.nasa.gov/software/fitsio/c/{{ cfitsio.file }}
     dest: "{{ local_repository_path }}/lib"
   when: cfitsio_rule.stat.exists == False
   delegate_to: 127.0.0.1
 
 
-- name: Download cfitsio, if it does not exist in the local repo
+- name: Download ccfits (if it does not exist in the local repo)
   get_url:
-    url: http://heasarc.gsfc.nasa.gov/fitsio/CCfits-2.4/{{ ccfits_file }}
+    url: http://heasarc.gsfc.nasa.gov/fitsio/CCfits-2.4/{{ ccfits.file }}
     dest: "{{ local_repository_path }}/lib"
   when: ccfits_rule.stat.exists == False
   delegate_to: 127.0.0.1
@@ -33,3 +35,38 @@
 
 - name: Create a temporary directory for the libraries compilation
   file: path={{ remote_build_path }} state=directory
+
+
+- name: Copy cfitsio sources to the remote {{ remote_build_path }}
+  unarchive:
+    src={{ local_repository_path }}/lib/{{ cfitsio.file }}
+    dest={{ remote_build_path }}
+
+
+- name: Install cfitsio
+  command: chdir={{ remote_build_path }}/{{ cfitsio.build_dir }} {{ item }}
+  with_items:
+    - ./configure --prefix=/usr/local
+    - make
+    - sudo make install
+
+
+- name: Copy ccfits sources to the remote {{ remote_build_path }}
+  unarchive:
+    src={{ local_repository_path }}/lib/{{ ccfits.file }}
+    dest={{ remote_build_path }}
+
+
+- name: Install CCfits
+  command: chdir={{ remote_build_path }}/{{ ccfits.build_dir }} {{ item }}
+  with_items:
+    - ./configure --prefix=/usr/local
+    - make
+    - sudo make install
+
+
+- name: Remove the directory used for the libraries compilation
+  file: path={{ item }} state=absent
+  with_items:
+    - "{{ remote_build_path }}/{{ cfitsio.build_dir }}"
+    - "{{ remote_build_path }}/{{ ccfits.build_dir }}"
