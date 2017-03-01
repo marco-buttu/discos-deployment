@@ -1,0 +1,10 @@
+---
+
+- name: Add the acs group
+  become: true
+  group: name=acs gid=335 state=present
+
+
+- name: Add the manager user
+  become: true
+  user: name={{ user }} group=acs uid=3060 state=present

@@ -1,0 +1,33 @@
+---
+
+- name: "install all required yum packages"
+  become: true
+  yum: name={{ item }} state=present
+  with_items:
+    - epel-release
+    - vim-enhanced
+    - subversion
+    - python-devel
+    - git
+    - supervisor
+    - cfitsio
+    - gcc-c++
+    - cmake
+    - ncurses
+    - ncurses-devel
+    - screen
+    - expat
+    - expat-devel
+    - expect
+    - gsl
+    - gsl-devel
+    - boost
+    - boost-devel
+    - gnome-desktop
+    - gnome-desktop-devel
+    - jpackage-utils
+
+
+- name: "To avoid yum automatic updates, remove yum-cron"
+  become: true
+  yum: name=yum-cron state=absent

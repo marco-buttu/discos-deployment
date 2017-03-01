@@ -1,0 +1,22 @@
+---
+
+# This playbook deploys the whole application stack.
+
+- name: "Apply common configuration to all nodes"
+  hosts: all
+  remote_user: root
+
+  vars:
+    user: manager
+    local_repository_path: /home/gavino/deployment/repository
+    remote_build_path: /tmp/builds
+
+  roles:
+    - common
+
+# - name: configure the manager
+#   hosts: manager
+#   remote_user: root
+#
+#   roles:
+#     - idonotknow

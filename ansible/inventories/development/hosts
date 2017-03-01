@@ -1,0 +1,19 @@
+[nuraghe]
+# nuraghe-ms
+192.168.60.11
+
+
+[escs]
+# escs-xx
+192.168.60.20
+
+
+[multi:children]
+nuraghe
+escs
+
+
+# Variables that will be applied to all servers
+[multi:vars]
+ansible_user=vagrant
+ansible_password=vagrant

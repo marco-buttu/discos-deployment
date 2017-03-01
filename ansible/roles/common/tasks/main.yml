@@ -1,0 +1,6 @@
+---
+
+- include: create_users_groups.yml
+- include: yum_packages.yml
+- include: python_packages.yml  # See comments in the file
+- include: ccfits.yml
