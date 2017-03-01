@@ -9,8 +9,6 @@
     - subversion
     - python-devel
     - git
-    - supervisor
-    - cfitsio
     - gcc-c++
     - cmake
     - ncurses
