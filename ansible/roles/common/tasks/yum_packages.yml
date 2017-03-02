@@ -24,6 +24,9 @@
     - gnome-desktop
     - gnome-desktop-devel
     - jpackage-utils
+    - unzip
+    - libtool
+
 
 
 - name: "To avoid yum automatic updates, remove yum-cron"

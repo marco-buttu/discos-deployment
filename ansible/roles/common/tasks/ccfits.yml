@@ -1,8 +1,8 @@
 ---
 
 - set_fact:
-    cfitsio: { file: 'cfitsio3370.tar.gz', build_dir: 'cfitsio'}
-    ccfits: { file: 'CCfits-2.4.tar.gz', build_dir: 'CCfits'}
+    cfitsio: { file: 'cfitsio3370.tar.gz', build_dir: 'cfitsio' }
+    ccfits: { file: 'CCfits-2.4.tar.gz', build_dir: 'CCfits' }
 
 
 - name: "Check if the cfitsio sources exist in the local repository"

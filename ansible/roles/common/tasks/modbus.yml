@@ -1,7 +1,7 @@
 ---
 
 - set_fact:
-    modbus: { file: 'libmodbus-3.0.6.tar.gz', build_dir: 'libmodbus-3.0.6'}
+    modbus: { file: 'libmodbus-3.0.6.tar.gz', build_dir: 'libmodbus-3.0.6' }
 
 
 - name: "Check if the modbus sources exist in the local repository"
