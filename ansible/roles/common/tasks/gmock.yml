@@ -7,17 +7,24 @@
     gmock_build: "{{ remote_build_path }}/{{ gmock.build_dir }}"
 
 
-- name: "Check if the {{ gmock.file }}  exists in the local repository"
+- name: Check if {{ modbus.file }} is installed
+  stat: path=/usr/local/lib/gmock
+  register: gmock_lib
+
+
+- name: Check if the {{ gmock.file }}  exists in the local repository
   stat: path={{ local_repository_path }}/lib/{{ gmock.file }}
   delegate_to: 127.0.0.1
-  register: gmock_rule
+  register: gmock_sources
 
 
 - name: Download gmock (if it does not exist in the local repo)
   get_url:
     url: https://github.com/paulsapps/gmock-1.7.0/archive/master.zip
     dest: "{{ local_repository_path }}/lib"
-  when: gmock_rule.stat.exists == False
+  when:
+    - gmock_lib.stat.exists == False
+    - gmock_sources.stat.exists == False
   delegate_to: 127.0.0.1
 
 
@@ -25,10 +32,11 @@
   file: path={{ remote_build_path }} state=directory
 
 
-- name: Copy gmock sources to the remote {{ remote_build_path }}
+- name: Copy {{ gmock.file }} to the remote {{ remote_build_path }}
   unarchive:
     src={{ local_repository_path }}/lib/{{ gmock.file }}
     dest={{ remote_build_path }}
+  when: gmock_lib.stat.exists == False
 
 
 - name: Create a gmock/build directory
@@ -41,16 +49,19 @@
     - { cmd: 'mkdir -p build', subdir: '' }
     - { cmd: 'cmake ..', subdir: 'build' }
     - { cmd: 'make', subdir: 'build' }
+  when: gmock_lib.stat.exists == False
 
 
 - file:
     path: "{{ gmock_build }}/build/libgmock.a"
     mode: "a+x"
+  when: gmock_lib.stat.exists == False
 
 
 - file:
     path: "{{ gmock_build }}/build/libgmock_main.a"
     mode: "a+x"
+  when: gmock_lib.stat.exists == False
 
 
 - name: Copy the gmock static libraries to /usr/local/lib
@@ -60,6 +71,7 @@
     - { cmd: 'cp -r gmock /usr/local/lib', subdir: 'include' }
     - { cmd: 'cp libgmock.a /usr/local/lib', subdir: 'build' }
     - { cmd: 'cp libgmock_main.a /usr/local/lib', subdir: 'build' }
+  when: gmock_lib.stat.exists == False
 
 
 - name: Compile gtest
@@ -68,16 +80,19 @@
     - { cmd: 'mkdir -p build', subdir: '' }
     - { cmd: 'cmake ..', subdir: 'build' }
     - { cmd: 'make', subdir: 'build' }
+  when: gmock_lib.stat.exists == False
 
 
 - file:
     path: "{{ gmock_build }}/gtest/build/libgtest.a"
     mode: "a+x"
+  when: gmock_lib.stat.exists == False
 
 
 - file:
     path: "{{ gmock_build }}/gtest/build/libgtest_main.a"
     mode: "a+x"
+  when: gmock_lib.stat.exists == False
 
 
 - name: Copy the gtest static libraries to /usr/local/lib
@@ -87,6 +102,7 @@
     - { cmd: 'cp -r gtest /usr/local/lib', subdir: 'include' }
     - { cmd: 'cp libgtest.a /usr/local/lib', subdir: 'build' }
     - { cmd: 'cp libgtest_main.a /usr/local/lib', subdir: 'build' }
+  when: gmock_lib.stat.exists == False
 
 
 - name: Remove the directory used for the libraries compilation

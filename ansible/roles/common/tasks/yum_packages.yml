@@ -28,7 +28,6 @@
     - libtool
 
 
-
 - name: "To avoid yum automatic updates, remove yum-cron"
   become: true
   yum: name=yum-cron state=absent

@@ -6,6 +6,12 @@
 # required, because Python 2.7, shipped with ACS, already
 # has unittest and pip.
 
+- name: Verify pip is installed
+  command: pip --version
+  register: pip_installed
+  ignore_errors: True
+
+
 - name: "Install the Python package manager"
   become: true
   shell: "{{ item }}"
@@ -13,6 +19,7 @@
     - wget https://bootstrap.pypa.io/get-pip.py
     - python get-pip.py
     - rm get-pip.py
+  when: pip_installed|failed
 
 
 - name: "Install some third-party Python packages"

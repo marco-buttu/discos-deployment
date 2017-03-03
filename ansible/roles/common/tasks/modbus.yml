@@ -4,17 +4,24 @@
     modbus: { file: 'libmodbus-3.0.6.tar.gz', build_dir: 'libmodbus-3.0.6' }
 
 
+- name: Check if {{ modbus.file }} is installed
+  stat: path=/usr/local/lib/libmodbus.so
+  register: modbus_lib
+
+
 - name: "Check if the modbus sources exist in the local repository"
   stat: path={{ local_repository_path }}/lib/{{ modbus.file }}
   delegate_to: 127.0.0.1
-  register: modbus_rule
+  register: modbus_sources
 
 
 - name: Download modbus (if it does not exist in the local repo)
   get_url:
     url: http://libmodbus.org/releases/{{ modbus.file }}
     dest: "{{ local_repository_path }}/lib"
-  when: modbus_rule.stat.exists == False
+  when:
+    - modbus_sources.stat.exists == False
+    - modbus_lib.stat.exists == False
   delegate_to: 127.0.0.1
 
 
@@ -22,10 +29,11 @@
   file: path={{ remote_build_path }} state=directory
 
 
-- name: Copy modbus sources to the remote {{ remote_build_path }}
+- name: Copy {{ modbus.file }} to the remote {{ remote_build_path }}
   unarchive:
     src={{ local_repository_path }}/lib/{{ modbus.file }}
     dest={{ remote_build_path }}
+  when: modbus_lib.stat.exists == False
 
 
 - name: Install modbus
@@ -34,6 +42,7 @@
     - ./configure --prefix=/usr/local
     - make
     - sudo make install
+  when: modbus_lib.stat.exists == False
 
 
 - name: Remove the directory used for the libraries compilation
