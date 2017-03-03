@@ -7,7 +7,7 @@
     gmock_build: "{{ remote_build_path }}/{{ gmock.build_dir }}"
 
 
-- name: Check if {{ modbus.file }} is installed
+- name: Check if {{ gmock.file }} is installed
   stat: path=/usr/local/lib/gmock
   register: gmock_lib
 
@@ -18,7 +18,7 @@
   register: gmock_sources
 
 
-- name: Download gmock (if it does not exist in the local repo)
+- name: Download {{ gmock.file }}
   get_url:
     url: https://github.com/paulsapps/gmock-1.7.0/archive/master.zip
     dest: "{{ local_repository_path }}/lib"

@@ -6,3 +6,4 @@
 - include: ccfits.yml
 - include: modbus.yml
 - include: gmock.yml
+# - include: f2c.yml   # It does not work on 64bits

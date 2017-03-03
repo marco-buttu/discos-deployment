@@ -26,6 +26,7 @@
     - jpackage-utils
     - unzip
     - libtool
+    - libselinux-python
 
 
 - name: "To avoid yum automatic updates, remove yum-cron"
