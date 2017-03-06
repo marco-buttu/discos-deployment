@@ -2,8 +2,5 @@
 
 - include: create_users_groups.yml
 - include: yum_packages.yml
-- include: python_packages.yml  # See comments in the file
-- include: ccfits.yml
-- include: modbus.yml
-- include: gmock.yml
-# - include: f2c.yml   # It does not work on 64bits
+- include: acs.yml
+- include: discos_dependencies.yml
