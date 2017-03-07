@@ -28,14 +28,25 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     config.vm.define "repository" do |repo|
         repo.vm.provision "shell", inline: $repo_provisioning
         repo.vm.hostname = "repo-test"
-        repo.vm.network :private_network, ip: "192.168.60.10"
+        repo.vm.network :private_network, ip: "192.168.200.199"
     end
 
+    # ACS node n.1 (mng: manager)
+    config.vm.define "discos-mng" do |node|
+        node.vm.hostname = "discos-mng"
+        node.vm.network :private_network, ip: "192.168.200.200"
+    end
 
-    # ACS node n.1 (ms: minor servo)
-    config.vm.define "nuraghe-ms" do |ms|
-        ms.vm.hostname = "nuraghe-ms"
-        ms.vm.network :private_network, ip: "192.168.60.11"
+    # ACS node n.2 (as: active surface)
+    config.vm.define "discos-as" do |node|
+        node.vm.hostname = "discos-as"
+        node.vm.network :private_network, ip: "192.168.200.201"
+    end
+
+    # ACS node n.3 (ms: minor servo)
+    config.vm.define "discos-ms" do |node|
+        node.vm.hostname = "discos-ms"
+        node.vm.network :private_network, ip: "192.168.200.202"
     end
 
 end

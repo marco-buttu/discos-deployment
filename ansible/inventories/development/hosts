@@ -1,19 +1,28 @@
-[nuraghe]
-# nuraghe-ms
-192.168.60.11
+[discos-mng]
+192.168.200.200
 
+[discos-as]
+192.168.200.201
 
-[escs]
-# escs-xx
-192.168.60.20
+[discos-ms]
+192.168.200.202
 
+[nuraghe:children]
+discos-mng
+discos-as
+discos-ms
+
+[escs:children]
+discos-mng
 
 [multi:children]
 nuraghe
 escs
 
-
-# Variables that will be applied to all servers
 [multi:vars]
 ansible_user=vagrant
 ansible_password=vagrant
+
+
+[local]
+localhost

@@ -1,11 +1,11 @@
 ---
 
-- name: Create a local directory to be used as a repository
-  file: path={{ local_repository_path }} state=directory
-  delegate_to: 127.0.0.1
+- name: Before starting the deployment, apply local tasks
+  hosts: local
+  tasks:
+    - name: Create a local directory to be used as a repository
+      file: path={{ local_repository_path }} state=directory
 
-
-# This playbook deploys the whole application stack.
 
 - name: Apply common configuration to all nodes
   hosts: all
@@ -15,7 +15,7 @@
     - common
 
 # - name: configure the manager
-#   hosts: manager
+#   hosts: discos-mng
 #   remote_user: root
 #
 #   roles:

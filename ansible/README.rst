@@ -12,4 +12,3 @@ To deploy the whole Nuraghe's production infrastructure::
 To deploy a particular play on Nuraghe, for instance `playfile.yml`::
 
     $ ansible-playbook -i inventories/development playfile.yml --limit nuraghe
-
