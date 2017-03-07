@@ -4,11 +4,6 @@
 # CFITSIO and CCFITS Installation
 #################################
 
-- set_fact:
-    cfitsio: { file: 'cfitsio3370.tar.gz', build_dir: 'cfitsio' }
-    ccfits: { file: 'CCfits-2.4.tar.gz', build_dir: 'CCfits' }
-
-
 - name: Check if {{ cfitsio.file }} is installed
   stat: path=/usr/local/include/fitsio.h
   register: cfitsio_include
@@ -99,10 +94,6 @@
 # MODBUS Installation
 #####################
 
-- set_fact:
-    modbus: { file: 'libmodbus-3.0.6.tar.gz', build_dir: 'libmodbus-3.0.6' }
-
-
 - name: Check if {{ modbus.file }} is installed
   stat: path=/usr/local/lib/libmodbus.so
   register: modbus_lib
@@ -154,13 +145,6 @@
 ####################
 # GMOCK Installation
 ####################
-
-- set_fact:
-    gmock: { file: 'gmock-1.7.0-master.zip', build_dir: 'gmock-1.7.0-master' }
-
-- set_fact:
-    gmock_build: "{{ remote_build_path }}/{{ gmock.build_dir }}"
-
 
 - name: Check if {{ gmock.file }} is installed
   stat: path=/usr/local/lib/gmock

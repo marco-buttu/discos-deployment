@@ -2,3 +2,37 @@
 
 local_repository_path: "{{ lookup('env','HOME') }}/repository"
 remote_build_path: /tmp/builds
+
+
+###############
+# ACS Variables
+###############
+
+acs_tag: 'ACS-FEB2017'
+
+acs_orig: {
+  base: 'http://webdav.sco.alma.cl/public/Releases/ACS-FEB2017/CentOS6',
+  file: 'ACS-COMMON-FEB2017-TEMP-2-CentOS-6.8-x86_64.tar.bz2'
+}
+
+acs_dest: { file: 'acs-2017-02-binaries-64bit.tar.bz2' }
+
+extprod_orig: {
+  base: "{{ acs_orig.base }}",
+  file: 'ExtProd-COMMON-FEB2017-TEMP-2-CentOS-6.8-x86_64.tar.bz2'
+}
+
+extprod_dest: { file: 'extprod-2017-02-binaries-64bit.tar.bz2' }
+
+
+###############################
+# DISCOS Dependencies Variables
+###############################
+
+cfitsio: { file: 'cfitsio3370.tar.gz', build_dir: 'cfitsio' }
+ccfits: { file: 'CCfits-2.4.tar.gz', build_dir: 'CCfits' }
+
+modbus: { file: 'libmodbus-3.0.6.tar.gz', build_dir: 'libmodbus-3.0.6' }
+
+gmock: { file: 'gmock-1.7.0-master.zip', build_dir: 'gmock-1.7.0-master' }
+gmock_build: "{{ remote_build_path }}/{{ gmock.build_dir }}"
