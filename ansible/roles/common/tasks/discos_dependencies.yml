@@ -20,13 +20,13 @@
 
 
 - name: Check if the cfitsio sources exist in the local repository
-  stat: path={{ local_repository_path }}/lib/{{ cfitsio.file }}
+  stat: path={{ local_repository_path }}/{{ cfitsio.file }}
   delegate_to: 127.0.0.1
   register: cfitsio_sources
 
 
 - name: Check if the ccfits sources exist in the local repository
-  stat: path={{ local_repository_path }}/lib/{{ ccfits.file }}
+  stat: path={{ local_repository_path }}/{{ ccfits.file }}
   delegate_to: 127.0.0.1
   register: ccfits_sources
 
@@ -34,7 +34,7 @@
 - name: Download {{ cfitsio.file }}
   get_url:
     url: ftp://heasarc.gsfc.nasa.gov/software/fitsio/c/{{ cfitsio.file }}
-    dest: "{{ local_repository_path }}/lib"
+    dest: "{{ local_repository_path }}"
   when:
     - cfitsio_include.stat.exists == False
     - cfitsio_sources.stat.exists == False
@@ -44,7 +44,7 @@
 - name: Download {{ ccfits.file }}
   get_url:
     url: http://heasarc.gsfc.nasa.gov/fitsio/CCfits-2.4/{{ ccfits.file }}
-    dest: "{{ local_repository_path }}/lib"
+    dest: "{{ local_repository_path }}"
   when:
     - ccfits_include.stat.exists == False
     - ccfits_sources.stat.exists == False
@@ -57,7 +57,7 @@
 
 - name: Copy {{ cfitsio.file }} to the remote {{ remote_build_path }}
   unarchive:
-    src={{ local_repository_path }}/lib/{{ cfitsio.file }}
+    src={{ local_repository_path }}/{{ cfitsio.file }}
     dest={{ remote_build_path }}
   when: cfitsio_include.stat.exists == False
 
@@ -73,7 +73,7 @@
 
 - name: Copy {{ ccfits.file }} to the remote {{ remote_build_path }}
   unarchive:
-    src={{ local_repository_path }}/lib/{{ ccfits.file }}
+    src={{ local_repository_path }}/{{ ccfits.file }}
     dest={{ remote_build_path }}
   when: ccfits_include.stat.exists == False
 
@@ -109,7 +109,7 @@
 
 
 - name: "Check if the modbus sources exist in the local repository"
-  stat: path={{ local_repository_path }}/lib/{{ modbus.file }}
+  stat: path={{ local_repository_path }}/{{ modbus.file }}
   delegate_to: 127.0.0.1
   register: modbus_sources
 
@@ -117,7 +117,7 @@
 - name: Download modbus (if it does not exist in the local repo)
   get_url:
     url: http://libmodbus.org/releases/{{ modbus.file }}
-    dest: "{{ local_repository_path }}/lib"
+    dest: "{{ local_repository_path }}"
   when:
     - modbus_sources.stat.exists == False
     - modbus_lib.stat.exists == False
@@ -130,7 +130,7 @@
 
 - name: Copy {{ modbus.file }} to the remote {{ remote_build_path }}
   unarchive:
-    src={{ local_repository_path }}/lib/{{ modbus.file }}
+    src={{ local_repository_path }}/{{ modbus.file }}
     dest={{ remote_build_path }}
   when: modbus_lib.stat.exists == False
 
@@ -168,7 +168,7 @@
 
 
 - name: Check if the {{ gmock.file }}  exists in the local repository
-  stat: path={{ local_repository_path }}/lib/{{ gmock.file }}
+  stat: path={{ local_repository_path }}/{{ gmock.file }}
   delegate_to: 127.0.0.1
   register: gmock_sources
 
@@ -176,7 +176,7 @@
 - name: Download {{ gmock.file }}
   get_url:
     url: https://github.com/paulsapps/gmock-1.7.0/archive/master.zip
-    dest: "{{ local_repository_path }}/lib"
+    dest: "{{ local_repository_path }}"
   when:
     - gmock_lib.stat.exists == False
     - gmock_sources.stat.exists == False
@@ -189,7 +189,7 @@
 
 - name: Copy {{ gmock.file }} to the remote {{ remote_build_path }}
   unarchive:
-    src={{ local_repository_path }}/lib/{{ gmock.file }}
+    src={{ local_repository_path }}/{{ gmock.file }}
     dest={{ remote_build_path }}
   when: gmock_lib.stat.exists == False
 
@@ -299,4 +299,5 @@
   become: true
   shell: "{{ item }}"
   with_items:
-    - pip install unittest2
+    - pip install unittest2==0.5.1
+    - pip install mocker==1.1.1

@@ -5,6 +5,7 @@
       base: 'http://webdav.sco.alma.cl/public/Releases/ACS-FEB2017/CentOS6',
       file: 'ACS-COMMON-FEB2017-TEMP-2-CentOS-6.8-x86_64.tar.bz2' }
     acs_dest: { file: 'acs-2017-02-binaries-64bit.tar.bz2' }
+    acs_tag: 'ACS-FEB2017'
 
 
 - set_fact:
@@ -13,6 +14,11 @@
       file: 'ExtProd-COMMON-FEB2017-TEMP-2-CentOS-6.8-x86_64.tar.bz2' }
     extprod_dest: { file: 'extprod-2017-02-binaries-64bit.tar.bz2' }
 
+# ACS source files from:
+# http://git-dev.sco.alma.cl/cgit/ACS/
+#
+# ACS binaries from:
+# http://webdav.sco.alma.cl/public/Releases/
 
 - name: Create a temporary directory for the build
   become: True
@@ -31,13 +37,13 @@
 
 
 - name: Check if ACS binaries exist in the local repository
-  stat: path={{ local_repository_path }}/acs/{{ acs_dest.file }}
+  stat: path={{ local_repository_path }}/{{ acs_dest.file }}
   delegate_to: 127.0.0.1
   register: acs_bin
 
 
 - name: Check if ACS extprod exists in the local repository
-  stat: path={{ local_repository_path }}/acs/{{ extprod_dest.file }}
+  stat: path={{ local_repository_path }}/{{ extprod_dest.file }}
   delegate_to: 127.0.0.1
   register: extprod_bin
 
@@ -45,7 +51,7 @@
 - name: Download {{ acs_orig.file }}
   get_url:
     url: "{{ acs_orig.base }}/{{ acs_orig.file }}"
-    dest: "{{ local_repository_path }}/acs/{{ acs_dest.file }}"
+    dest: "{{ local_repository_path }}/{{ acs_dest.file }}"
   when:
     - acs_bin.stat.exists == False
     - target_dir.matched|int == 0
@@ -55,7 +61,7 @@
 - name: Download {{ extprod_orig.file }}
   get_url:
     url: "{{ extprod_orig.base }}/{{ extprod_orig.file }}"
-    dest: "{{ local_repository_path }}/acs/{{ extprod_dest.file }}"
+    dest: "{{ local_repository_path }}/{{ extprod_dest.file }}"
   when:
     - extprod_bin.stat.exists == False
     - target_dir.matched|int == 0
@@ -65,7 +71,7 @@
 - name: Copy {{ acs_dest.file }} to the remote
   become: True
   copy:
-    src: "{{ local_repository_path }}/acs/{{ acs_dest.file }}"
+    src: "{{ local_repository_path }}/{{ acs_dest.file }}"
     dest: "{{ remote_build_path }}"
     owner: "{{ user }}"
     group: acs
@@ -75,7 +81,7 @@
 - name: Copy {{ extprod_dest.file }} to the remote
   become: True
   copy:
-    src: "{{ local_repository_path }}/acs/{{ extprod_dest.file }}"
+    src: "{{ local_repository_path }}/{{ extprod_dest.file }}"
     dest: "{{ remote_build_path }}"
     owner: "{{ user }}"
     group: acs
@@ -103,3 +109,16 @@
   file: path={{ item }} state=absent
   with_items:
     - "{{ remote_build_path }}"
+
+
+
+################################
+# Set the ACS user's environment
+################################
+
+#- name: Copy the .acs dir from /alma to /home/{{ user }}
+#  become: True
+#  become_user: "{{ user }}"
+#  command: chdir=/alma/{{ acs_tag }}/ACSSW/config {{ item }}
+#  with_items:
+#    - cp .acs /home/{{ user }} -R

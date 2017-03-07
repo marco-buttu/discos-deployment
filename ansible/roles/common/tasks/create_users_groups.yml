@@ -5,6 +5,6 @@
   group: name=acs gid=335 state=present
 
 
-- name: Add the manager user
+- name: Add the {{ user }} user
   become: true
   user: name={{ user }} group=acs uid=3060 state=present
