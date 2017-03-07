@@ -10,13 +10,12 @@
 - name: Apply common configuration to all nodes
   hosts: all
   remote_user: root
-
   roles:
     - common
 
-# - name: configure the manager
-#   hosts: discos-mng
-#   remote_user: root
-#
-#   roles:
-#     - idonotknow
+
+- name: Configure the manager
+  hosts: discos-mng
+  remote_user: "{{ user }}"
+  roles:
+    - manager
