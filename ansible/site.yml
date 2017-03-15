@@ -1,5 +1,6 @@
 ---
 
+
 - name: Before starting the deployment, apply local tasks
   hosts: local
   tasks:
@@ -14,8 +15,8 @@
     - common
 
 
-- name: Configure the manager
-  hosts: discos-mng
-  remote_user: "{{ user }}"
-  roles:
-    - manager
+# - name: Configure the manager
+#   hosts: discos-mng
+#   remote_user: "{{ user }}"
+#   roles:
+#     - manager

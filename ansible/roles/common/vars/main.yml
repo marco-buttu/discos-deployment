@@ -10,6 +10,8 @@ remote_build_path: /tmp/builds
 
 acs_tag: 'ACS-FEB2017'
 
+cdb_versions: ['SRT', 'Medicina', 'Noto']
+
 acs_orig: {
   base: 'http://webdav.sco.alma.cl/public/Releases/ACS-FEB2017/CentOS6',
   file: 'ACS-COMMON-FEB2017-TEMP-2-CentOS-6.8-x86_64.tar.bz2'
