@@ -1,0 +1,12 @@
+if [ -f /etc/bashrc ]; then
+	. /etc/bashrc
+fi
+
+alias ll='ls -la'
+alias la='ls -A'
+alias lt='ls -lt | more'
+
+export PYTHONSTARTUP=$HOME/.pyrc
+export EDITOR=vi
+
+source {{ acsconf_dir }}/.acsenv

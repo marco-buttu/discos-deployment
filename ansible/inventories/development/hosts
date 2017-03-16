@@ -1,11 +1,11 @@
 [discos-mng]
-192.168.200.200
+discos-mng ansible_ssh_host=192.168.200.200
 
 [discos-as]
-192.168.200.201
+discos-as ansible_ssh_host=192.168.200.201
 
 [discos-ms]
-192.168.200.202
+discos-ms ansible_ssh_host=192.168.200.202
 
 [nuraghe:children]
 discos-mng
