@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 source {{ acsconf_dir }}/.bash_profile.acs
-source {{ acsconf_dir }}/.discosenv
 
 
 if [ -z "$INTROOT" ]; then
