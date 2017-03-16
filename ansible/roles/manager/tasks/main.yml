@@ -1,6 +1,18 @@
 ---
 
-- name: Create the xxx directory
+- name: Create the directory structure
   become: True
-  become_user: "{{ user }}"
-  command: echo "foo"
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ user }}"
+    group: acs
+    mode: "u+rwx,g+xr,o+x"
+    recurse: yes
+  with_items:
+    - /archive/
+    - /archive/data
+    - /archive/schedules
+    - /archive/logs
+    - /archive/events
+    - /archive/extraData

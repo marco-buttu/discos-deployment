@@ -135,17 +135,6 @@
     mode: 0644
 
 
-- name: Copy the discosenv template
-  become: True
-  become_user: "{{ user }}"
-  template:
-    src: discosenv
-    dest: "{{ acsconf_dir }}/.discosenv"
-    owner: "{{ user }}"
-    group: acs
-    mode: 0644
-
-
 - name: Create the INTROOT
   become: True
   become_user: "{{ user }}"
