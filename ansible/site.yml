@@ -1,6 +1,5 @@
 ---
 
-
 - name: Before starting the deployment, apply local tasks
   hosts: local
   tasks:
@@ -8,7 +7,7 @@
       file: path={{ local_repository_path }} state=directory
 
 
-- name: Apply common configuration to all nodes
+- name: Apply common configurations to all nodes
   hosts: all
   remote_user: root
   roles:
