@@ -4,3 +4,4 @@
 - include: yum_packages.yml
 - include: acs.yml
 - include: discos_dependencies.yml
+- include: utilities.yml

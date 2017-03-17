@@ -14,6 +14,8 @@ acsconf_dir: /home/{{ user }}/.acs
 
 acs_bin_path: /alma/{{ acs_tag }}/ACSSW/bin
 
+acs_pybin_path: /alma/{{ acs_tag }}/Python/bin
+
 cdb_versions: ['SRT', 'Medicina', 'Noto']
 
 acs_orig: {

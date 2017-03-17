@@ -1,0 +1,22 @@
+---
+
+- name: Install ipython
+  become: true
+  become_user: "{{ user }}"
+  become_flags: "-i"
+  command: "{{ item }}"
+  with_items:
+    - pip install ipython
+
+
+- name: Copy the ipython startup files
+  become: True
+  become_user: "{{ user }}"
+  template:
+    src: ipython_startup_01.py
+    dest: "/home/{{ user }}/.ipython/profile_default/startup/01.py"
+    owner: "{{ user }}"
+    group: acs
+    mode: 0644
+
+

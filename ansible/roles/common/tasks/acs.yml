@@ -124,6 +124,17 @@
     force: yes
 
 
+- name: Copy the pyrc template
+  become: True
+  become_user: "{{ user }}"
+  template:
+    src: pyrc
+    dest: /home/{{ user }}/.pyrc
+    owner: "{{ user }}"
+    group: acs
+    mode: 0644
+
+
 - name: Copy the acsenv template
   become: True
   become_user: "{{ user }}"
@@ -138,9 +149,10 @@
 - name: Create the INTROOT
   become: True
   become_user: "{{ user }}"
+  become_flags: "-i"
   command: chdir={{ discos_root }} {{ item }}
   with_items:
-      - "{{ acs_bin_path }}/getTemplateForDirectory INTROOT introot"
+      - getTemplateForDirectory INTROOT introot
 
 
 # ACS source files from:
