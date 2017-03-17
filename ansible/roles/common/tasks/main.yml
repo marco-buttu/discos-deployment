@@ -1,6 +1,7 @@
 ---
 
 - include: create_users_groups.yml
+- include: network.yml
 - include: yum_packages.yml
 - include: acs.yml
 - include: discos_dependencies.yml
