@@ -91,6 +91,25 @@
     - "{{ remote_build_path }}"
 
 
+#########################
+# Apply some patch to ACS
+#########################
+
+- name: Read the BaciHelper.py file
+  shell: cat {{ baci_helper }}
+  register: baci_helper_content
+
+- name: Replace BaciHelper.py
+  become: True
+  template:
+    src: BaciHelper.py
+    dest: "{{ baci_helper }}"
+    owner: "{{ user }}"
+    group: acs
+    mode: 0644
+    force: yes
+  when: baci_helper_content.stdout.find('getattr') == -1
+
 
 ################################
 # Set the ACS user's environment
@@ -107,7 +126,7 @@
 - name: Copy the .acs dir from /alma to {{ acsconf_dir }}
   become: True
   become_user: "{{ user }}"
-  command: chdir=/alma/{{ acs_tag }}/ACSSW/config {{ item }}
+  command: chdir={{ acssw }}/config {{ item }}
   with_items:
     - cp .acs {{ acsconf_dir }} -R
 
