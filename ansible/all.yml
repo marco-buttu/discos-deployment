@@ -2,6 +2,7 @@
 
 - name: Before starting the deployment, apply local tasks
   tags: [provisioning]
+  connection: local
   hosts: local
   tasks:
     - name: Create a local directory to be used as a repository

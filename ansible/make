@@ -1,0 +1,63 @@
+#! /usr/bin/env python
+
+import os
+import subprocess
+import argparse
+
+parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser(
+    description='Provision the system or deploy DISCOS')
+parser.add_argument(
+    'system',
+    help='System to build (nuraghe, escs, discos-mng ...)')
+parser.add_argument(
+    'build_type',
+    help='Type of build',
+    choices=['production', 'development'])
+parser.add_argument(
+    '-s',
+    '--station',
+    default='',
+    choices=['SRT', 'Medicina', 'Noto'],
+    required=False)
+parser.add_argument(
+    '-o',
+    '--only',
+    default='',
+    choices=['provisioning', 'discos'],
+    required=False)
+
+args = parser.parse_args()
+
+
+ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
+system = args.system
+inventory = '%s/inventories/%s' % (ROOT_DIR, args.build_type)
+playbook = '%s/all.yml'  % ROOT_DIR
+tags = ''
+
+# TODO: from here: we need to select between -only provisioning
+# or only deploying, and in the last case, which version: 0.6, master...
+
+
+if args.station not in ('nuraghe', 'escs') and not args.station:
+    parser.error('You must specify a station (SRT, Medicina, Noto)')
+else:
+    extra_vars = 'cdb=%s'  % args.system
+
+subprocess.call([
+    'ansible-playbook', 'all.yml',
+    '--inventory-file', inventory,
+    '--limit', system,
+    '--extra-vars', extra_vars,
+    '--tags', tags,
+])
+
+
+# parse the system: it must be inside the hosts.
+# In this way we can have a nice error message
+# ./make nuraghe development
+# ./make discos-mng development --station SRT
+# ./make discos-mng production --station SRT --only deployment  --version 0.6
+# ./make discos-mng production --station SRT --only deployment  --version master
+# ./make discos-mng development --station SRT --only provisioning
