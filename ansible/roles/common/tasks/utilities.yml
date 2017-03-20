@@ -1,12 +1,13 @@
 ---
 
-- name: Install ipython
+- name: Install ipython and create default profile
   become: true
   become_user: "{{ user }}"
   become_flags: "-i"
   command: "{{ item }}"
   with_items:
     - pip install ipython
+    - ipython profile create
 
 
 - name: Copy the ipython startup files
@@ -18,5 +19,3 @@
     owner: "{{ user }}"
     group: acs
     mode: 0644
-
-
