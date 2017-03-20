@@ -1,3 +1,5 @@
 ---
 
 user: discos
+discos_root: "/home/{{ user }}"
+discos_dir: "{{ discos_root }}/discos"

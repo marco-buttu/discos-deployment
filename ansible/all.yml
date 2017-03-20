@@ -1,6 +1,7 @@
 ---
 
 - name: Before starting the deployment, apply local tasks
+  tags: [provisioning]
   hosts: local
   tasks:
     - name: Create a local directory to be used as a repository
@@ -8,6 +9,7 @@
 
 
 - name: Apply common configurations to all nodes
+  tags: [provisioning]
   hosts: all
   remote_user: root
   roles:
@@ -15,6 +17,7 @@
 
 
 - name: Configure the manager
+  tags: [provisioning]
   hosts: discos-mng
   remote_user: "{{ user }}"
   roles:
