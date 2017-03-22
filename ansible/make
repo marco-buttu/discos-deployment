@@ -7,8 +7,8 @@
   $ ./make discos-mng:development --station SRT
   $ ./make nuraghe:development --version 0.6
   $ ./make nuraghe:development --version latest
-  $ ./make nuraghe:development --only deployment --version latest
-  $ ./make nuraghe:development --only deployment --version master
+  $ ./make nuraghe:development --only deploying --version latest
+  $ ./make nuraghe:development --only deploying --version master
   $ ./make nuraghe:development --only provisioning
 """
 
@@ -22,7 +22,7 @@ import subprocess
 
 ENVIRONMENTS = ['development', 'production']
 STATIONS = {'SRT': 'nuraghe', 'Medicina': 'escs', 'Noto': 'escs-noto'}
-TAGS = ['provisioning', 'deployment']
+TAGS = ['provisioning', 'deploying']
 REPO = 'https://github.com/marco-buttu/pycon_doctest.git'
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
 
@@ -136,11 +136,11 @@ if args.station is not None:
 # Come posso gestire due versioni? Se voglio avere nella
 # Stessa macchina il master e la versione X?
 # Potrei fare cosi': quando uno da --version, allora
-# viene usato il tag deployment e anche quello version. 
+# viene usato il tag deploying e anche quello version. 
 # Il tag version verifica se quella versione esiste gia',
 # e se non esiste fa il clone e configura acsenv in modo
 # da creare un alias che permetta di passare da una introot
-# all'altra.  L'introot viene creata durante il deployment,
+# all'altra.  L'introot viene creata durante il deploying,
 # non durante acs.yml.
 # Il prompt della shell deve mostrare il tipo di branch:
 # master, version-0.6, ecc.
