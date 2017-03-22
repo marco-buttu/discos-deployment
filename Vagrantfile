@@ -2,8 +2,20 @@
 # vi: set ft=ruby :
 
 $repo_provisioning = <<SCRIPT
+yum -y update
 sudo yum groupinstall -y 'development tools'
-sudo yum install -y gcc libffi-devel python-devel openssl-devel
+sudo yum install -y gcc libffi-devel python-devel zlib-dev
+sudo yum install -y openssl-devel sqlite-devel bzip2-devel
+yum install xz-libs
+wget http://www.python.org/ftp/python/2.7.10/Python-2.7.10.tar.xz
+xz -d Python-2.7.10.tar.xz
+tar -xvf Python-2.7.10.tar
+cd Python-2.7.10
+./configure --prefix=/usr/local
+make
+make altinstall
+sudo rm Python* -r -f
+export PATH="/usr/local/bin:$PATH"
 wget https://bootstrap.pypa.io/get-pip.py
 sudo python get-pip.py
 rm get-pip.py
@@ -27,7 +39,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # Provisioning server: it will deploy all ACS nodes
     config.vm.define "repository" do |repo|
         repo.vm.provision "shell", inline: $repo_provisioning
-        repo.vm.hostname = "repo-test"
+        repo.vm.hostname = "repository"
         repo.vm.network :private_network, ip: "192.168.200.199"
     end
 

@@ -1,26 +1,70 @@
-Examples
-========
+HOW TO MAKE THE SYSTEM
+======================
+To provision nuraghe, development environment, and deploy
+DISCOS master branch::
 
-To deploy the whole Nuraghe's development infrastructure::
+  $ ./make nuraghe:development
 
-    $ ansible-playbook -i inventories/development all.yml -l nuraghe -e "cdb=SRT"
+To provision nuraghe, production environment, and deploy
+DISCOS latest stable version::
 
-Here the switch ``-l`` means ``--limit`` and ``-e`` means ``--extra-vars``.
-To deploy one single machine, just give the machine name to the limit switch.
-For instance, to deploy discos-mng for SRT::
+  $ ./make nuraghe:production
 
-    $ ansible-playbook -i inventories/development all.yml -l discos-mng -e "cdb=SRT"
 
-To deploy the whole Nuraghe's production infrastructure::
+.. note:: The option ``nuraghe:development`` will deploy
+   the DISCOS *master* branch.  This is the default behavior
+   for the development environment.  When in development,
+   if you want to specify another DISCOS version, you have to
+   use the ``--version`` switch, as you will see in a moment.
+   The option ``nuraghe:production`` will deploy the DISCOS
+   *latest stable* version.  This is the default behavior
+   for the production environment.  When in production,
+   if you want to specify another DISCOS version, you have to
+   use the ``--version`` switch and also the ``--force``
+   switch , as you will see later.
 
-    $ ansible-playbook -i inventories/production all.yml -l nuraghe -e "cdb=SRT"
+To provision escs, development environment, and deploy
+DISCOS master branch::
 
-To deploy a particular play on Nuraghe, for instance `playfile.yml`::
+  $ ./make escs development
 
-    $ ansible-playbook -i inventories/development playfile.yml -l nuraghe
+To provision discos-mng, development environment, and deploy
+DISCOS master branch, for SRT::
 
-To provision only, withoud taking care of discos::
+  $ ./make discos-mng development --station SRT
 
-    $ ansible-playbook -i inventories/development all.yml -l nuraghe -e "cdb=SRT" -t provisioning
+To provision nuraghe, development environment, and deploy
+DISCOS version 0.6::
 
-deploy a particular play on Nuraghe, for instance `playfile.yml`::
+  $ ./make nuraghe development --version 0.6
+
+To provision nuraghe, development environment, and deploy
+DISCOS latest stable version::
+
+  $ ./make nuraghe development --version latest
+
+To deploy DISCOS latest stable version on nuraghe development
+environment, without provisioning::
+
+  $ ./make nuraghe development --only deployment --version latest
+
+To deploy DISCOS master version on nuraghe development
+environment, without provisioning::
+
+  $ ./make nuraghe development --only deployment
+
+To provision nuraghe development environment, without deploying
+DISCOS::
+
+  $ ./make nuraghe development --only provisioning
+
+The following configuration raises an error, because
+only the latest stable version is allowed in production::
+
+       $ ./make nuraghe production --version master
+
+When in production, if you want to force a version
+different than the latest one, you have to use the ``--force``
+switch::
+
+  $ ./make nuraghe production --version master --force
