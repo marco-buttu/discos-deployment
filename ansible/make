@@ -21,13 +21,14 @@ import subprocess
 
 
 ENVIRONMENTS = ['development', 'production']
-STATIONS = ['SRT', 'Medicina', 'Noto']
+STATIONS = {'SRT': 'nuraghe', 'Medicina': 'escs', 'Noto': 'escs-noto'}
 TAGS = ['provisioning', 'deployment']
 REPO = 'https://github.com/marco-buttu/pycon_doctest.git'
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
 
 systems = []
 clusters = {}
+all_clusters = []
 for env in ENVIRONMENTS:
     clusters[env] = []
     inventory = '%s/inventories/%s' % (ROOT_DIR, env)
@@ -38,6 +39,7 @@ for env in ENVIRONMENTS:
                 text = line[line.find('[')+1:line.find(']')]
                 host = text.split(':')[0] if ':' in text else text
                 if host not in  ('multi', 'local'):
+                    all_clusters.append(host)
                     clusters[env].append(host)
                     systems.append('%s:%s' % (host, env))
 
@@ -51,11 +53,17 @@ parser.add_argument(
 parser.add_argument(
     '-s',
     '--station',
-    default='')
+    choices=STATIONS.keys(),
+    default=None)
 parser.add_argument(
     '-o',
     '--only',
-    default='')
+    choices=TAGS,
+    default=None)
+parser.add_argument(
+    '--sim',
+    action='store_true',
+    help='simulation mode')
 
 
 def error(msg, choices=(), name=''):
@@ -89,45 +97,39 @@ else:
         c = allowed_clusters[-1]  # A random cluster
         # wrong_cluster:right_env
         if cluster_arg not in allowed_clusters:
-             msg = ('Cluster "%s" not found in the "%s" '
-                    'environment.\n' % (cluster_arg, env_arg))
-             error(msg,
-                   allowed_clusters,
-                   name='cluster (in %s)' % env_arg)
+            msg = ('Cluster "%s" not found in the "%s" '
+                   'environment.\n' % (cluster_arg, env_arg))
+            error(msg,
+                  allowed_clusters,
+                  name='cluster (in %s)' % env_arg)
     else:
-        pass
         # right_cluster:wrong_env
+        if cluster_arg in all_clusters:
+            msg = ('Environment "%s" not found in %s.\n'
+                   'Please use a right cluster:environment combination, like:\n'
+                   '%s, %s, %s, ...'
+                   % (env_arg, ENVIRONMENTS, systems[0], systems[-1], systems[-2]))
+            error(msg)
+        # wrong_cluster:wrong_env
+        if cluster_arg not in all_clusters:
+            error('System "%s:%s" not recognized.\n' % (cluster_arg, env_arg),
+                  systems,
+                  name='system')
 
-# TODO: from here. Manage the case of env_arg not in ENVIRONMENTS:
-# I have to check if the cluster is not in clusters, and in case
-# it is not, I have to raise error.  If it is in clusters, I have
-# to raise the error for env not in ENV.
+inventory = '%s/inventories/%s' % (ROOT_DIR, env_arg)
 
-inventory = '%s/inventories/%s' % (ROOT_DIR, user_env)
+if cluster_arg in STATIONS.values():
+    # When the system is nuraghe, escs or escs-noto, the station
+    # is automatically set to SRT, Medicina, and Noto
+    for station in STATIONS:
+        if STATIONS[station] == cluster_arg:
+            default_station = station
+            break
+    extra_vars = '"cdb=%s"' % default_station
 
-if args.build_type not in ENVIRONMENTS:
-    error('You must specify an available build type.', BUILDS)
-else:
-    inventory = '%s/inventories/%s' % (ROOT_DIR, args.build_type)
-
-inventory = '%s/inventories/%s' % (ROOT_DIR, args.build_type)
-
-# itertools.product(hosts, ENVIRONMENT)
-
-# The system must be defined in hosts (like nuraghe, escs, ...)
-system = args.system
-hosts = []
-with open(os.path.join(inventory, 'hosts')) as f:
-    for line in f:
-        if line.startswith('['):
-            text = line[line.find('[')+1:line.find(']')]
-            host = text.split(':')[0] if ':' in text else text
-            if host not in  ('multi', 'local'):
-                hosts.append(host)
-
-if args.system not in hosts:
-    error('You must specify an available system.', hosts)
-
+if args.station is not None:
+    # Override the default value
+    extra_vars = '"cdb=%s"' % args.station
 
 # Version management
 # $ ./make nuraghe development --version 0.6
@@ -146,23 +148,17 @@ if args.system not in hosts:
 playbook = '%s/all.yml'  % ROOT_DIR
 tags = ''
 
-
-# When the system is nuraghe or escs, the station is automatically
-# SRT and Medicina.  Noto?
-if args.station not in ('nuraghe', 'escs') and not args.station:
-    parser.error(
-        'You must specify a station (SRT, Medicina, Noto).'
-        '%s'  % __doc__
-    )
-else:
-    extra_vars = 'cdb=%s'  % args.system
-
-subprocess.call([
+command = [
     'ansible-playbook', 'all.yml',
     '--inventory-file', inventory,
     '--limit', cluster_arg,
     '--extra-vars', extra_vars,
-    '--tags', tags,
-])
+    '--tags', tags
+]
 
+if args.sim:
+    print('You want to call:')
+    print(' '.join(command))
 
+else:
+    subprocess.call(command)

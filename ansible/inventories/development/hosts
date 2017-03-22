@@ -15,9 +15,13 @@ discos-ms
 [escs:children]
 discos-mng
 
+[escs-noto:children]
+discos-mng
+
 [multi:children]
 nuraghe
 escs
+escs-noto
 
 [multi:vars]
 ansible_user=vagrant
