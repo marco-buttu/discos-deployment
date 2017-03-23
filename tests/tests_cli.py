@@ -3,8 +3,8 @@ import unittest
 from subprocess import Popen, PIPE
 
 TESTS_DIR = os.path.dirname(os.path.realpath(__file__))
-ANSIBLE_DIR = TESTS_DIR.rstrip('tests')
-SCRIPT = os.path.join(ANSIBLE_DIR, 'make')
+SCRIPT_DIR = TESTS_DIR.rstrip('tests')
+SCRIPT = os.path.join(SCRIPT_DIR, 'make')
 BASECMD = ['python', SCRIPT, '--sim']
 
 

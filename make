@@ -25,13 +25,14 @@ STATIONS = {'SRT': 'nuraghe', 'Medicina': 'escs', 'Noto': 'escs-noto'}
 TAGS = ['provisioning', 'deploying']
 REPO = 'https://github.com/marco-buttu/pycon_doctest.git'
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
+ANSIBLE_DIR = os.path.join(ROOT_DIR, 'ansible')
 
 systems = []
 clusters = {}
 all_clusters = []
 for env in ENVIRONMENTS:
     clusters[env] = []
-    inventory = '%s/inventories/%s' % (ROOT_DIR, env)
+    inventory = '%s/inventories/%s' % (ANSIBLE_DIR, env)
     hosts_file = os.path.join(inventory, 'hosts')
     with open(hosts_file) as f:
         for line in f:
@@ -116,7 +117,7 @@ else:
                   systems,
                   name='system')
 
-inventory = '%s/inventories/%s' % (ROOT_DIR, env_arg)
+inventory = '%s/inventories/%s' % (ANSIBLE_DIR, env_arg)
 
 if cluster_arg in STATIONS.values():
     # When the system is nuraghe, escs or escs-noto, the station
@@ -145,7 +146,7 @@ if args.station is not None:
 # Il prompt della shell deve mostrare il tipo di branch:
 # master, version-0.6, ecc.
 
-playbook = '%s/all.yml'  % ROOT_DIR
+playbook = '%s/all.yml'  % ANSIBLE_DIR
 tags = ''
 
 command = [
