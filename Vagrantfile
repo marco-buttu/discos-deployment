@@ -43,21 +43,21 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         repo.vm.network :private_network, ip: "192.168.200.199"
     end
 
-    # ACS node n.1 (mng: manager)
-    config.vm.define "discos-mng" do |node|
-        node.vm.hostname = "discos-mng"
+    # ACS node n.1
+    config.vm.define "manager" do |node|
+        node.vm.hostname = "manager"
         node.vm.network :private_network, ip: "192.168.200.200"
     end
 
-    # ACS node n.2 (as: active surface)
-    config.vm.define "discos-as" do |node|
-        node.vm.hostname = "discos-as"
+    # ACS node n.2 (active surface)
+    config.vm.define "as" do |node|
+        node.vm.hostname = "as"
         node.vm.network :private_network, ip: "192.168.200.201"
     end
 
-    # ACS node n.3 (ms: minor servo)
-    config.vm.define "discos-ms" do |node|
-        node.vm.hostname = "discos-ms"
+    # ACS node n.3 (minor servo)
+    config.vm.define "ms" do |node|
+        node.vm.hostname = "ms"
         node.vm.network :private_network, ip: "192.168.200.202"
     end
 

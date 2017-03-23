@@ -19,7 +19,7 @@
 
 - name: Configure the manager
   tags: [provisioning]
-  hosts: discos-mng
+  hosts: manager
   remote_user: "{{ user }}"
   roles:
     - manager

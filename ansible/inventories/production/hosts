@@ -1,23 +1,27 @@
-[discos-mng]
-discos-mng ansible_ssh_host=192.168.200.200
+[manager]
+manager ansible_ssh_host=192.168.200.200
 
-[discos-as]
-discos-as ansible_ssh_host=192.168.200.201
+[as]  # active surface
+as ansible_ssh_host=192.168.200.201
 
-[discos-ms]
-discos-ms ansible_ssh_host=192.168.200.202
+[ms]  # minor servo
+ms ansible_ssh_host=192.168.200.202
 
-[nuraghe:children]
-discos-mng
-discos-as
-discos-ms
+[discos_srt:children]
+manager
+as
+ms
 
-[escs:children]
-discos-mng
+[discos_medicina:children]
+manager
+
+[discos_noto:children]
+manager
 
 [multi:children]
-nuraghe
-escs
+discos_srt
+discos_medicina
+discos_noto
 
 [multi:vars]
 ansible_user=vagrant

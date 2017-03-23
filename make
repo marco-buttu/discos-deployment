@@ -1,15 +1,15 @@
 #! /usr/bin/env python
 """Some command line examples:
 
-  $ ./make nuraghe:development
-  $ ./make nuraghe:production
-  $ ./make escs:development
-  $ ./make discos-mng:development --station SRT
-  $ ./make nuraghe:development --version 0.6
-  $ ./make nuraghe:development --version latest
-  $ ./make nuraghe:development --only deploying --version latest
-  $ ./make nuraghe:development --only deploying --version master
-  $ ./make nuraghe:development --only provisioning
+  $ ./make discos_srt:development
+  $ ./make discos_srt:production
+  $ ./make discos_medicina:development
+  $ ./make manager:development --station SRT
+  $ ./make discos_srt:development --version 0.6
+  $ ./make discos_srt:development --version latest
+  $ ./make discos_srt:development --only deploying --version latest
+  $ ./make discos_srt:development --only deploying --version master
+  $ ./make discos_srt:development --only provisioning
 """
 
 from __future__ import print_function
@@ -21,7 +21,11 @@ import subprocess
 
 
 ENVIRONMENTS = ['development', 'production']
-STATIONS = {'SRT': 'nuraghe', 'Medicina': 'escs', 'Noto': 'escs-noto'}
+STATIONS = {
+    'SRT': 'discos_srt',
+    'Medicina': 'discos_medicina',
+    'Noto': 'discos_noto'
+}
 TAGS = ['provisioning', 'deploying']
 REPO = 'https://github.com/marco-buttu/pycon_doctest.git'
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -120,8 +124,8 @@ else:
 inventory = '%s/inventories/%s' % (ANSIBLE_DIR, env_arg)
 
 if cluster_arg in STATIONS.values():
-    # When the system is nuraghe, escs or escs-noto, the station
-    # is automatically set to SRT, Medicina, and Noto
+    # When the system is discos_srt, discos-medicina or discos_noto,
+    # the station is automatically set to SRT, Medicina, and Noto
     for station in STATIONS:
         if STATIONS[station] == cluster_arg:
             default_station = station
@@ -133,7 +137,7 @@ if args.station is not None:
     extra_vars = '"cdb=%s"' % args.station
 
 # Version management
-# $ ./make nuraghe development --version 0.6
+# $ ./make discos_srt development --version 0.6
 # Come posso gestire due versioni? Se voglio avere nella
 # Stessa macchina il master e la versione X?
 # Potrei fare cosi': quando uno da --version, allora

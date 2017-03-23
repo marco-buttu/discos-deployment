@@ -22,7 +22,7 @@ export qt_prefix=$QTLIB
 export PATH=$PATH:$QTDIR/bin
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
 
-{% if ansible_hostname != "discos-mng" %}
-MNG_IP={{ hostvars[groups['discos-mng'].0].ansible_ssh_host }}
+{% if ansible_hostname != "manager" %}
+MNG_IP={{ hostvars[groups['manager'].0].ansible_ssh_host }}
 export MANAGER_REFERENCE=corbaloc::$MNG_IP:3000/Manager
 {% endif %}
