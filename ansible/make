@@ -81,7 +81,7 @@ args = parser.parse_args()
 
 
 # Check if the system cluster:environment exists
-if ':' not in args.system:
+if args.system.count(':') != 1:
     e = ENVIRONMENTS[-1]  # A random environment
     c = clusters[e][-1]  # A random cluster
     msg = ('You must specify an available system.\n'

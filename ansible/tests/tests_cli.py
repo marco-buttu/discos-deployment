@@ -17,6 +17,13 @@ class TestCLI(unittest.TestCase):
         out, err = pipes.communicate()
         self.assertRegexpMatches(err, b'You must specify an available system.')
 
+    def test_too_much_separators(self):
+        """Too much : separators"""
+        cmd = BASECMD + ['nuraghe:development:srt']
+        pipes = Popen(cmd, stdout=PIPE, stderr=PIPE)
+        out, err = pipes.communicate()
+        self.assertRegexpMatches(err, b'You must specify an available system.')
+
     def test_wrong_cluster_and_right_env(self):
         """The user specify a wrong_cluster and right_env"""
         cmd = BASECMD + ['wrong_cluster:development']
