@@ -2,11 +2,41 @@ if [ -f /etc/bashrc ]; then
 	. /etc/bashrc
 fi
 
+
+# Useful aliases
+# ==============
 alias ll='ls -la'
 alias la='ls -A'
 alias lt='ls -lt | more'
 
+# Load ACS definitions
+# ====================
+if [ -f {{ acsconf_dir }}/.bash_profile.acs ]; then
+    source {{ acsconf_dir }}/.bash_profile.acs
+fi
+
+if [ -f {{ discosconf_dir }}/.discosenv ]; then
+    source {{ discosconf_dir }}/.discosenv
+fi
+
+
+# Variables to export
+# ===================
+export PATH=/usr/local/qt/bin/:$PATH
+export QTDIR=/usr/local/qt
+export QTLIB=$QTDIR/lib
+export QTINC=$QTDIR/include
+export qt_prefix=$QTLIB
+export PATH=$PATH:$QTDIR/bin
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
+
 export PYTHONSTARTUP=$HOME/.pyrc
 export EDITOR=vi
 
-source {{ acsconf_dir }}/.acsenv
+
+# Manager reference
+# =================
+{% if ansible_hostname != "manager" %}
+MNG_IP={{ hostvars[groups['manager'].0].ansible_ssh_host }}
+export MANAGER_REFERENCE=corbaloc::$MNG_IP:3000/Manager
+{% endif %}

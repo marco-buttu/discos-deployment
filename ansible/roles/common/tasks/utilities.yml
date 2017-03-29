@@ -1,5 +1,16 @@
 ---
 
+- name: Copy the pyrc template
+  become: True
+  become_user: "{{ user }}"
+  template:
+    src: pyrc
+    dest: /home/{{ user }}/.pyrc
+    owner: "{{ user }}"
+    group: acs
+    mode: 0644
+
+
 - name: Install ipython and create default profile
   become: true
   become_user: "{{ user }}"
@@ -19,6 +30,15 @@
     owner: "{{ user }}"
     group: acs
     mode: 0644
+
+
+- name: Install some Python packages
+  become: true
+  become_user: "{{ user }}"
+  become_flags: "-i"
+  command: "{{ item }}"
+  with_items:
+    - pip install jinja2
 
 
 - name: Copy vimrc

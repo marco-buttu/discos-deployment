@@ -46,8 +46,8 @@ gmock: { file: 'gmock-1.7.0-master.zip', build_dir: 'gmock-1.7.0-master' }
 gmock_build: "{{ remote_build_path }}/{{ gmock.build_dir }}"
 
 
-###############
-# ACS Variables
-###############
+##################
+# DISCOS Variables
+##################
 
-introot: "{{ discos_root }}/introot"
+discosconf_dir: /home/{{ user }}/.discos

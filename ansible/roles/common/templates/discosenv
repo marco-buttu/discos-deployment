@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+if [ -z "$INTROOT" ]; then
+	export INTROOT={{ introot }}
+fi
+if [ -z "$STATION" ]; then
+	export STATION={{ station }}
+fi
+if [ -z "$ACS_CDB" ]; then
+	export ACS_CDB=$HOME/{{ branch }}/{{ cdb }}/Configuration
+fi

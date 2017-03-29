@@ -1,0 +1,43 @@
+---
+
+- name: Create the DISCOS conf directory
+  become: True
+  file:
+    path: "{{ discosconf_dir }}"
+    state: directory
+    owner: "{{ user }}"
+    group: acs
+    mode: 0770
+    recurse: yes
+
+
+- name: Create the DISCOS template directory
+  become: True
+  file:
+    path: "{{ discosconf_dir }}/templates"
+    state: directory
+    owner: "{{ user }}"
+    group: acs
+    mode: 0770
+    recurse: yes
+
+
+- name: Copy the discosenv template
+  become: True
+  become_user: "{{ user }}"
+  copy:
+    src: "{{ role_path }}/templates/discosenv"
+    dest: "{{ discosconf_dir }}/templates/discosenv"
+    owner: "{{ user }}"
+    group: acs
+    mode: 0644
+
+# TODO: render the template into .discos/.discosenv
+
+# - name: Create the INTROOT
+#   become: True
+#   become_user: "{{ user }}"
+#   become_flags: "-i"
+#   command: chdir={{ discos_root }} {{ item }}
+#   with_items:
+#       - getTemplateForDirectory INTROOT {{ default_introot }}
