@@ -1,0 +1,80 @@
+#!/usr/bin/env python
+from __future__ import print_function
+import os
+import argparse
+import subprocess
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    '-u',
+    '--user',
+    help='GihHub user name',
+    required=False,
+    default='marco-buttu')
+parser.add_argument(
+    '-b',
+    '--branch',
+    required=False,
+    default='master')
+parser.add_argument(
+    '-s',
+    '--station',
+    choices=('srt', 'medicina', 'noto'),
+    required=False)
+
+args = parser.parse_args()
+
+class CustomArgs:
+    pass
+
+cargs = CustomArgs()
+cargs.repo = 'https://github.com/%s/discos.git' % args.user
+cargs.branch = args.branch
+
+if args.branch != 'master':
+    lower_branch = args.branch.lower()
+    if 'srt' in lower_branch:
+        cargs.station = 'SRT'
+        if args.station and 'SRT' not in args.station:
+            parser.error(
+                'mismatch between -s %s and -b %s'
+                % (args.branch, args.station))
+    elif 'medicina' in lower_branch:
+        cargs.station = 'Medicina'
+        if args.station and 'Medicina' not in args.station:
+            parser.error(
+                'mismatch between -s %s and -b %s'
+                % (args.branch, args.station))
+    elif 'noto' in lower_branch:
+        cargs.station = 'Noto'
+        if args.station and 'Noto' not in args.station:
+            parser.error(
+                'mismatch between -s %s and -b %s'
+                % (args.branch, args.station))
+    else:
+        parser.error('invalid branch name.')
+else:
+    if not args.station:
+        parser.error('-s is required when -b is master.')
+    else:
+        cargs.station = args.station
+
+
+os.chdir(os.path.join('/home', 'vagrant'))  # TODO: from template
+subprocess.call([
+    'git',
+    'clone',
+    cargs.repo,
+    cargs.branch,
+    '--branch',
+    cargs.branch,
+    '--single-branch'])
+
+# git clone <repo_url> <branch_name> --branch <branch_name> --single-branch
+# git clone https://github.com/marco-buttu/discos_test.git srt_0.1 --branch srt_0.1 --single-branch
+# cd srt_0.1
+# Crea l'introot qua dentro, chiamata introot
+# Aggiunge l'alias changeto_srt_0.1, che modifica ACS_CDB e introot
+# Imposta la variabile d'ambiente ACTIVE_DISCOS_BRANCH su srt_0.1
+
