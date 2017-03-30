@@ -1,0 +1,67 @@
+---
+
+- name: Set some variables
+  set_fact:
+    git_dir: /usr/local/git
+
+
+- name: Check if git has been installed
+  stat: path={{ git_dir }}
+  register: git_exists
+
+
+- name: Clean the build directory
+  become: True
+  file: path={{ item }} state=absent
+  with_items:
+    - "{{ remote_build_path }}"
+  when: git_exists.stat.exists == False
+
+
+- name: Create a temporary directory for the Git build
+  become: True
+  file:
+    path: "{{ remote_build_path }}"
+    state: directory
+    owner: "{{ user }}"
+    group: acs
+    mode: 0770
+    recurse: yes
+  when: git_exists.stat.exists == False
+
+
+- name: Clone Git
+  become: True
+  command: chdir={{ remote_build_path }} {{ item }}
+  with_items:
+    - git clone https://github.com/git/git
+  when: git_exists.stat.exists == False
+
+
+- name: Remove the git package
+  become: true
+  yum: name=git state=absent
+  when: git_exists.stat.exists == False
+
+
+- name: Insall Git from sources
+  become: True
+  command: chdir={{ remote_build_path }}/git {{ item }}
+  with_items:
+    - make prefix={{ git_dir }} all
+    - make prefix={{ git_dir }} install
+  when: git_exists.stat.exists == False
+
+
+- name: Add git to the PATH
+  become: true
+  lineinfile:
+    dest: /etc/bashrc
+    line: 'PATH=$PATH:{{ git_dir }}/bin'
+
+
+- name: Remove the directory used for the build
+  become: True
+  file: path={{ item }} state=absent
+  with_items:
+    - "{{ remote_build_path }}"
