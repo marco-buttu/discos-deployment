@@ -1,7 +1,6 @@
 ---
 
 - name: Before starting the deployment, apply local tasks
-  tags: [provisioning]
   connection: local
   hosts: local
   tasks:
@@ -10,7 +9,6 @@
 
 
 - name: Apply common configurations to all nodes
-  tags: [provisioning]
   hosts: all
   remote_user: root
   roles:
@@ -18,7 +16,6 @@
 
 
 - name: Configure the manager
-  tags: [provisioning]
   hosts: manager
   remote_user: "{{ user }}"
   roles:

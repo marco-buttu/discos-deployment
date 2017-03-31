@@ -41,7 +41,6 @@
 - name: Remove the git package
   become: true
   yum: name=git state=absent
-  when: git_exists.stat.exists == False
 
 
 - name: Insall Git from sources

@@ -1,0 +1,12 @@
+#! /usr/bin/env bash
+
+export DISCOS_BRANCH=
+BRANCHENV=/home/{{ user }}/$DISCOS_BRANCH/.branchenv
+
+
+# Load DISCOS definitions
+# =======================
+if [ -n "${DISCOS_BRANCH}" ] && [ -f "$BRANCHENV" ]
+then
+    source $BRANCHENV
+fi

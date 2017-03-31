@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+export INTROOT={{ introot }}
+export STATION={{ station }}
+export ACS_CDB={{ branch_path }}/{{ station }}/Configuration

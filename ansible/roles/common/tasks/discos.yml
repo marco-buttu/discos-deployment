@@ -22,22 +22,37 @@
     recurse: yes
 
 
-- name: Copy the discosenv template
+- name: Copy the load_branch template
   become: True
   become_user: "{{ user }}"
-  copy:
-    src: "{{ role_path }}/templates/discosenv"
-    dest: "{{ discosconf_dir }}/templates/discosenv"
+  template:
+    src: load_branch
+    dest: "{{ discosconf_dir }}"
     owner: "{{ user }}"
     group: acs
     mode: 0644
+    force: yes
 
-# TODO: render the template into .discos/.discosenv
 
-# - name: Create the INTROOT
-#   become: True
-#   become_user: "{{ user }}"
-#   become_flags: "-i"
-#   command: chdir={{ discos_root }} {{ item }}
-#   with_items:
-#       - getTemplateForDirectory INTROOT {{ default_introot }}
+- name: Copy the branchenv template
+  become: True
+  become_user: "{{ user }}"
+  copy:
+    src: "{{ role_path }}/templates/branchenv"
+    dest: "{{ discosconf_dir }}/templates/branchenv"
+    owner: "{{ user }}"
+    group: acs
+    mode: 0644
+    force: yes
+
+
+- name: Render the get_discos template
+  become: True
+  template:
+    src: get_discos
+    dest: /usr/bin
+    mode: 0755
+    force: yes
+
+
+# call get_discos?
