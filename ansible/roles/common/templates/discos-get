@@ -18,11 +18,7 @@ parser.add_argument(
     help='GihHub user name',
     required=False,
     default='marco-buttu')
-parser.add_argument(
-    '-b',
-    '--branch',
-    required=False,
-    default='master')
+parser.add_argument('branch')
 parser.add_argument(
     '-s',
     '--station',
