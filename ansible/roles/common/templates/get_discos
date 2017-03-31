@@ -123,3 +123,10 @@ for line in open(load_branch):
     else:
         lines.append(line)
 open(load_branch, 'w').writelines(lines)
+
+
+# Add the branch to the list of available branches
+with open('{{ discosconf_dir }}/branches', 'a+') as f:
+    content = f.read()
+    if not cargs.branch in content:
+        f.write(cargs.branch + '\n')
