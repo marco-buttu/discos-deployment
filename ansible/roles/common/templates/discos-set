@@ -1,0 +1,36 @@
+#!/usr/bin/env python
+from __future__ import print_function
+import os
+import argparse
+
+
+BRANCH_ROOT = os.path.join('/home', '{{ user }}')
+BRANCH_LIST = '{{ discosconf_dir }}/branches'
+
+with open(BRANCH_LIST, 'r') as f:
+    declared_branches = [b.strip() for b in f.readlines()]
+
+branches = []
+for branch in declared_branches:
+    if os.path.exists(os.path.join(BRANCH_ROOT, branch)):
+        branches.append(branch)
+
+if declared_branches != branches:
+    lines = [b + '\n' for b in branches]
+    open(BRANCH_LIST, 'w').writelines(lines)
+
+parser = argparse.ArgumentParser()
+parser.add_argument('branch', choices=branches)
+args = parser.parse_args()
+
+BRANCH_PATH = os.path.join(BRANCH_ROOT, args.branch)
+
+# Set the DISCOS_BRANCH environment variable
+lines = []
+load_branch = '{{ discosconf_dir }}/load_branch'
+for line in open(load_branch):
+    if 'export DISCOS_BRANCH=' in line:
+        lines.append('export DISCOS_BRANCH=%s\n' % args.branch)
+    else:
+        lines.append(line)
+open(load_branch, 'w').writelines(lines)
