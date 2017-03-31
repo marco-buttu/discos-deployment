@@ -46,13 +46,10 @@
     force: yes
 
 
-- name: Render the get_discos template
+- name: Render the discos-get template
   become: True
   template:
-    src: get_discos
+    src: discos-get
     dest: /usr/bin
     mode: 0755
     force: yes
-
-
-# call get_discos?
