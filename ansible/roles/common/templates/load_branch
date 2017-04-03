@@ -1,5 +1,17 @@
 #! /usr/bin/env bash
 
+discos-get() {
+    /usr/bin/discos-get "$@"
+    source $HOME/.bashrc
+}
+
+
+discos-set() {
+    /usr/bin/discos-set "$@"
+    source $HOME/.bashrc
+}
+
+
 export DISCOS_BRANCH=
 BRANCHENV=/home/{{ user }}/$DISCOS_BRANCH/.branchenv
 
