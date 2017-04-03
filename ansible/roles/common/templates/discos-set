@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-from __future__ import print_function
 import os
 import argparse
 
@@ -21,6 +20,7 @@ if declared_branches != branches:
 
 parser = argparse.ArgumentParser()
 parser.add_argument('branch', choices=branches)
+parser.add_argument('--cdb', choices=('antenna', 'test'))
 args = parser.parse_args()
 
 BRANCH_PATH = os.path.join(BRANCH_ROOT, args.branch)
