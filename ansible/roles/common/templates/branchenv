@@ -2,4 +2,10 @@
 
 export INTROOT={{ introot }}
 export STATION={{ station }}
-export ACS_CDB={{ branch_path }}/{{ station }}/Configuration
+
+if [[ $CDB = "test" ]]
+then
+    export ACS_CDB={{ branch_path }}/{{ station }}
+else
+    export ACS_CDB={{ branch_path }}/{{ station }}/Configuration
+fi

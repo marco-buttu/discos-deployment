@@ -13,6 +13,7 @@ discos-set() {
 
 
 export DISCOS_BRANCH=
+export CDB=
 BRANCHENV=/home/{{ user }}/$DISCOS_BRANCH/.branchenv
 
 

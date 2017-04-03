@@ -154,7 +154,7 @@ playbook = '%s/all.yml'  % ANSIBLE_DIR
 tags = ''
 
 command = [
-    'ansible-playbook', 'all.yml',
+    'ansible-playbook', playbook,
     '--inventory-file', inventory,
     '--limit', cluster_arg,
     '--extra-vars', extra_vars,

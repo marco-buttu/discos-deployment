@@ -20,7 +20,10 @@ if declared_branches != branches:
 
 parser = argparse.ArgumentParser()
 parser.add_argument('branch', choices=branches)
-parser.add_argument('--cdb', choices=('antenna', 'test'))
+parser.add_argument(
+    '--cdb',
+    choices=('telescope', 'test'),
+    default='telescope')
 args = parser.parse_args()
 
 BRANCH_PATH = os.path.join(BRANCH_ROOT, args.branch)
@@ -31,6 +34,8 @@ load_branch = '{{ discosconf_dir }}/load_branch'
 for line in open(load_branch):
     if 'export DISCOS_BRANCH=' in line:
         lines.append('export DISCOS_BRANCH=%s\n' % args.branch)
+    elif 'export CDB=' in line:
+        lines.append('export CDB=%s\n' % args.cdb)
     else:
         lines.append(line)
 open(load_branch, 'w').writelines(lines)

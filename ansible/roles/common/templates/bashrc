@@ -27,14 +27,15 @@ fi
 
 # Set the prompt
 # ==============
-bldred='\e[1;31m'  # Red
-bldgrn='\e[1;32m'  # Green
-txtrst='\e[0m'    # Text Reset
+red='\e[1;31m'  # Red
+grn='\e[1;32m'  # Green
+cyn='\e[1;36m'  # Cyan
+txtrst='\e[0m'  # Text Reset
 if [ -n "${DISCOS_BRANCH}" ]
 then
-    PS1="(\[$bldgrn\]$DISCOS_BRANCH\[$txtrst\]) \u@\h \w $ "
+    PS1="(\[$grn\]$DISCOS_BRANCH\[$txtrst\]:\[$cyn\]$CDB\[$txtrst\]) \u@\h \w $ "
 else
-    PS1="(\[$bldred\]branch?\[$txtrst\]) \u@\h \w $ "
+    PS1="(\[$red\]branch?\[$txtrst\]) \u@\h \w $ "
 fi
 
 

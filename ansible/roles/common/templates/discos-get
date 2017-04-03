@@ -24,7 +24,6 @@ parser.add_argument(
     '--station',
     choices=('srt', 'medicina', 'noto'),
     required=False)
-
 args = parser.parse_args()
 
 class CustomArgs:
@@ -108,17 +107,6 @@ context = {
 template_path = '{{ discosconf_dir }}/templates/branchenv'
 dest_path = '%s/.branchenv' % BRANCH_PATH
 render(template_path, context, dest_path)
-
-
-# Set the DISCOS_BRANCH environment variable
-lines = []
-load_branch = '{{ discosconf_dir }}/load_branch'
-for line in open(load_branch):
-    if 'export DISCOS_BRANCH=' in line:
-        lines.append('export DISCOS_BRANCH=%s\n' % cargs.branch)
-    else:
-        lines.append(line)
-open(load_branch, 'w').writelines(lines)
 
 
 # Add the branch to the list of available branches
