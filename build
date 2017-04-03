@@ -4,7 +4,7 @@
   $ ./build discos_srt:development
   $ ./build discos_srt:production
   $ ./build discos_medicina:development
-  $ ./build manager:development --station SRT
+  $ ./build manager:development --station srt
   $ ./build discos_srt:development --version 0.6
   $ ./build discos_srt:development --version latest
   $ ./build discos_srt:development --only deploying --version latest
@@ -22,9 +22,9 @@ import subprocess
 
 ENVIRONMENTS = ['development', 'production']
 STATIONS = {
-    'SRT': 'discos_srt',
-    'Medicina': 'discos_medicina',
-    'Noto': 'discos_noto'
+    'srt': 'discos_srt',
+    'medicina': 'discos_medicina',
+    'noto': 'discos_noto'
 }
 REPO = 'https://github.com/marco-buttu/discos.git'
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -63,6 +63,11 @@ parser.add_argument(
     '-d',
     '--deploy')
 parser.add_argument(
+    '-u',
+    '--user',
+    default='marco-buttu',
+    help="GitHub username")
+parser.add_argument(
     '--sim',
     action='store_true',
     help='simulation mode')
@@ -80,6 +85,18 @@ def error(msg, choices=(), name=''):
     print('\n%s' %  __doc__, file=sys.stderr)
     sys.exit(1)
 args = parser.parse_args()
+
+
+# The master branch requires the station to be defined
+extra_vars = ''
+if args.deploy == 'master':
+    if not args.station:
+        error('--station is required when branch is master.')
+    else:
+        extra_vars = 'station=%s' % args.station
+else:
+    if args.station:
+        error('only master branch accepts the -s argument')
 
 
 # Check if the system cluster:environment exists
@@ -118,34 +135,34 @@ else:
                   systems,
                   name='system')
 
-inventory = '%s/inventories/%s' % (ANSIBLE_DIR, env_arg)
-extra_vars = 'branch=%s' % args.deploy if args.deploy else ''
-playbook = '%s/all.yml'  % ANSIBLE_DIR
 
 tags = []
 if args.deploy:
+    extra_vars += ' branch=%s' % args.deploy
     tags.append('deploy')
 
+if args.user and not args.deploy:
+    error('--user requires --deploy')
+elif args.user:
+    extra_vars += ' ghuser=%s' % args.user
+
+inventory = '%s/inventories/%s' % (ANSIBLE_DIR, env_arg)
+playbook = '%s/all.yml'  % ANSIBLE_DIR
+
+command = [
+    'ansible-playbook', playbook,
+    '--inventory-file', inventory,
+    '--limit', cluster_arg,
+    '--extra-vars', '"%s"' % extra_vars,
+]
 if tags:
-    command = [
-        'ansible-playbook', playbook,
-        '--inventory-file', inventory,
-        '--limit', cluster_arg,
-        '--extra-vars', extra_vars,
-        '--tags', ','.join(tags),
-    ]
+    command += ['--tags', ','.join(tags)]
 else:
-    command = [
-        'ansible-playbook', playbook,
-        '--inventory-file', inventory,
-        '--limit', cluster_arg,
-        '--extra-vars', extra_vars,
-        '--skip-tags', 'deploy' 
-    ]
+    command += ['--skip-tags', 'deploy']
 
 if args.sim:
     print('You want to call:')
     print(' '.join(command))
 
 else:
-    subprocess.call(command)
+    subprocess.call(' '.join(command), shell=True)

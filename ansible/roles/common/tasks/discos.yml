@@ -15,8 +15,20 @@
   become: true
   become_user: "{{ user }}"
   become_flags: "-i"
-  command: discos-get {{ branch }}
-  when: target_path.stat.exists == False
+  command: discos-get {{ branch }} -u {{ ghuser }}
+  when:
+    - target_path.stat.exists == False
+    - branch != "master"
+
+
+- name: Get the DISCOS {{ branch }} repository
+  become: true
+  become_user: "{{ user }}"
+  become_flags: "-i"
+  command: discos-get {{ branch }} -s {{ station }} -u {{ ghuser }}
+  when:
+    - target_path.stat.exists == False
+    - branch == "master"
 
 
 - name: Pull the repository
