@@ -1,25 +1,27 @@
 ---
 
 - set_fact:
-    branch_path: /home/{{ user }}/branch
+    branch_path: /home/{{ user }}/{{ branch }}
 
 
 - name: Check if {{ branch_path }} exists
-  stat: "{{ branch_path }}"
-  register: branch_path
+  become: true
+  become_user: "{{ user }}"
+  stat: path={{ branch_path }}
+  register: target_path
 
 
-- name: get the DISCOS {{ branch }} repository
+- name: Get the DISCOS {{ branch }} repository
   become: true
   become_user: "{{ user }}"
   become_flags: "-i"
   command: discos-get {{ branch }}
-  when: branch_path.stat.exists == False
+  when: target_path.stat.exists == False
 
 
-- name: update the repository
+- name: Pull the repository
   become: true
   become_user: "{{ user }}"
   become_flags: "-i"
   command: chdir={{ branch_path }} git pull
-  when: branch_path.stat.exists == True
+  when: target_path.stat.exists == True
