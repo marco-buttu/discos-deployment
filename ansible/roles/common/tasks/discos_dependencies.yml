@@ -258,3 +258,82 @@
   command: "{{ item }}"
   with_items:
     - pip install mock==1.1.1
+    - pip install jinja2
+
+
+
+####################
+# DISCOS ENVIRONMENT
+####################
+
+- name: Create the DISCOS conf directory
+  become: True
+  file:
+    path: "{{ discosconf_dir }}"
+    state: directory
+    owner: "{{ user }}"
+    group: acs
+    mode: 0770
+    recurse: yes
+
+
+- name: Create the DISCOS template directory
+  become: True
+  file:
+    path: "{{ discosconf_dir }}/templates"
+    state: directory
+    owner: "{{ user }}"
+    group: acs
+    mode: 0770
+    recurse: yes
+
+
+- name: Copy the load_branch template
+  become: True
+  become_user: "{{ user }}"
+  template:
+    src: load_branch
+    dest: "{{ discosconf_dir }}"
+    owner: "{{ user }}"
+    group: acs
+    mode: 0644
+    force: yes
+
+
+- name: Copy the branchenv template
+  become: True
+  become_user: "{{ user }}"
+  copy:
+    src: "{{ role_path }}/templates/branchenv"
+    dest: "{{ discosconf_dir }}/templates/branchenv"
+    owner: "{{ user }}"
+    group: acs
+    mode: 0644
+    force: yes
+
+
+- name: Render the discos-get template
+  become: True
+  template:
+    src: discos-get
+    dest: /usr/bin
+    mode: 0755
+    force: yes
+
+
+- name: Render the discos-set template
+  become: True
+  template:
+    src: discos-set
+    dest: /usr/bin
+    mode: 0755
+    force: yes
+
+
+- name: Render the _discos-check-cwd template
+  become: True
+  template:
+    src: _discos-check-cwd
+    dest: /usr/bin
+    mode: 0755
+    force: yes

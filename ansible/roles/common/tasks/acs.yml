@@ -115,13 +115,6 @@
 # Set the ACS user's environment
 ################################
 
-- fail: msg="The cdb variable is undefined (see README.rst)."
-  when: cdb is undefined
-
-
-- fail: msg="The cdb value must be one of '{{ cdb_versions }}'."
-  when: cdb not in cdb_versions
-
 
 - name: Copy the .acs dir from /alma to {{ acsconf_dir }}
   become: True

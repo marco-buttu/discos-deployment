@@ -4,7 +4,7 @@ from subprocess import Popen, PIPE
 
 TESTS_DIR = os.path.dirname(os.path.realpath(__file__))
 SCRIPT_DIR = TESTS_DIR.rstrip('tests')
-SCRIPT = os.path.join(SCRIPT_DIR, 'make')
+SCRIPT = os.path.join(SCRIPT_DIR, 'build')
 BASECMD = ['python', SCRIPT, '--sim']
 
 
@@ -45,48 +45,22 @@ class TestCLI(unittest.TestCase):
         out, err = pipes.communicate()
         self.assertRegexpMatches(err, b'System "wrong:wrong" not recognized')
 
-    def test_default_discos_srt_station(self):
-        """The default discos_srt station is SRT"""
-        cmd = BASECMD + ['discos_srt:development']
-        pipes = Popen(cmd, stdout=PIPE, stderr=PIPE)
-        out, err = pipes.communicate()
-        self.assertRegexpMatches(out, b'--extra-vars "cdb=SRT"')
-
-    def test_override_default_discos_srt_station(self):
-        """Override the default discos_srt station"""
-        cmd = BASECMD + ['discos_srt:development', '--station', 'Noto']
-        pipes = Popen(cmd, stdout=PIPE, stderr=PIPE)
-        out, err = pipes.communicate()
-        self.assertRegexpMatches(out, b'--extra-vars "cdb=Noto"')
-
-    def test_default_discos_medicina_station(self):
-        """The default discos_medicina station is Medicina"""
-        cmd = BASECMD + ['discos_medicina:production']
-        pipes = Popen(cmd, stdout=PIPE, stderr=PIPE)
-        out, err = pipes.communicate()
-        self.assertRegexpMatches(out, b'--extra-vars "cdb=Medicina"')
-
-    def test_override_default_discos_medicina_station(self):
-        """Override the default discos_medicina station"""
-        cmd = BASECMD + ['discos_medicina:development', '--station', 'Noto']
-        pipes = Popen(cmd, stdout=PIPE, stderr=PIPE)
-        out, err = pipes.communicate()
-        self.assertRegexpMatches(out, b'--extra-vars "cdb=Noto"')
-
-    def test_default_discos_noto_station(self):
-        """The default discos_noto station is Noto"""
+    def test_no_deploy(self):
+        """Do not set the tag 'deploy'"""
         cmd = BASECMD + ['discos_noto:development']
         pipes = Popen(cmd, stdout=PIPE, stderr=PIPE)
         out, err = pipes.communicate()
-        self.assertRegexpMatches(out, b'--extra-vars "cdb=Noto"')
+        self.assertNotRegexpMatches(out, b'--extra-vars "branch"')
+        self.assertNotRegexpMatches(out, b'--tags')
 
-    def test_override_default_discos_noto_station(self):
-        """Override the default discos_noto station"""
-        cmd = BASECMD + ['discos_noto:development', '--station', 'SRT']
+
+    def test_deploy_branch(self):
+        """Set the tag 'deploy'"""
+        cmd = BASECMD + ['discos_srt:development', '--deploy', 'srt-0.1']
         pipes = Popen(cmd, stdout=PIPE, stderr=PIPE)
         out, err = pipes.communicate()
-        self.assertRegexpMatches(out, b'--extra-vars "cdb=SRT"')
-
+        self.assertRegexpMatches(out, b'--extra-vars "branch=srt-0.1"')
+        self.assertRegexpMatches(out, b'--tags "deploy"')
 
 
 if __name__ == '__main__':

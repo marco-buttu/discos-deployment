@@ -32,15 +32,6 @@
     mode: 0644
 
 
-- name: Install some Python packages
-  become: true
-  become_user: "{{ user }}"
-  become_flags: "-i"
-  command: "{{ item }}"
-  with_items:
-    - pip install jinja2
-
-
 - name: Copy vimrc
   become: True
   become_user: "{{ user }}"

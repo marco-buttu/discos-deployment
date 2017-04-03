@@ -1,73 +1,25 @@
 ---
 
-- name: Create the DISCOS conf directory
-  become: True
-  file:
-    path: "{{ discosconf_dir }}"
-    state: directory
-    owner: "{{ user }}"
-    group: acs
-    mode: 0770
-    recurse: yes
+- set_fact:
+    branch_path: /home/{{ user }}/branch
 
 
-- name: Create the DISCOS template directory
-  become: True
-  file:
-    path: "{{ discosconf_dir }}/templates"
-    state: directory
-    owner: "{{ user }}"
-    group: acs
-    mode: 0770
-    recurse: yes
+- name: Check if {{ branch_path }} exists
+  stat: "{{ branch_path }}"
+  register: branch_path
 
 
-- name: Copy the load_branch template
-  become: True
+- name: get the DISCOS {{ branch }} repository
+  become: true
   become_user: "{{ user }}"
-  template:
-    src: load_branch
-    dest: "{{ discosconf_dir }}"
-    owner: "{{ user }}"
-    group: acs
-    mode: 0644
-    force: yes
+  become_flags: "-i"
+  command: discos-get {{ branch }}
+  when: branch_path.stat.exists == False
 
 
-- name: Copy the branchenv template
-  become: True
+- name: update the repository
+  become: true
   become_user: "{{ user }}"
-  copy:
-    src: "{{ role_path }}/templates/branchenv"
-    dest: "{{ discosconf_dir }}/templates/branchenv"
-    owner: "{{ user }}"
-    group: acs
-    mode: 0644
-    force: yes
-
-
-- name: Render the discos-get template
-  become: True
-  template:
-    src: discos-get
-    dest: /usr/bin
-    mode: 0755
-    force: yes
-
-
-- name: Render the discos-set template
-  become: True
-  template:
-    src: discos-set
-    dest: /usr/bin
-    mode: 0755
-    force: yes
-
-
-- name: Render the _discos-check-cwd template
-  become: True
-  template:
-    src: _discos-check-cwd
-    dest: /usr/bin
-    mode: 0755
-    force: yes
+  become_flags: "-i"
+  command: chdir={{ branch_path }} git pull
+  when: branch_path.stat.exists == True

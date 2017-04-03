@@ -6,5 +6,6 @@
 - include: network.yml
 - include: acs.yml
 - include: discos_dependencies.yml
-- include: discos.yml
 - include: utilities.yml
+- include: discos.yml
+  tags: ['deploy']
