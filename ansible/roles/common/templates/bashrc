@@ -30,12 +30,27 @@ fi
 red='\e[1;31m'  # Red
 grn='\e[1;32m'  # Green
 cyn='\e[1;36m'  # Cyan
+pur='\e[1;35m'  # Purple
 txtrst='\e[0m'  # Text Reset
 if [ -n "${DISCOS_BRANCH}" ]
 then
     PS1="(\[$grn\]$DISCOS_BRANCH\[$txtrst\]:\[$cyn\]$CDB\[$txtrst\]) \u@\h \w $ "
 else
     PS1="(\[$red\]branch?\[$txtrst\]) \u@\h \w $ "
+fi
+
+
+# Update the environment at every prompt
+# ======================================
+PROMPT_COMMAND='source ~/.bashrc'
+
+
+# Warn in case we are in a not active branch
+# ==========================================
+CHECK_CWD_OUTPUT=$(/usr/bin/_discos-check-cwd)
+if [ -n "${CHECK_CWD_OUTPUT}" ]
+then
+    echo -e "${pur}WARNING:${txtrst} $CHECK_CWD_OUTPUT"
 fi
 
 
@@ -48,7 +63,6 @@ export QTINC=$QTDIR/include
 export qt_prefix=$QTLIB
 export PATH=$PATH:$QTDIR/bin
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
-
 export PYTHONSTARTUP=$HOME/.pyrc
 export EDITOR=vi
 {% if ansible_hostname != "manager" %}

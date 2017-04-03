@@ -62,3 +62,12 @@
     dest: /usr/bin
     mode: 0755
     force: yes
+
+
+- name: Render the _discos-check-cwd template
+  become: True
+  template:
+    src: _discos-check-cwd
+    dest: /usr/bin
+    mode: 0755
+    force: yes
