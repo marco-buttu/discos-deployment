@@ -2,8 +2,12 @@
 from __future__ import print_function
 import os
 import sys
+import shutil
 import argparse
-import subprocess
+if os.name == 'posix' and sys.version_info[0] < 3:
+    import subprocess32 as subprocess
+else:
+    import subprocess
 
 import jinja2
 
@@ -66,14 +70,22 @@ os.chdir(BRANCH_ROOT)
 BRANCH_PATH = os.path.join(BRANCH_ROOT, cargs.branch)
 
 # Clone the branch
-code = subprocess.call([
-    'git',
-    'clone',
-    cargs.repo,
-    cargs.branch,
-    '--branch',
-    cargs.branch,
-    '--single-branch'])
+try:
+    code = subprocess.call([
+        'git',
+        'clone',
+        cargs.repo,
+        cargs.branch,
+        '--branch',
+        cargs.branch,
+        '--single-branch'],
+        timeout=10)
+except subprocess.TimeoutExpired:
+    if os.path.exists(BRANCH_PATH):
+        shutil.rmtree(BRANCH_PATH)
+    print('\nERROR: timeout expired cloning %s.' % cargs.repo)
+    sys.stderr.flush()
+    sys.exit(-1)
 if code:
     sys.exit(code)
 else:

@@ -42,16 +42,7 @@ fi
 
 # Update the environment at every prompt
 # ======================================
-PROMPT_COMMAND='source ~/.bashrc'
-
-
-# Warn in case we are in a not active branch
-# ==========================================
-CHECK_CWD_OUTPUT=$(/usr/bin/_discos-check-cwd)
-if [ -n "${CHECK_CWD_OUTPUT}" ]
-then
-    echo -e "${pur}WARNING:${txtrst} $CHECK_CWD_OUTPUT"
-fi
+PROMPT_COMMAND='source {{ discosconf_dir }}/prompt_command.sh'
 
 
 # Variables to export

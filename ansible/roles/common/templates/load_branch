@@ -1,5 +1,8 @@
 #! /usr/bin/env bash
 
+export INTROOT=
+export STATION=
+export ACS_CDB=/alma/{{ acs_tag }}/acsdata/config/defaultCDB
 export DISCOS_BRANCH=
 export CDB=
 BRANCHENV=/home/{{ user }}/$DISCOS_BRANCH/.branchenv

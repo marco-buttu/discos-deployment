@@ -259,6 +259,7 @@
   with_items:
     - pip install mock==1.1.1
     - pip install jinja2
+    - pip install subprocess32
 
 
 
@@ -300,6 +301,18 @@
     force: yes
 
 
+- name: Copy prompt_command.sh 
+  become: True
+  become_user: "{{ user }}"
+  template:
+    src: prompt_command.sh
+    dest: "{{ discosconf_dir }}"
+    owner: "{{ user }}"
+    group: acs
+    mode: 0644
+    force: yes
+
+
 - name: Copy the branchenv template
   become: True
   become_user: "{{ user }}"
@@ -330,10 +343,10 @@
     force: yes
 
 
-- name: Render the _discos-check-cwd template
+- name: Render the _discos-check-branch template
   become: True
   template:
-    src: _discos-check-cwd
+    src: _discos-check-branch
     dest: /usr/bin
     mode: 0755
     force: yes
