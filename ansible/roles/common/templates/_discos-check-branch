@@ -5,7 +5,18 @@ import os
 BRANCH_ROOT = os.path.join('/home', 'discos')
 BRANCH_LIST = '/home/discos/.discos/branches'
 
+
 discos_branch = os.environ['DISCOS_BRANCH']
+
+# Remove unavailable branches from the list
+branches = []
+for line in open(BRANCH_LIST, 'r'):
+    branch = line.strip()
+    if os.path.exists(os.path.join(BRANCH_ROOT, branch)):
+        branches.append(branch)
+    lines = [b + '\n' for b in branches]
+    open(BRANCH_LIST, 'w').writelines(lines)
+
 if discos_branch:
     active_branch = os.path.join(BRANCH_ROOT, discos_branch)
     if not os.path.exists(active_branch):
@@ -24,11 +35,7 @@ if discos_branch:
         pass
     else:
         # In case we are in a not active branch, emit a warning
-        with open(BRANCH_LIST, 'r') as f:
-            declared_branches = [b.strip() for b in f.readlines()]
-            declared_branches.remove(discos_branch)
-
-        for branch in declared_branches:
+        for branch in branches:
             if os.path.join(BRANCH_ROOT, branch) in os.getcwd():
                 print("you are in '%s', but the active "
                       "branch is '%s'" % (branch, discos_branch))

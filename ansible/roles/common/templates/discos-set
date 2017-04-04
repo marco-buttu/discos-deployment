@@ -18,8 +18,11 @@ if declared_branches != branches:
     lines = [b + '\n' for b in branches]
     open(BRANCH_LIST, 'w').writelines(lines)
 
+def parse_branch(branch):
+    return branch.rstrip('/')
+
 parser = argparse.ArgumentParser()
-parser.add_argument('branch', choices=branches)
+parser.add_argument('branch', type=parse_branch, choices=branches)
 parser.add_argument(
     '--cdb',
     choices=('telescope', 'test'),
