@@ -26,9 +26,9 @@ STATIONS = {
     'medicina': 'discos_medicina',
     'noto': 'discos_noto'
 }
-REPO = 'https://github.com/marco-buttu/discos.git'
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
 ANSIBLE_DIR = os.path.join(ROOT_DIR, 'ansible')
+DEFAULT_GITHUB_USER = 'marco-buttu'
 
 systems = []
 clusters = {}
@@ -65,7 +65,7 @@ parser.add_argument(
 parser.add_argument(
     '-u',
     '--user',
-    default='marco-buttu',
+    default=DEFAULT_GITHUB_USER,
     help="GitHub username")
 parser.add_argument(
     '--sim',
@@ -141,7 +141,7 @@ if args.deploy:
     extra_vars += ' branch=%s' % args.deploy
     tags.append('deploy')
 
-if args.user and not args.deploy:
+if args.user != DEFAULT_GITHUB_USER and not args.deploy:
     error('--user requires --deploy')
 elif args.user:
     extra_vars += ' ghuser=%s' % args.user
