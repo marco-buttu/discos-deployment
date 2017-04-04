@@ -7,21 +7,17 @@ as ansible_ssh_host=192.168.200.201
 [ms]  # minor servo
 ms ansible_ssh_host=192.168.200.202
 
-[discos_srt:children]
+[large:children]
 manager
 as
 ms
 
-[discos_medicina:children]
-manager
-
-[discos_noto:children]
+[small:children]
 manager
 
 [multi:children]
-discos_srt
-discos_medicina
-discos_noto
+large
+small
 
 [multi:vars]
 ansible_user=vagrant

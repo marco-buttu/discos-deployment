@@ -1,15 +1,12 @@
 #! /usr/bin/env python
 """Some command line examples:
 
-  $ ./build discos_srt:development
-  $ ./build discos_srt:production
-  $ ./build discos_medicina:development
-  $ ./build manager:development --station srt
-  $ ./build discos_srt:development --version 0.6
-  $ ./build discos_srt:development --version latest
-  $ ./build discos_srt:development --only deploying --version latest
-  $ ./build discos_srt:development --only deploying --version master
-  $ ./build discos_srt:development --only provisioning
+  $ ./build large:development
+  $ ./build large:production
+  $ ./build small:development
+  $ ./build manager:development
+  $ ./build small:development --deploy noto-0.1
+  $ ./build small:development --deploy master --station srt
 """
 
 from __future__ import print_function
@@ -21,11 +18,7 @@ import subprocess
 
 
 ENVIRONMENTS = ['development', 'production']
-STATIONS = {
-    'srt': 'discos_srt',
-    'medicina': 'discos_medicina',
-    'noto': 'discos_noto'
-}
+STATIONS = ('srt', 'medicina', 'noto')
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
 ANSIBLE_DIR = os.path.join(ROOT_DIR, 'ansible')
 DEFAULT_GITHUB_USER = 'marco-buttu'
@@ -57,7 +50,7 @@ parser.add_argument(
 parser.add_argument(
     '-s',
     '--station',
-    choices=STATIONS.keys(),
+    choices=STATIONS,
     default=None)
 parser.add_argument(
     '-d',
