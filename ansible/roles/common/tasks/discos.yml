@@ -4,11 +4,9 @@
     branch_path: /home/{{ user }}/{{ branch }}
 
 
-- name: Check if {{ branch_path }} exists
-  become: true
-  become_user: "{{ user }}"
-  stat: path={{ branch_path }}
-  register: target_path
+- name: Remove the {{ branch_path }} directory
+  become: True
+  file: path={{ branch_path }} state=absent
 
 
 - name: Get the DISCOS {{ branch }} repository
@@ -16,9 +14,7 @@
   become_user: "{{ user }}"
   become_flags: "-i"
   command: discos-get {{ branch }} -u {{ ghuser }}
-  when:
-    - target_path.stat.exists == False
-    - branch != "master"
+  when: branch != "master"
 
 
 - name: Get the DISCOS {{ branch }} repository
@@ -26,14 +22,4 @@
   become_user: "{{ user }}"
   become_flags: "-i"
   command: discos-get {{ branch }} -s {{ station }} -u {{ ghuser }}
-  when:
-    - target_path.stat.exists == False
-    - branch == "master"
-
-
-- name: Pull the repository
-  become: true
-  become_user: "{{ user }}"
-  become_flags: "-i"
-  command: chdir={{ branch_path }} git pull
-  when: target_path.stat.exists == True
+  when: branch == "master"
