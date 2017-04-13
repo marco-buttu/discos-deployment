@@ -51,3 +51,4 @@ gmock_build: "{{ remote_build_path }}/{{ gmock.build_dir }}"
 ##################
 
 discosconf_dir: /home/{{ user }}/.discos
+ghtoken: 47aabb9fb8a55376eb43ede8e375a774e8e50b3b

@@ -13,7 +13,7 @@
   become: true
   become_user: "{{ user }}"
   become_flags: "-i"
-  command: discos-get {{ branch }} -u {{ ghuser }}
+  command: discos-get {{ branch }}
   when: branch != "master"
 
 
@@ -21,5 +21,5 @@
   become: true
   become_user: "{{ user }}"
   become_flags: "-i"
-  command: discos-get {{ branch }} -s {{ station }} -u {{ ghuser }}
+  command: discos-get {{ branch }} -s {{ station }}
   when: branch == "master"

@@ -91,26 +91,6 @@ class TestCLI(unittest.TestCase):
         out, err = pipes.communicate()
         self.assertRegexpMatches(err, b'only master branch accepts the -s')
 
-    def test_deploy_github_username(self):
-        """Pass the GitHub username from command line"""
-        cmd = BASECMD + [
-            'small:development',
-            '--deploy',
-            'srt-0.1',
-            '--user', 'pippo']
-        pipes = Popen(cmd, stdout=PIPE, stderr=PIPE)
-        out, err = pipes.communicate()
-        self.assertRegexpMatches(out, b'ghuser=pippo')
-
-    def test_deploy_github_username_requires_deploy(self):
-        """Pass the GitHub username from command line"""
-        cmd = BASECMD + [
-            'small:development',
-            '--user', 'pippo']
-        pipes = Popen(cmd, stdout=PIPE, stderr=PIPE)
-        out, err = pipes.communicate()
-        self.assertRegexpMatches(err, b'--user requires --deploy')
-
 
 if __name__ == '__main__':
     unittest.main()

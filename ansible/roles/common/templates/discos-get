@@ -16,12 +16,6 @@ BRANCH_ROOT = os.path.join('/home', '{{ user }}')
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument(
-    '-u',
-    '--user',
-    help='GihHub user name',
-    required=False,
-    default='marco-buttu')
 parser.add_argument('branch')
 parser.add_argument(
     '-s',
@@ -34,7 +28,7 @@ class CustomArgs:
     pass
 
 cargs = CustomArgs()
-cargs.repo = 'https://github.com/%s/discos.git' % args.user
+cargs.repo = 'https://{{ ghtoken }}@github.com/discos/discos.git'
 cargs.branch = args.branch
 
 if args.branch != 'master':
@@ -79,7 +73,7 @@ try:
         '--branch',
         cargs.branch,
         '--single-branch'],
-        timeout=10)
+        timeout=60)
 except subprocess.TimeoutExpired:
     if os.path.exists(BRANCH_PATH):
         shutil.rmtree(BRANCH_PATH)
@@ -90,6 +84,17 @@ if code:
     sys.exit(code)
 else:
     print('Repository cloned into %s' % BRANCH_PATH)
+
+# Remove the old origin, because it contains the token,
+# and add a new plain one
+os.chdir(BRANCH_PATH)
+subprocess.call(['git', 'remote', 'rm', 'origin'])
+subprocess.call([
+    'git',
+    'remote',
+    'add',
+    'origin',
+    'https://github.com/discos/discos.git'])
 
 # Create the introot inside the branch
 introot_name = 'introot'

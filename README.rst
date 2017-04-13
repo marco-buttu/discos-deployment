@@ -34,7 +34,7 @@ You can also provision or deploy a single machine. For instance,
 in the following case you are only deploying the ``manager``
 machine::
 
-  $ ./build manager:development --deploy medicina-0.1
+  $ ./build manager:development --deploy
 
 The development environment allows you to easily create branches
 and move from one branch to another.  For instance, let's give
