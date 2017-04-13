@@ -95,4 +95,3 @@ you will see a warning message::
 
     (srt_0.1:telescope) discos@manager ~ $ cd medicina_0.1/
     WARNING: you are in 'medicina_0.1', but the active branch is 'srt_0.1'
-    (srt_0.1:telescope) discos@manager ~/medicina_0.1 $
