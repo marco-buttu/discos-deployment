@@ -7,4 +7,9 @@
 
 - name: Add the {{ user }} user
   become: true
-  user: name={{ user }} group=acs uid=3060 state=present
+  user:
+    name: "{{ user }}"
+    password: "{{ password }}"
+    group: acs
+    uid: 3060
+    state: present
