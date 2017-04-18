@@ -91,6 +91,27 @@ class TestCLI(unittest.TestCase):
         out, err = pipes.communicate()
         self.assertRegexpMatches(err, b'only master branch accepts the -s')
 
+    def test_do_not_call_vagrant_up(self):
+        """Do not run 'vagrant up' in production."""
+        cmd = BASECMD + ['ms:production']
+        pipes = Popen(cmd, stdout=PIPE, stderr=PIPE)
+        out, err = pipes.communicate()
+        self.assertNotRegexpMatches(out, b'vagrant')
+
+    def test_vagrant_up_large(self):
+        """Run 'vagrant up manager ms as'"""
+        cmd = BASECMD + ['large:development']
+        pipes = Popen(cmd, stdout=PIPE, stderr=PIPE)
+        out, err = pipes.communicate()
+        self.assertRegexpMatches(out, b'vagrant up manager as ms')
+
+    def test_vagrant_up_ms(self):
+        """Run 'vagrant up ms'."""
+        cmd = BASECMD + ['ms:development']
+        pipes = Popen(cmd, stdout=PIPE, stderr=PIPE)
+        out, err = pipes.communicate()
+        self.assertRegexpMatches(out, b'vagrant up ms')
+
 
 if __name__ == '__main__':
     unittest.main()

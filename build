@@ -130,21 +130,48 @@ if args.deploy:
 
 inventory = '%s/inventories/%s' % (ANSIBLE_DIR, env_arg)
 playbook = '%s/all.yml'  % ANSIBLE_DIR
+os.chdir(ANSIBLE_DIR)
 
-command = [
+
+if env_arg == 'development':
+   # Call vagrant to provision the VMs
+    def get_hosts(inventory, group, file='hosts'):
+        hosts = []
+        found = False  # Found the header containing group
+        for line in open(os.path.join(inventory, file)):
+            line = line.strip()
+            header = line[line.find('['):line.find(']')+1]
+            if found and not header and line:
+                host = line.split()[0]
+                hosts.append(host)
+            elif found and header:
+                break
+            elif header and group in header:
+                found = True
+        return hosts
+
+    vagrant_cmd = ['vagrant', 'up'] + get_hosts(inventory, cluster_arg)
+    if args.sim:
+        print('You want to call vagrant as following:')
+        print(' '.join(vagrant_cmd))
+    else:
+        subprocess.call(' '.join(vagrant_cmd), shell=True)
+
+
+# Call ansible
+ansible_cmd = [
     'ansible-playbook', playbook,
     '--inventory-file', inventory,
     '--limit', cluster_arg,
     '--extra-vars', '"%s"' % extra_vars,
 ]
 if tags:
-    command += ['--tags', ','.join(tags)]
+    ansible_cmd += ['--tags', ','.join(tags)]
 else:
-    command += ['--skip-tags', 'deploy']
+    ansible_cmd += ['--skip-tags', 'deploy']
 
 if args.sim:
-    print('You want to call:')
-    print(' '.join(command))
-
+    print('You want to call ansible as following:')
+    print(' '.join(ansible_cmd))
 else:
-    subprocess.call(' '.join(command), shell=True)
+    subprocess.call(' '.join(ansible_cmd), shell=True)
