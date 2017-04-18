@@ -6,15 +6,3 @@
     src: hosts
     dest: /etc/hosts
     mode: 0644
-
-
-- set_fact:
-    ip_address: "{{ hostvars[groups['manager'].0].ansible_ssh_host }}"
-
-
-- name: Add the node to known_hosts
-  connection: local
-  shell: "{{ item }}"
-  with_items:
-    - ssh-keygen -R {{ ip_address }}
-    - ssh-keyscan -H {{ ip_address }} >> ~/.ssh/known_hosts
