@@ -155,21 +155,6 @@ def get_host_names(inventory, group, file='hosts'):
             found = True
     return hosts
 
-# Add the IPs to known_hosts
-print('Updating known_hosts...')
-host_names = get_host_names(inventory, cluster_arg)
-for host_name in host_names:
-    ip = ips[env_arg][host_name]
-    if not args.sim:
-        subprocess.call(
-            'ssh-keygen -R %s' % ip,
-            shell=True,
-            stderr=open(os.devnull, 'w'))
-        subprocess.call(
-            'ssh-keyscan -H %s >> ~/.ssh/known_hosts' % ip,
-            shell=True)
-
-
 # Call vagrant to provision the VMs
 print('\nCalling vagrant...\n')
 if env_arg == 'development':
@@ -178,6 +163,20 @@ if env_arg == 'development':
         print(' '.join(vagrant_cmd))
     else:
         subprocess.call(' '.join(vagrant_cmd), shell=True)
+
+
+# Add the IPs to known_hosts
+print('Updating known_hosts...')
+host_names = get_host_names(inventory, cluster_arg)
+for host_name in host_names:
+    ip = ips[env_arg][host_name]
+    if not args.sim:
+        subprocess.call(
+            'ssh-keygen -R %s' % ip,
+            shell=True)
+        subprocess.call(
+            'ssh-keyscan -H %s >> ~/.ssh/known_hosts' % ip,
+            shell=True)
 
 
 # Call ansible
