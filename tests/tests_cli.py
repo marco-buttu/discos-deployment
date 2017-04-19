@@ -96,7 +96,7 @@ class TestCLI(unittest.TestCase):
         cmd = BASECMD + ['ms:production']
         pipes = Popen(cmd, stdout=PIPE, stderr=PIPE)
         out, err = pipes.communicate()
-        self.assertNotRegexpMatches(out, b'vagrant')
+        self.assertNotRegexpMatches(out, b'vagrant up')
 
     def test_vagrant_up_large(self):
         """Run 'vagrant up manager ms as'"""

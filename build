@@ -155,6 +155,8 @@ def get_host_names(inventory, group, file='hosts'):
             found = True
     return hosts
 
+host_names = get_host_names(inventory, cluster_arg)
+
 # Call vagrant to provision the VMs
 print('\nCalling vagrant...\n')
 if env_arg == 'development':
@@ -167,7 +169,6 @@ if env_arg == 'development':
 
 # Add the IPs to known_hosts
 print('Updating known_hosts...')
-host_names = get_host_names(inventory, cluster_arg)
 for host_name in host_names:
     ip = ips[env_arg][host_name]
     if not args.sim:
