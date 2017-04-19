@@ -22,7 +22,3 @@ small
 [multi:vars]
 ansible_user=vagrant
 ansible_password=vagrant
-
-
-[local]
-localhost

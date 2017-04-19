@@ -2,3 +2,7 @@
 
 user: discos
 password: $1$discos$BJBxqaZG3T/rs0ZL9rv35/
+
+local_repository_path: "{{ lookup('env','HOME') }}/repository"
+remote_build_path: /tmp/builds
+

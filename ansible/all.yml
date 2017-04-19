@@ -1,11 +1,10 @@
 ---
 
 - name: Before starting the deployment, apply local tasks
-  connection: local
-  hosts: local
+  hosts: all
   tasks:
     - name: Create a local directory to be used as a repository
-      file: path={{ local_repository_path }} state=directory
+      local_action: file  path={{ local_repository_path }} state=directory
 
 
 - name: Apply common configurations to all nodes
