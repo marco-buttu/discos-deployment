@@ -293,6 +293,12 @@
     recurse: yes
 
 
+- name: Create a the branches file
+  become: True
+  become_user: "{{ user }}"
+  file: path={{ discosconf_dir }}/branches state=touch
+
+
 - name: Copy the load_branch template
   become: True
   become_user: "{{ user }}"
