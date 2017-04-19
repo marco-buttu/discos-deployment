@@ -28,6 +28,7 @@
 
 - name: Download {{ cfitsio.file }}
   get_url:
+    validate_certs: no
     url: ftp://heasarc.gsfc.nasa.gov/software/fitsio/c/{{ cfitsio.file }}
     dest: "{{ local_repository_path }}"
   when:
@@ -38,6 +39,7 @@
 
 - name: Download {{ ccfits.file }}
   get_url:
+    validate_certs: no
     url: http://heasarc.gsfc.nasa.gov/fitsio/CCfits-2.4/{{ ccfits.file }}
     dest: "{{ local_repository_path }}"
   when:
@@ -107,6 +109,7 @@
 
 - name: Download modbus (if it does not exist in the local repo)
   get_url:
+    validate_certs: no
     url: http://libmodbus.org/releases/{{ modbus.file }}
     dest: "{{ local_repository_path }}"
   when:
@@ -159,8 +162,9 @@
 
 - name: Download {{ gmock.file }}
   get_url:
+    validate_certs: no
     url: https://github.com/paulsapps/gmock-1.7.0/archive/master.zip
-    dest: "{{ local_repository_path }}"
+    dest: "{{ local_repository_path }}/{{ gmock.file }}"
   when:
     - gmock_lib.stat.exists == False
     - gmock_sources.stat.exists == False
