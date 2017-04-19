@@ -168,7 +168,7 @@ if env_arg == 'development':
 
 
 # Add the IPs to known_hosts
-print('Updating known_hosts...')
+print('\nUpdating known_hosts...')
 for host_name in host_names:
     ip = ips[env_arg][host_name]
     if not args.sim:
