@@ -25,12 +25,19 @@ ANSIBLE_DIR = os.path.join(ROOT_DIR, 'ansible')
 systems = []
 clusters = {}
 all_clusters = []
+ips =  {}
 for env in ENVIRONMENTS:
     clusters[env] = []
+    ips[env] = {}
     inventory = '%s/inventories/%s' % (ANSIBLE_DIR, env)
     hosts_file = os.path.join(inventory, 'hosts')
     with open(hosts_file) as f:
         for line in f:
+            line = line.strip()
+            if 'ansible_ssh_host' in line:
+                first_part, ip = line.split('=')
+                node_name, _ = first_part.split()
+                ips[env].update({node_name.strip(): ip.strip()})
             if line.startswith('['):
                 text = line[line.find('[')+1:line.find(']')]
                 host = text.split(':')[0] if ':' in text else text
@@ -133,26 +140,41 @@ playbook = '%s/all.yml'  % ANSIBLE_DIR
 os.chdir(ANSIBLE_DIR)
 
 
-if env_arg == 'development':
-   # Call vagrant to provision the VMs
-    def get_hosts(inventory, group, file='hosts'):
-        hosts = []
-        found = False  # Found the header containing group
-        for line in open(os.path.join(inventory, file)):
-            line = line.strip()
-            header = line[line.find('['):line.find(']')+1]
-            if found and not header and line:
-                host = line.split()[0]
-                hosts.append(host)
-            elif found and header:
-                break
-            elif header and group in header:
-                found = True
-        return hosts
+def get_host_names(inventory, group, file='hosts'):
+    hosts = []
+    found = False  # Found the header containing group
+    for line in open(os.path.join(inventory, file)):
+        line = line.strip()
+        header = line[line.find('['):line.find(']')+1]
+        if found and not header and line:
+            host = line.split()[0]
+            hosts.append(host)
+        elif found and header:
+            break
+        elif header and group in header:
+            found = True
+    return hosts
 
-    vagrant_cmd = ['vagrant', 'up'] + get_hosts(inventory, cluster_arg)
+# Add the IPs to known_hosts
+print('Updating known_hosts...')
+host_names = get_host_names(inventory, cluster_arg)
+for host_name in host_names:
+    ip = ips[env_arg][host_name]
+    if not args.sim:
+        subprocess.call(
+            'ssh-keygen -R %s' % ip,
+            shell=True,
+            stderr=open(os.devnull, 'w'))
+        subprocess.call(
+            'ssh-keyscan -H %s >> ~/.ssh/known_hosts' % ip,
+            shell=True)
+
+
+# Call vagrant to provision the VMs
+print('\nCalling vagrant...\n')
+if env_arg == 'development':
+    vagrant_cmd = ['vagrant', 'up'] + host_names
     if args.sim:
-        print('You want to call vagrant as following:')
         print(' '.join(vagrant_cmd))
     else:
         subprocess.call(' '.join(vagrant_cmd), shell=True)
@@ -170,8 +192,8 @@ if tags:
 else:
     ansible_cmd += ['--skip-tags', 'deploy']
 
+print('\nCalling ansible...\n')
 if args.sim:
-    print('You want to call ansible as following:')
     print(' '.join(ansible_cmd))
 else:
     subprocess.call(' '.join(ansible_cmd), shell=True)

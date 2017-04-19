@@ -1,23 +1,11 @@
 ---
 
-- set_fact:
-    # Get the IP address of the target machine
-    ip_address: "{{ hostvars[groups['manager'].0].ansible_ssh_host }}"
-
-
 - name: Before starting the deployment, apply local tasks
   connection: local
   hosts: local
   tasks:
     - name: Create a local directory to be used as a repository
       file: path={{ local_repository_path }} state=directory
-
-    - name: Add the node to known_hosts
-      connection: local
-      shell: "{{ item }}"
-      with_items:
-        - ssh-keygen -R {{ ip_address }}
-        - ssh-keyscan -H {{ ip_address }} >> ~/.ssh/known_hosts
 
 
 - name: Apply common configurations to all nodes
