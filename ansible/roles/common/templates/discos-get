@@ -13,6 +13,7 @@ import jinja2
 
 
 BRANCH_ROOT = os.path.join('/home', '{{ user }}')
+STATIONS = ('SRT', 'Medicina', 'Noto')
 
 
 parser = argparse.ArgumentParser()
@@ -20,7 +21,7 @@ parser.add_argument('branch')
 parser.add_argument(
     '-s',
     '--station',
-    choices=('srt', 'medicina', 'noto'),
+    choices=[s.lower() for s in STATIONS],
     required=False)
 args = parser.parse_args()
 
@@ -33,35 +34,32 @@ cargs.branch = args.branch
 
 if args.branch != 'master':
     lower_branch = args.branch.lower()
-    if 'srt' in lower_branch:
-        cargs.station = 'SRT'
-        if args.station and 'SRT' not in args.station:
-            parser.error(
-                'mismatch between -s %s and -b %s'
-                % (args.branch, args.station))
-    elif 'medicina' in lower_branch:
-        cargs.station = 'Medicina'
-        if args.station and 'Medicina' not in args.station:
-            parser.error(
-                'mismatch between -s %s and -b %s'
-                % (args.branch, args.station))
-    elif 'noto' in lower_branch:
-        cargs.station = 'Noto'
-        if args.station and 'Noto' not in args.station:
-            parser.error(
-                'mismatch between -s %s and -b %s'
-                % (args.branch, args.station))
+    for station in STATIONS:
+        if station.lower() in lower_branch:
+            cargs.station = station
+            if args.station and station.lower() not in args.station:
+                parser.error(
+                    'mismatch between -s %s and -b %s'
+                    % (args.branch, args.station))
+            break
     else:
         parser.error('invalid branch name.')
 else:
     if not args.station:
         parser.error('-s is required when -b is master.')
     else:
-        cargs.station = args.station
+        for station in STATIONS:
+            if station.lower() == args.station:
+                cargs.station = station
+                break
 
 
 os.chdir(BRANCH_ROOT)
-BRANCH_PATH = os.path.join(BRANCH_ROOT, cargs.branch)
+if cargs.branch == 'master':
+    branch_name = 'master-%s' % args.station
+else:
+    branch_name = cargs.branch
+BRANCH_PATH = os.path.join(BRANCH_ROOT, branch_name)
 
 # Clone the branch
 try:
@@ -69,7 +67,7 @@ try:
         'git',
         'clone',
         cargs.repo,
-        cargs.branch,
+        branch_name,
         '--branch',
         cargs.branch,
         '--single-branch'],
@@ -129,10 +127,10 @@ render(template_path, context, dest_path)
 # Add the branch to the list of available branches
 with open('{{ discosconf_dir }}/branches', 'a+') as f:
     content = f.read()
-    if not cargs.branch in content:
-        f.write(cargs.branch + '\n')
+    if not branch_name in content:
+        f.write(branch_name + '\n')
 
 
 # Set the active branch
-if subprocess.call(['discos-set', cargs.branch]):
+if subprocess.call(['discos-set', branch_name]):
     sys.exit(code)
