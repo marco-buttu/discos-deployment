@@ -15,7 +15,7 @@
     state: present
 
 
-- name: Add {{ user }} to sudoers
+- name: Add the user {{ user }} to sudoers
   become: true
   lineinfile:
     dest: /etc/sudoers

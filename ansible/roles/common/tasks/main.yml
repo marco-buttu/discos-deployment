@@ -1,7 +1,7 @@
 ---
 
-- include: create_users_groups.yml
 - include: yum_packages.yml
+- include: create_users_groups.yml
 - include: required_tools.yml
 - include: network.yml
 - include: acs.yml

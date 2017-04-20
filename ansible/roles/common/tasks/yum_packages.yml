@@ -36,6 +36,7 @@
     - curl-devel
     - perl-devel
     - gettext-devel
+    - libselinux-python
 
 
 - name: "To avoid yum automatic updates, remove yum-cron"
