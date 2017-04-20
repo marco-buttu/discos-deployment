@@ -13,3 +13,11 @@
     group: acs
     uid: 3060
     state: present
+
+
+- name: Add {{ user }} to sudoers
+  become: true
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    line: '{{ user }}    ALL=(ALL)       ALL'
