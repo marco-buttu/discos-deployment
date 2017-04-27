@@ -3,7 +3,7 @@ import unittest
 from subprocess import Popen, PIPE
 
 TESTS_DIR = os.path.dirname(os.path.realpath(__file__))
-SCRIPT_DIR = TESTS_DIR.rstrip('tests')
+SCRIPT_DIR = os.path.dirname(TESTS_DIR)
 SCRIPT = os.path.join(SCRIPT_DIR, 'build')
 BASECMD = ['python', SCRIPT, '--sim']
 
