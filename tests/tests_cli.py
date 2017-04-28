@@ -80,7 +80,7 @@ class TestCLI(unittest.TestCase):
         self.assertRegexpMatches(out, b'station=srt')
 
     def test_only_master_accepts_station(self):
-        """You can not set the -s if the branch is not master."""
+        """You can not set -s if branch name does not contain the station."""
         cmd = BASECMD + [
             'large:development',
             '--deploy',
@@ -89,7 +89,7 @@ class TestCLI(unittest.TestCase):
             'medicina']
         pipes = Popen(cmd, stdout=PIPE, stderr=PIPE)
         out, err = pipes.communicate()
-        self.assertRegexpMatches(err, b'only master branch accepts the -s')
+        self.assertRegexpMatches(err, b'branch srt-0.1 does not accept the -s')
 
     def test_do_not_call_vagrant_up(self):
         """Do not run 'vagrant up' in production."""

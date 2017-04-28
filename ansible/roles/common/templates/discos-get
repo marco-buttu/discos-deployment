@@ -30,9 +30,14 @@ class CustomArgs:
 
 cargs = CustomArgs()
 cargs.repo = 'https://{{ ghtoken }}@github.com/discos/discos.git'
-cargs.branch = args.branch
 
-if args.branch != 'master':
+station_branch = False
+for station in STATIONS:
+    if station.lower() in args.branch:
+        station_branch = True
+        break
+
+if station_branch:
     lower_branch = args.branch.lower()
     for station in STATIONS:
         if station.lower() in lower_branch:
@@ -46,7 +51,7 @@ if args.branch != 'master':
         parser.error('invalid branch name.')
 else:
     if not args.station:
-        parser.error('-s is required when -b is master.')
+        parser.error('-s is required for branch %s.' % args.branch)
     else:
         for station in STATIONS:
             if station.lower() == args.station:
@@ -55,10 +60,10 @@ else:
 
 
 os.chdir(BRANCH_ROOT)
-if cargs.branch == 'master':
-    branch_name = 'master-%s' % args.station
+if not station_branch:
+    branch_name = '%s-%s' % (args.branch, args.station)
 else:
-    branch_name = cargs.branch
+    branch_name = args.branch
 BRANCH_PATH = os.path.join(BRANCH_ROOT, branch_name)
 
 # Clone the branch
@@ -69,7 +74,7 @@ try:
         cargs.repo,
         branch_name,
         '--branch',
-        cargs.branch,
+        args.branch,
         '--single-branch'],
         timeout=60)
 except subprocess.TimeoutExpired:

@@ -81,16 +81,22 @@ def error(msg, choices=(), name=''):
 args = parser.parse_args()
 
 
-# The master branch requires the station to be defined
+# The "non station" branches (like master) require the station to be defined
 extra_vars = ''
-if args.deploy == 'master':
+station_branch = False
+for station in STATIONS:
+    if args.deploy and station.lower() in args.deploy:
+        station_branch = True
+        break
+
+if not station_branch and args.deploy:
     if not args.station:
-        error('--station is required when branch is master.')
+        error('--station is required for deploying %s.' % args.deploy)
     else:
         extra_vars = 'station=%s' % args.station
 else:
     if args.station:
-        error('only master branch accepts the -s argument')
+        error('branch %s does not accept the -s argument.' % args.deploy)
 
 
 # Check if the system cluster:environment exists
