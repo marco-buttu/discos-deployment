@@ -116,12 +116,12 @@
 ################################
 
 
-- name: Copy the .acs dir from /alma to {{ acsconf_dir }}
+- name: Copy the .acs dir from /alma to /home/{{ user }}
   become: True
   become_user: "{{ user }}"
   command: chdir={{ acssw }}/config {{ item }}
   with_items:
-    - cp .acs {{ acsconf_dir }} -R
+    - cp .acs /home/{{ user }} -R
 
 
 - name: Copy the bashrc template
