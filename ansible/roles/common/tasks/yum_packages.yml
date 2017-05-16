@@ -1,6 +1,6 @@
 ---
 
-- name: "install all required yum packages"
+- name: Install all required yum packages
   become: true
   yum: name={{ item }} state=present
   with_items:
@@ -43,6 +43,15 @@
     - qt4-devel
     - PyQt4.x86_64
     - PyQt4-devel.x86_64
+
+
+- name: Install a GUI environment
+  become: true
+  yum: name={{ item }} state=present
+  with_items:
+    - "@X Window System"
+    - "@Desktop"
+    - "@fonts"
 
 
 - name: "To avoid yum automatic updates, remove yum-cron"
