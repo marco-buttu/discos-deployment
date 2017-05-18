@@ -36,13 +36,6 @@
     - curl-devel
     - perl-devel
     - gettext-devel
-    - libselinux-python
-    - qt
-    - qt-x11
-    - qt4
-    - qt4-devel
-    - PyQt4.x86_64
-    - PyQt4-devel.x86_64
 
 
 - name: Install a GUI environment

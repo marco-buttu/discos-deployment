@@ -42,6 +42,25 @@ modbus: { file: 'libmodbus-3.0.6.tar.gz', build_dir: 'libmodbus-3.0.6' }
 gmock: { file: 'gmock-1.7.0-master.zip', build_dir: 'gmock-1.7.0-master' }
 gmock_build: "{{ remote_build_path }}/{{ gmock.build_dir }}"
 
+qt_base_path: http://download.qt.io/archive/qt/4.5
+qt_version: qt-4.5.2
+qt_lib: /usr/local/{{ qt_version }}
+qt_build_dir: qt-x11-opensource-src-4.5.2
+qt_file: "{{ qt_build_dir}}.tar.gz"
+qt_url: "{{ qt_base_path }}/{{ qt_file }}"
+
+sip_base_path: https://sourceforge.net/projects/pyqt/files/sip
+sip_version: sip-4.19.2
+sip_build_dir: "{{ sip_version }}"
+sip_file: "{{ sip_version }}.tar.gz"
+sip_url: "{{ sip_base_path }}/{{ sip_version }}/{{ sip_file}}"
+
+pyqt_base_path: https://sourceforge.net/projects/pyqt/files/PyQt4
+pyqt_version: PyQt-4.12
+pyqt_build_dir: PyQt4_gpl_x11-4.12
+pyqt_file: "{{ pyqt_build_dir }}.tar.gz"
+pyqt_url: "{{ pyqt_base_path }}/{{ pyqt_version }}/{{ pyqt_file }}"
+
 
 
 ##################

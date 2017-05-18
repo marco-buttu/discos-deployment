@@ -47,13 +47,12 @@ PROMPT_COMMAND='source {{ discosconf_dir }}/prompt_command.sh'
 
 # Variables to export
 # ===================
-export PATH=/usr/local/qt/bin/:$PATH
-export QTDIR=/usr/local/qt
+export QTDIR=/usr/local/{{ qt_version }}
 export QTLIB=$QTDIR/lib
 export QTINC=$QTDIR/include
 export qt_prefix=$QTLIB
 export PATH=$PATH:$QTDIR/bin
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib:$QTLIB
 export PYTHONSTARTUP=$HOME/.pyrc
 export EDITOR=vi
 {% if ansible_hostname != "manager" %}

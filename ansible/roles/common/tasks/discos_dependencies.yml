@@ -1,5 +1,9 @@
 ---
 
+- name: Create a temporary directory for the libraries compilation
+  file: path={{ remote_build_path }} state=directory
+
+
 #################################
 # CFITSIO and CCFITS Installation
 #################################
@@ -46,10 +50,6 @@
     - ccfits_include.stat.exists == False
     - ccfits_sources.stat.exists == False
   delegate_to: 127.0.0.1
-
-
-- name: Create a temporary directory for the libraries compilation
-  file: path={{ remote_build_path }} state=directory
 
 
 - name: Copy {{ cfitsio.file }} to the remote {{ remote_build_path }}
@@ -118,10 +118,6 @@
   delegate_to: 127.0.0.1
 
 
-- name: Create a temporary directory for the libraries compilation
-  file: path={{ remote_build_path }} state=directory
-
-
 - name: Copy {{ modbus.file }} to the remote {{ remote_build_path }}
   unarchive:
     src={{ local_repository_path }}/{{ modbus.file }}
@@ -169,10 +165,6 @@
     - gmock_lib.stat.exists == False
     - gmock_sources.stat.exists == False
   delegate_to: 127.0.0.1
-
-
-- name: Create a temporary directory for the libraries compilation
-  file: path={{ remote_build_path }} state=directory
 
 
 - name: Copy {{ gmock.file }} to the remote {{ remote_build_path }}
@@ -252,7 +244,7 @@
   become: True
   file: path={{ item }} state=absent
   with_items:
-    - "{{ remote_build_path }}"
+    - "{{ remote_build_path }}/{{ gmock.build_dir }}"
 
 
 #####
@@ -280,10 +272,6 @@
   delegate_to: 127.0.0.1
 
 
-- name: Create a temporary directory for the libraries compilation
-  file: path={{ remote_build_path }} state=directory
-
-
 - name: Copy f2c to the remote {{ remote_build_path }}
   unarchive:
     src={{ local_repository_path }}/f2c.zip
@@ -306,6 +294,171 @@
   file: path={{ item }} state=absent
   with_items:
     - "{{ remote_build_path }}/f2c-master"
+
+
+
+#######################
+# QT AND PYQT LIBRARIES
+#######################
+
+- name: Verify the Qt library is not installed
+  become: true
+  yum: name={{ item }} state=absent
+  with_items:
+      - qt
+      - qt-devel
+      - qt4
+
+
+- name: Check if {{ qt_lib }} exists
+  stat: path={{ qt_lib }}
+  register: qt_library
+
+
+- name: Check if the {{ qt_file }}  exists in the local repository
+  stat: path={{ local_repository_path }}/{{ qt_file }}
+  delegate_to: 127.0.0.1
+  register: qt_sources
+
+
+- name: Download {{ qt_file }}
+  get_url:
+    validate_certs: no
+    url: "{{ qt_url }}"
+    dest: "{{ local_repository_path }}"
+  when:
+    - qt_library.stat.exists == False
+    - qt_sources.stat.exists == False
+  delegate_to: 127.0.0.1
+
+
+- name: Copy {{ qt_file }} to the remote {{ remote_build_path }}
+  unarchive:
+    src={{ local_repository_path }}/{{ qt_file }}
+    dest={{ remote_build_path }}
+  when: qt_library.stat.exists == False
+
+
+- name: No license confirmation prompt during installation
+  replace:
+    dest={{ remote_build_path }}/{{ qt_build_dir }}/configure
+    regexp='OPT_CONFIRM_LICENSE=no'
+    replace='OPT_CONFIRM_LICENSE=yes'
+  when: qt_library.stat.exists == False
+
+
+- name: Install Qt
+  command: chdir={{ remote_build_path }}/{{ qt_build_dir }} {{ item }}
+  with_items:
+    - ./configure -no-openssl -opensource --prefix=/usr/local/{{ qt_version }}
+    - gmake
+    - sudo gmake install
+  when: qt_library.stat.exists == False
+
+
+- name: Verify the sip library is not installed
+  become: true
+  yum: name=sip state=absent
+
+
+- name: Check if sip is installed
+  stat: path=/alma/{{ acs_tag }}/Python/lib/python2.7/site-packages/sip.so
+  register: sip_library
+
+
+- name: Check if the {{ sip_file }}  exists in the local repository
+  stat: path={{ local_repository_path }}/{{ sip_file }}
+  delegate_to: 127.0.0.1
+  register: sip_sources
+
+
+- name: Download {{ sip_file }}
+  get_url:
+    validate_certs: no
+    url: "{{ sip_url }}"
+    dest: "{{ local_repository_path }}"
+  when:
+    - sip_library.stat.exists == False
+    - sip_sources.stat.exists == False
+  delegate_to: 127.0.0.1
+
+
+- name: Copy {{ sip_file }} to the remote {{ remote_build_path }}
+  unarchive:
+    src={{ local_repository_path }}/{{ sip_file }}
+    dest={{ remote_build_path }}
+  when: sip_library.stat.exists == False
+
+
+- name: Install sip
+  command: chdir={{ remote_build_path }}/{{ sip_build_dir }} {{ item }}
+  with_items:
+    - python configure.py
+    - make
+    - sudo make install
+  when: sip_library.stat.exists == False
+
+
+- name: Verify the PyQt4 library is not installed
+  become: true
+  yum: name=PyQt4 state=absent
+
+
+- name: Check if PyQt is installed
+  stat: path=/alma/{{ acs_tag }}/Python/lib/python2.7/site-packages/PyQt4/__init__.py
+  register: pyqt_library
+
+
+- name: Check if the {{ pyqt_file }}  exists in the local repository
+  stat: path={{ local_repository_path }}/{{ pyqt_file }}
+  delegate_to: 127.0.0.1
+  register: pyqt_sources
+
+
+- name: Download {{ pyqt_file }}
+  get_url:
+    validate_certs: no
+    url: "{{ pyqt_url }}"
+    dest: "{{ local_repository_path }}"
+  when:
+    - pyqt_library.stat.exists == False
+    - pyqt_sources.stat.exists == False
+  delegate_to: 127.0.0.1
+
+
+- name: Copy {{ pyqt_file }} to the remote {{ remote_build_path }}
+  unarchive:
+    src={{ local_repository_path }}/{{ pyqt_file }}
+    dest={{ remote_build_path }}
+  when: pyqt_library.stat.exists == False
+
+
+- name: Configure PyQt
+  command: chdir={{ remote_build_path }}/{{ pyqt_build_dir }} {{ item }}
+  with_items:
+    - python configure-ng.py --confirm-license --qmake /usr/local/{{ qt_version }}/bin/qmake
+  when: pyqt_library.stat.exists == False
+
+
+- name: Remove PrintCurrentPage from source files
+  become: true
+  lineinfile:
+    dest={{ item }}
+    state=absent
+    regexp='^.*PrintCurrentPage.*$'
+  with_items:
+    - "{{ remote_build_path }}/{{ pyqt_build_dir }}/QtGui/sipAPIQtGui.h"
+    - "{{ remote_build_path }}/{{ pyqt_build_dir }}/QtGui/sipQtGuiQAbstractPrintDialog.cpp"
+    - "{{ remote_build_path }}/{{ pyqt_build_dir }}/sip/QtGui/qabstractprintdialog.sip"
+  when: pyqt_library.stat.exists == False
+
+
+- name: Install PyQt
+  command: chdir={{ remote_build_path }}/{{ pyqt_build_dir }} {{ item }}
+  with_items:
+    - make
+    - sudo make install
+  when: pyqt_library.stat.exists == False
 
 
 
@@ -418,3 +571,8 @@
     dest: /usr/bin
     mode: 0755
     force: yes
+
+
+
+- name: Remove the temporary directory used for libraries compilation
+  file: path={{ remote_build_path }} state=absent
