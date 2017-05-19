@@ -301,6 +301,11 @@
 # QT AND PYQT LIBRARIES
 #######################
 
+- name: Increment the process stack size in order to compile AS GUI
+  become: true
+  command: ulimit -s 65532
+
+
 - name: Verify the Qt library is not installed
   become: true
   yum: name={{ item }} state=absent
