@@ -303,7 +303,11 @@
 
 - name: Increment the process stack size in order to compile AS GUI
   become: true
-  command: ulimit -s 65532
+  pam_limits:
+    domain: discos
+    limit_type: '-'
+    limit_item: stack
+    value: 65532
 
 
 - name: Verify the Qt library is not installed
