@@ -179,14 +179,17 @@ if env_arg == 'development':
 # Add the IPs to known_hosts
 print('\nUpdating known_hosts...')
 for host_name in host_names:
+    ssh_dir = os.path.join(os.environ['HOME'], '.ssh')
+    known_hosts = os.path.join(ssh_dir, 'known_hosts')
+    if not os.path.exists(ssh_dir):
+        os.mkdir(ssh_dir)
     ip = ips[env_arg][host_name]
     if not args.sim:
         subprocess.call(
             'ssh-keygen -R %s' % ip,
             shell=True)
         subprocess.call(
-            'ssh-keyscan -H %s >> ~/.ssh/known_hosts' % ip,
-            shell=True)
+            'ssh-keyscan -H %s >> %s' % (ip, known_hosts), shell=True)
 
 
 # Call ansible
