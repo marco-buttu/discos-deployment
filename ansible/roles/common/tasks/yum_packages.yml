@@ -11,6 +11,7 @@
     - python-devel
     - git
     - gcc-c++
+    - gdb
     - cmake
     - ncurses
     - ncurses-devel
