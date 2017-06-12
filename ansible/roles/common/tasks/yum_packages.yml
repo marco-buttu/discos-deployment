@@ -37,6 +37,7 @@
     - curl-devel
     - perl-devel
     - gettext-devel
+    - bluefish
 
 
 - name: Install a GUI environment
