@@ -60,11 +60,12 @@
 
 
 - name: Install cfitsio
+  become: True
   command: chdir={{ remote_build_path }}/{{ cfitsio.build_dir }} {{ item }}
   with_items:
     - ./configure --prefix=/usr/local
     - make
-    - sudo make install
+    - make install
   when: cfitsio_include.stat.exists == False
 
 
@@ -76,11 +77,12 @@
 
 
 - name: Install CCfits
+  become: True
   command: chdir={{ remote_build_path }}/{{ ccfits.build_dir }} {{ item }}
   with_items:
     - ./configure --prefix=/usr/local
     - make
-    - sudo make install
+    - make install
   when: ccfits_include.stat.exists == False
 
 
@@ -126,11 +128,12 @@
 
 
 - name: Install modbus
+  become: True
   command: chdir={{ remote_build_path }}/{{ modbus.build_dir }} {{ item }}
   with_items:
     - ./configure --prefix=/usr/local
     - make
-    - sudo make install
+    - make install
   when: modbus_lib.stat.exists == False
 
 
@@ -357,11 +360,12 @@
 
 
 - name: Install Qt
+  become: True
   command: chdir={{ remote_build_path }}/{{ qt_build_dir }} {{ item }}
   with_items:
     - ./configure -no-openssl -opensource --prefix=/usr/local/{{ qt_version }}
     - gmake
-    - sudo gmake install
+    - gmake install
   when: qt_library.stat.exists == False
 
 
@@ -399,12 +403,25 @@
   when: sip_library.stat.exists == False
 
 
+- name: Change the {{ pyqt_build_dir }} permissions
+  become: true
+  file:
+    path={{ remote_build_path }}/{{ sip_build_dir }}
+    state=directory
+    recurse=yes
+    owner=discos
+    group=acs
+    mode=0755
+
 - name: Install sip
+  become: true
+  become_user: "{{ user }}"
+  become_flags: "-i"
   command: chdir={{ remote_build_path }}/{{ sip_build_dir }} {{ item }}
   with_items:
     - python configure.py
     - make
-    - sudo make install
+    - make install
   when: sip_library.stat.exists == False
 
 
@@ -442,7 +459,21 @@
   when: pyqt_library.stat.exists == False
 
 
+- name: Change the {{ pyqt_build_dir }} permissions
+  become: true
+  file:
+    path={{ remote_build_path }}/{{ pyqt_build_dir }}
+    state=directory
+    recurse=yes
+    owner=discos
+    group=acs
+    mode=0755
+
+
 - name: Configure PyQt
+  become: true
+  become_user: "{{ user }}"
+  become_flags: "-i"
   command: chdir={{ remote_build_path }}/{{ pyqt_build_dir }} {{ item }}
   with_items:
     - python configure-ng.py --confirm-license --qmake /usr/local/{{ qt_version }}/bin/qmake
@@ -451,6 +482,8 @@
 
 - name: Remove PrintCurrentPage from source files
   become: true
+  become_user: "{{ user }}"
+  become_flags: "-i"
   lineinfile:
     dest={{ item }}
     state=absent
@@ -463,10 +496,13 @@
 
 
 - name: Install PyQt
+  become: true
+  become_user: "{{ user }}"
+  become_flags: "-i"
   command: chdir={{ remote_build_path }}/{{ pyqt_build_dir }} {{ item }}
   with_items:
     - make
-    - sudo make install
+    - make install
   when: pyqt_library.stat.exists == False
 
 
@@ -584,4 +620,5 @@
 
 
 - name: Remove the temporary directory used for libraries compilation
+  become: True
   file: path={{ remote_build_path }} state=absent

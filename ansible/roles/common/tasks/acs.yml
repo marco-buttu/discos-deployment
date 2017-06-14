@@ -136,6 +136,18 @@
     force: yes
 
 
+- name: Copy the acsStartContainer with debugger
+  become: True
+  become_user: "{{ user }}"
+  template:
+    src: acsStartContainerGdb
+    dest: /alma/{{ acs_tag }}/ACSSW/bin/
+    owner: "{{ user }}"
+    group: acs
+    mode: 0755
+
+
+
 # ACS source files from:
 # http://git-dev.sco.alma.cl/cgit/ACS/
 #
