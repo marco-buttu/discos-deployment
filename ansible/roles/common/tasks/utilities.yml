@@ -11,6 +11,15 @@
     mode: 0644
 
 
+- name: Install prospector (Python linter)
+  become: true
+  become_user: "{{ user }}"
+  become_flags: "-i"
+  command: "{{ item }}"
+  with_items:
+    - pip install prospector
+
+
 - name: Install ipython and create default profile
   become: true
   become_user: "{{ user }}"
