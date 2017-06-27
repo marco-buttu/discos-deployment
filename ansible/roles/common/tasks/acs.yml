@@ -95,9 +95,28 @@
 # Apply some patch to ACS
 #########################
 
+
+- name: Read the ContainerServices.py file
+  shell: cat {{ container_services }}
+  register: container_services_content
+
+
+- name: Replace ContainerServices.py
+  become: True
+  template:
+    src: ContainerServices.py
+    dest: "{{ container_services }}"
+    owner: "{{ user }}"
+    group: acs
+    mode: 0644
+    force: yes
+  when: container_services_content.stdout.find('getattr') == -1
+
+
 - name: Read the BaciHelper.py file
   shell: cat {{ baci_helper }}
   register: baci_helper_content
+
 
 - name: Replace BaciHelper.py
   become: True
