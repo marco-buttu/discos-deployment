@@ -38,6 +38,7 @@
     - perl-devel
     - gettext-devel
     - bluefish
+    - bzip2-devel
 
 
 - name: Install a GUI environment

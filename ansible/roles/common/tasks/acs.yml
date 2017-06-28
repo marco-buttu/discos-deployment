@@ -166,6 +166,13 @@
     mode: 0755
 
 
+- name: Copy the Python bz2.so from system to ACS
+  become: True
+  become_user: "{{ user }}"
+  command: chdir=/usr/lib64/python2.6/lib-dynload/ {{ item }}
+  with_items:
+    - cp bz2.so /alma/ACS-FEB2017/Python/lib/python2.7/site-packages/
+
 
 # ACS source files from:
 # http://git-dev.sco.alma.cl/cgit/ACS/
