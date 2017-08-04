@@ -87,6 +87,7 @@
 
 
 - name: Remove the directory used for the libraries compilation
+  become: True
   file: path={{ item }} state=absent
   with_items:
     - "{{ remote_build_path }}/{{ cfitsio.build_dir }}"
@@ -138,6 +139,7 @@
 
 
 - name: Remove the directory used for the libraries compilation
+  become: True
   file: path={{ item }} state=absent
   with_items:
     - "{{ remote_build_path }}/{{ modbus.build_dir }}"
@@ -298,6 +300,7 @@
 
 
 - name: Remove the directory used for the libraries compilation
+  become: True
   file: path={{ item }} state=absent
   with_items:
     - "{{ remote_build_path }}/f2c-master"
