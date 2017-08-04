@@ -37,7 +37,6 @@
     - curl-devel
     - perl-devel
     - gettext-devel
-    - bluefish
     - bzip2-devel
 
 
