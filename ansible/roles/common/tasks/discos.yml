@@ -23,3 +23,11 @@
   become_flags: "-i"
   command: discos-get {{ branch }} -s {{ station }}
   when: branch == "master"
+
+- name: Increment the maximum number of user processes in order to run the AS
+  become: true
+  pam_limits:
+    domain: discos
+    limit_type: '-'
+    limit_item: nproc
+    value: 63266
