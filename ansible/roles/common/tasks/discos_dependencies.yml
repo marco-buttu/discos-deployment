@@ -625,7 +625,20 @@
     force: yes
 
 
-
 - name: Remove the temporary directory used for libraries compilation
   become: True
   file: path={{ remote_build_path }} state=absent
+
+
+
+#########################
+# COMPONENTS REQUIREMENTS
+#########################
+
+- name: Increment the maximum number of user processes in order to run the AS
+  become: true
+  pam_limits:
+    domain: discos
+    limit_type: '-'
+    limit_item: nproc
+    value: 63266
