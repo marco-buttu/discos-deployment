@@ -10,11 +10,14 @@
 """
 
 from __future__ import print_function
+from passlib.hash import md5_crypt
 import os
 import sys
 import argparse
 import itertools
 import subprocess
+import getpass
+import random
 
 
 ENVIRONMENTS = ['development', 'production']
@@ -22,11 +25,14 @@ STATIONS = ('srt', 'medicina', 'noto')
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
 ANSIBLE_DIR = os.path.join(ROOT_DIR, 'ansible')
 
+machines = {}
 systems = []
 clusters = {}
 all_clusters = []
 ips =  {}
 for env in ENVIRONMENTS:
+    current_cluster = ''
+    machines[env] = {}
     clusters[env] = []
     ips[env] = {}
     inventory = '%s/inventories/%s' % (ANSIBLE_DIR, env)
@@ -39,12 +45,23 @@ for env in ENVIRONMENTS:
                 node_name, _ = first_part.split()
                 ips[env].update({node_name.strip(): ip.strip()})
             if line.startswith('['):
-                text = line[line.find('[')+1:line.find(']')]
-                host = text.split(':')[0] if ':' in text else text
+                line = line[line.find('[')+1:line.find(']')]
+                host = line.split(':')[0] if ':' in line else line
                 if host not in  ('multi', 'local'):
                     all_clusters.append(host)
                     clusters[env].append(host)
                     systems.append('%s:%s' % (host, env))
+                if ':' not in line:
+                    machines[env][line] = [line]
+                if ':children' in line:
+                    current_cluster, _ = line.split(':')
+                    machines[env][current_cluster] = []
+            if line == '':
+                current_cluster = ''
+            if current_cluster != '' and ':children' not in line:
+                for machine in machines[env][line]:
+                    if machine not in machines[env][current_cluster]:
+                        machines[env][current_cluster].append(machine)
 
 
 parser = argparse.ArgumentParser(
@@ -145,6 +162,45 @@ inventory = '%s/inventories/%s' % (ANSIBLE_DIR, env_arg)
 playbook = '%s/all.yml'  % ANSIBLE_DIR
 os.chdir(ANSIBLE_DIR)
 
+for machine in machines[env_arg][cluster_arg]:
+    user_file = os.path.join(inventory, 'group_vars', machine)
+
+    if os.path.exists(user_file):
+        print("Username and password for machine '" + machine + "' already defined.")
+        continue
+    else:
+        while True:
+            user = raw_input("Insert a username for '" + machine + "' machine: ")
+
+            if user is None or user is '':
+                print('Username cannot be empty.')
+            else:
+                user = str(user)
+                break
+
+        while True:
+            password = getpass.getpass('Insert password for ' + user + ': ')
+            if password is None or password is '':
+                print('Password cannot be empty.')
+                continue
+
+            checkpass = getpass.getpass('Confirm password for user ' + user + ': ')
+            if checkpass != password:
+                print('Confirmation failed, insert password again.')
+                continue
+            else:
+                password = str(password)
+                break
+
+        random.seed(a=user)
+        uid = str(random.randint(3000, 3500))
+
+        f = open(user_file, 'w')
+        f.write('---\n\n')
+        f.write('user: ' + user + '\n')
+        f.write('password: ' + md5_crypt.using(salt=user[:8]).hash(password) + '\n')
+        f.write('uid: ' + uid + '\n')
+        f.close()
 
 def get_host_names(inventory, group, file='hosts'):
     hosts = []
