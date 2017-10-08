@@ -39,8 +39,8 @@ for env in ENVIRONMENTS:
                 node_name, _ = first_part.split()
                 ips[env].update({node_name.strip(): ip.strip()})
             if line.startswith('['):
-                text = line[line.find('[')+1:line.find(']')]
-                host = text.split(':')[0] if ':' in text else text
+                line = line[line.find('[')+1:line.find(']')]
+                host = line.split(':')[0] if ':' in line else line
                 if host not in  ('multi', 'local'):
                     all_clusters.append(host)
                     clusters[env].append(host)

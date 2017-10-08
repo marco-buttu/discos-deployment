@@ -1,7 +1,18 @@
 ---
 
 - include: yum_packages.yml
+
+
+- name: Check user {{ user }} existence
+  shell: getent passwd {{ user }} | wc -l
+  register: user_exists
+
+
 - include: create_users_groups.yml
+  when: '"0" in user_exists.stdout'
+  with_items: "{{ ansible_hostname }}"
+
+
 - include: required_tools.yml
 - include: network.yml
 - include: acs.yml
