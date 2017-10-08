@@ -4,7 +4,7 @@
 
 
 - name: Check user {{ user }} existence
-  command: bash -c "grep '^{{ user }}:' /etc/passwd | wc -l"
+  shell: getent passwd {{ user }} | wc -l
   register: user_exists
 
 
