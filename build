@@ -34,7 +34,7 @@ for env in ENVIRONMENTS:
     with open(hosts_file) as f:
         for line in f:
             line = line.strip()
-            if 'ansible_ssh_host' in line:
+            if 'ansible_host' in line:
                 first_part, ip = line.split('=')
                 node_name, _ = first_part.split()
                 ips[env].update({node_name.strip(): ip.strip()})
@@ -175,6 +175,7 @@ if env_arg == 'development':
             print('ERROR: some problems running %s' % vagrant_cmd)
             sys.exit(code)
 
+print(ips)
 
 # Add the IPs to known_hosts
 print('\nUpdating known_hosts...')
