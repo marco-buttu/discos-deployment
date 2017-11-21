@@ -20,5 +20,5 @@ large
 small
 
 [multi:vars]
-ansible_user=vagrant
-ansible_password=vagrant
+ansible_user=root
+#ansible_password=vagrant
