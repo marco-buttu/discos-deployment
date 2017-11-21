@@ -1,7 +1,7 @@
 127.0.0.1 localhost localhost.localdomain localhost4 localhost4.localdomain4
 
 {% for hostname in hostvars %}
-{% if 'ansible_ssh_host' in hostvars[hostname] %}
-{{ hostvars[hostname]['ansible_ssh_host'] }} {{ hostname }}
+{% if 'ansible_host' in hostvars[hostname] %}
+{{ hostvars[hostname]['ansible_host'] }} {{ hostname }}
 {% endif %}
 {% endfor %}
