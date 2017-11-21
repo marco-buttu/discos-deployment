@@ -8,7 +8,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     # Common configuration for all virtual machines
     config.ssh.insert_key = false
-    config.vm.box = "bento/centos-6.8"
+    config.vm.box = "bento/centos-6.7"
     config.vm.provider :virtualbox do |vb|
         vb.customize ["modifyvm", :id, "--ioapic", "on"]
         vb.memory = 4096
