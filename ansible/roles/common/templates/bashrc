@@ -60,6 +60,6 @@ export EDITOR=vi
 
 # Manager reference
 # =================
-MNG_IP={{ hostvars[groups['manager'].0].ansible_ssh_host }}
+MNG_IP={{ hostvars[groups['manager'].0].ansible_host }}
 export MANAGER_REFERENCE=corbaloc::$MNG_IP:3000/Manager
 {% endif %}
