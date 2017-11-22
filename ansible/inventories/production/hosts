@@ -18,7 +18,3 @@ manager
 [multi:children]
 large
 small
-
-[multi:vars]
-ansible_user=root
-#ansible_password=vagrant
