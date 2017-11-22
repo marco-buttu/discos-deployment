@@ -15,6 +15,8 @@ import sys
 import argparse
 import itertools
 import subprocess
+import getpass
+import paramiko
 
 
 ENVIRONMENTS = ['development', 'production']
@@ -22,11 +24,14 @@ STATIONS = ('srt', 'medicina', 'noto')
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
 ANSIBLE_DIR = os.path.join(ROOT_DIR, 'ansible')
 
+machines = {}
 systems = []
 clusters = {}
 all_clusters = []
 ips =  {}
 for env in ENVIRONMENTS:
+    current_cluster = ''
+    machines[env] = {}
     clusters[env] = []
     ips[env] = {}
     inventory = '%s/inventories/%s' % (ANSIBLE_DIR, env)
@@ -45,6 +50,17 @@ for env in ENVIRONMENTS:
                     all_clusters.append(host)
                     clusters[env].append(host)
                     systems.append('%s:%s' % (host, env))
+                if ':' not in line:
+                    machines[env][line] = [line]
+                if ':children' in line:
+                    current_cluster, _ = line.split(':')
+                    machines[env][current_cluster] = []
+            if line == '':
+                current_cluster = ''
+            if current_cluster != '' and ':children' not in line:
+                for machine in machines[env][line]:
+                    if machine not in machines[env][current_cluster]:
+                        machines[env][current_cluster].append(machine)
 
 
 parser = argparse.ArgumentParser(
@@ -161,11 +177,29 @@ def get_host_names(inventory, group, file='hosts'):
             found = True
     return hosts
 
+
 host_names = get_host_names(inventory, cluster_arg)
 
-# Call vagrant to provision the VMs
-print('\nCalling vagrant...\n')
+
+# Create the .ssh directory
+ssh_dir = os.path.join(os.environ['HOME'], '.ssh')
+if not os.path.exists(ssh_dir):
+    os.mkdir(ssh_dir)
+
+
+# Generate the public/private key pair (if not present)
+key_file = os.path.join(ssh_dir, 'id_rsa')
+if not os.path.exists(key_file):
+    subprocess.call("ssh-keygen -f %s -t rsa -N '' -q" % key_file, shell=True)
+public_key = ''
+with open(key_file + '.pub') as pubkey_file:
+    public_key = pubkey_file.read().strip()
+
+
+root_pwd = ''
+# Call cagrant to provision the VMs
 if env_arg == 'development':
+    print('\nCalling Vagrant...\n')
     vagrant_cmd = ['vagrant', 'up'] + host_names
     if args.sim:
         print(' '.join(vagrant_cmd))
@@ -174,16 +208,13 @@ if env_arg == 'development':
         if code:
             print('ERROR: some problems running %s' % vagrant_cmd)
             sys.exit(code)
+    root_pwd = 'vagrant'
 
-print(ips)
 
 # Add the IPs to known_hosts
 print('\nUpdating known_hosts...')
 for host_name in host_names:
-    ssh_dir = os.path.join(os.environ['HOME'], '.ssh')
     known_hosts = os.path.join(ssh_dir, 'known_hosts')
-    if not os.path.exists(ssh_dir):
-        os.mkdir(ssh_dir)
     ip = ips[env_arg][host_name]
     if not args.sim:
         subprocess.call(
@@ -193,12 +224,50 @@ for host_name in host_names:
             'ssh-keyscan -H %s >> %s' % (ip, known_hosts), shell=True)
 
 
+# Check if we already have passwordless access to the machines
+ssh = paramiko.SSHClient()
+ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+for machine in machines[env_arg][cluster_arg]:
+    ip = ips[env_arg][machine]
+    try:
+        ssh.connect(ip, username='root')
+    except paramiko.AuthenticationException:
+        # Cannot authenticate, it means we have to ask for password
+        if not root_pwd:
+            root_pwd = getpass.getpass('Type the target machines` root password: ')
+        try:
+            ssh.connect(ip, username='root', password=root_pwd)
+            sftp_client = ssh.open_sftp()
+            try:
+                sftp_client.stat('.ssh')
+            except IOError:
+                sftp_client.mkdir('.ssh')
+            file_mode = 'a+'
+            try:
+                sftp_client.stat('.ssh/authorized_keys')
+            except IOError:
+                file_mode = 'w+'
+            remote_file = sftp_client.open('.ssh/authorized_keys', mode=file_mode)
+            found = False
+            for line in remote_file:
+                if public_key in line:
+                    found = True
+            if not found:
+                remote_file.write(public_key + '\n')
+            remote_file.close()
+            sftp_client.close()
+        except paramiko.AuthenticationException:
+            print('Cannot authenticate, probable wrong password.')
+
+
+extra_vars += ' ansible_user=root'
+
 # Call ansible
 ansible_cmd = [
     'ansible-playbook', playbook,
     '--inventory-file', inventory,
     '--limit', cluster_arg,
-    '--extra-vars', '"%s"' % extra_vars,
+    '--extra-vars', '"%s"' % extra_vars.strip(),
 ]
 if tags:
     ansible_cmd += ['--tags', ','.join(tags)]
