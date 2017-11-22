@@ -1,11 +1,11 @@
 [manager]
-manager ansible_host=192.168.10.200
+manager.oa-cagliari.inaf.it ansible_host=192.168.10.200
 
 [as]  # active surface
-as ansible_host=192.168.10.201
+as.oa-cagliari.inaf.it ansible_host=192.168.10.201
 
 [ms]  # minor servo
-ms ansible_host=192.168.10.202
+ms.oa-cagliari.inaf.it ansible_host=192.168.10.202
 
 [large:children]
 manager

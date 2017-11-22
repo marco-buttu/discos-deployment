@@ -6,7 +6,7 @@
 
 
 - pause:
-    prompt: "Password for user {{ user }}, machine {{ ansible_hostname }}.\nWARNING: backspace key does not work in this prompt, make sure to type the password correctly (it will be asked 2 times for confirmation)"
+    prompt: "Password for user {{ user }}, machine {{ inventory_hostname }}.\nWARNING: backspace key does not work in this prompt, make sure to type the password correctly (it will be asked 2 times for confirmation)"
   register: password_prompt
 
 
