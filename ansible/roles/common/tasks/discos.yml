@@ -1,7 +1,7 @@
 ---
 
 - set_fact:
-    branch_path: /home/{{ user }}/{{ branch }}
+    branch_path: /home/{{ user }}/{{ branch }}-{{ station }}
 
 
 - name: Remove the {{ branch_path }} directory
@@ -13,13 +13,4 @@
   become: true
   become_user: "{{ user }}"
   become_flags: "-i"
-  command: discos-get {{ branch }}
-  when: branch != "master"
-
-
-- name: Get the DISCOS {{ branch }} repository
-  become: true
-  become_user: "{{ user }}"
-  become_flags: "-i"
   command: discos-get {{ branch }} -s {{ station }}
-  when: branch == "master"
