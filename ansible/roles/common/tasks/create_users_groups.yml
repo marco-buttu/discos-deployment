@@ -5,31 +5,11 @@
   group: name=acs gid=335 state=present
 
 
-- pause:
-    prompt: "Password for user {{ user }}, machine {{ inventory_hostname }}.\nWARNING: backspace key does not work in this prompt, make sure to type the password correctly (it will be asked 2 times for confirmation)"
-  register: password_prompt
-
-
-- fail:
-    msg: "Password cannot be empty."
-  when: password_prompt.user_input == ""
-
-
-- pause:
-    prompt: "Confirm password"
-  register: password_confirm
-
-
-- fail:
-    msg: "Password confirmation failed."
-  when: password_prompt.user_input != password_confirm.user_input
-
-
 - name: Add the user {{ user }}
   become: true
   user:
     name: "{{ user }}"
-    password: "{{ password_prompt.user_input | password_hash('md5', user[:8]) }}"
+    password: "{{ discos_pwd | password_hash('md5', user[:8]) }}"
     group: acs
     uid: 3060
     state: present

@@ -5,7 +5,6 @@
   $ ./build large:production
   $ ./build small:development
   $ ./build manager:development
-  $ ./build small:development --deploy noto-0.1
   $ ./build small:development --deploy master --station srt
 """
 
@@ -13,54 +12,59 @@ from __future__ import print_function
 import os
 import sys
 import argparse
-import itertools
 import subprocess
 import getpass
 import paramiko
 
 
-ENVIRONMENTS = ['development', 'production']
 STATIONS = ('srt', 'medicina', 'noto')
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
 ANSIBLE_DIR = os.path.join(ROOT_DIR, 'ansible')
+INVENTORIES_DIR = os.path.join(ANSIBLE_DIR, 'inventories')
 
-machines = {}
-systems = []
+ENVIRONMENTS = []
+
+for item in os.listdir(INVENTORIES_DIR):
+    if not os.path.isfile(os.path.join(INVENTORIES_DIR, item)):
+        ENVIRONMENTS.append(item)
+
+
+groups = {}
+hosts = {}
 clusters = {}
-all_clusters = []
-ips =  {}
+systems = []
 for env in ENVIRONMENTS:
-    current_cluster = ''
-    machines[env] = {}
+    hosts[env] = {}
+    groups[env] = {}
     clusters[env] = []
-    ips[env] = {}
-    inventory = '%s/inventories/%s' % (ANSIBLE_DIR, env)
+    inventory = '%s/%s' % (INVENTORIES_DIR, env)
     hosts_file = os.path.join(inventory, 'hosts')
     with open(hosts_file) as f:
         for line in f:
-            line = line.strip()
-            if 'ansible_host' in line:
-                first_part, ip = line.split('=')
-                node_name, _ = first_part.split()
-                ips[env].update({node_name.strip(): ip.strip()})
-            if line.startswith('['):
-                line = line[line.find('[')+1:line.find(']')]
-                host = line.split(':')[0] if ':' in line else line
-                if host not in  ('multi', 'local'):
-                    all_clusters.append(host)
-                    clusters[env].append(host)
-                    systems.append('%s:%s' % (host, env))
+            if '[' in line and ']' in line:
                 if ':' not in line:
-                    machines[env][line] = [line]
-                if ':children' in line:
-                    current_cluster, _ = line.split(':')
-                    machines[env][current_cluster] = []
-            if line == '':
-                current_cluster = ''
-            if current_cluster != '' and ':children' not in line:
-                for machine in machines[env][line]:
-                    if machine not in machines[env][current_cluster]:
-                        machines[env][current_cluster].append(machine)
+                    current_group = line[line.find('[')+1:line.find(']')]
+                else:
+                    current_group = line[line.find('[')+1:line.find(':')]
+                    groups[env][current_group] = []
+            elif 'ansible_host' in line:
+                hostname, ansible_host = line.split()
+                _ ,ansible_host = ansible_host.split('=')
+                host = {}
+                host['hostname'] = hostname
+                host['ansible_host'] = ansible_host            
+                hosts[env][current_group] = host
+            elif line != '\n' and current_group:
+                host = line.strip()
+                if host in hosts[env].keys():
+                    groups[env][current_group].append(line.strip())
+                elif host in groups[env].keys():
+                    for machine in groups[env][host]:
+                        if machine not in groups[env][current_group]:
+                            groups[env][current_group].append(machine)
+    clusters[env] = hosts[env].keys() + groups[env].keys()
+    for cluster in clusters[env]:
+        systems.append('%s:%s' % (cluster, env))
 
 
 parser = argparse.ArgumentParser(
@@ -90,29 +94,11 @@ def error(msg, choices=(), name=''):
         choices_msg = ''
     print('\nERROR: %s%s' % (msg, choices_msg), file=sys.stderr)
     if choices:
-          for choice in choices:
-              print(' '*2, choice, file=sys.stderr)
+        for choice in choices:
+            print(' '*2, choice, file=sys.stderr)
     print('\n%s' %  __doc__, file=sys.stderr)
     sys.exit(1)
 args = parser.parse_args()
-
-
-# The "non station" branches (like master) require the station to be defined
-extra_vars = ''
-station_branch = False
-for station in STATIONS:
-    if args.deploy and station.lower() in args.deploy:
-        station_branch = True
-        break
-
-if not station_branch and args.deploy:
-    if not args.station:
-        error('--station is required for deploying %s.' % args.deploy)
-    else:
-        extra_vars = 'station=%s' % args.station
-else:
-    if args.station:
-        error('branch %s does not accept the -s argument.' % args.deploy)
 
 
 # Check if the system cluster:environment exists
@@ -138,6 +124,11 @@ else:
                   allowed_clusters,
                   name='cluster (in %s)' % env_arg)
     else:
+        all_clusters = []
+        for env in ENVIRONMENTS:
+            for cluster in clusters[env]:
+                if cluster not in all_clusters:
+                    all_clusters.append(cluster)
         # right_cluster:wrong_env
         if cluster_arg in all_clusters:
             msg = ('Environment "%s" not found in %s.\n'
@@ -152,33 +143,9 @@ else:
                   name='system')
 
 
-tags = []
-if args.deploy:
-    extra_vars += ' branch=%s' % args.deploy
-    tags.append('deploy')
-
 inventory = '%s/inventories/%s' % (ANSIBLE_DIR, env_arg)
 playbook = '%s/all.yml'  % ANSIBLE_DIR
 os.chdir(ANSIBLE_DIR)
-
-
-def get_host_names(inventory, group, file='hosts'):
-    hosts = []
-    found = False  # Found the header containing group
-    for line in open(os.path.join(inventory, file)):
-        line = line.strip()
-        header = line[line.find('['):line.find(']')+1]
-        if found and not header and line:
-            host = line.split()[0]
-            hosts.append(host)
-        elif found and header:
-            break
-        elif header and group in header:
-            found = True
-    return hosts
-
-
-host_names = get_host_names(inventory, cluster_arg)
 
 
 # Create the .ssh directory
@@ -196,11 +163,19 @@ with open(key_file + '.pub') as pubkey_file:
     public_key = pubkey_file.read().strip()
 
 
+# Machines to provision in the current process
+current_machines = []
+if cluster_arg in groups[env_arg]:
+    current_machines = groups[env_arg][cluster_arg]
+else:
+    current_machines.append(cluster_arg)
+
+
 root_pwd = ''
-# Call cagrant to provision the VMs
+# Call vagrant to provision the VMs
 if env_arg == 'development':
     print('\nCalling Vagrant...\n')
-    vagrant_cmd = ['vagrant', 'up'] + host_names
+    vagrant_cmd = ['vagrant', 'up'] + current_machines
     if args.sim:
         print(' '.join(vagrant_cmd))
     else:
@@ -213,9 +188,9 @@ if env_arg == 'development':
 
 # Add the IPs to known_hosts
 print('\nUpdating known_hosts...')
-for host_name in host_names:
-    known_hosts = os.path.join(ssh_dir, 'known_hosts')
-    ip = ips[env_arg][host_name]
+known_hosts = os.path.join(ssh_dir, 'known_hosts')
+for host_name in current_machines:
+    ip = hosts[env_arg][host_name]['ansible_host']
     if not args.sim:
         subprocess.call(
             'ssh-keygen -R %s' % ip,
@@ -224,40 +199,64 @@ for host_name in host_names:
             'ssh-keyscan -H %s >> %s' % (ip, known_hosts), shell=True)
 
 
-# Check if we already have passwordless access to the machines
-ssh = paramiko.SSHClient()
-ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-for machine in machines[env_arg][cluster_arg]:
-    ip = ips[env_arg][machine]
-    try:
-        ssh.connect(ip, username='root')
-    except paramiko.AuthenticationException:
-        # Cannot authenticate, it means we have to ask for password
-        if not root_pwd:
-            root_pwd = getpass.getpass('Type the target machines` root password: ')
+extra_vars = ''
+discos_pwd = ''
+if not args.sim:
+    ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    for machine in current_machines:
+        ip = hosts[env_arg][machine]['ansible_host']
         try:
-            ssh.connect(ip, username='root', password=root_pwd)
-            sftp_client = ssh.open_sftp()
-            try:
-                sftp_client.stat('.ssh')
-            except IOError:
-                sftp_client.mkdir('.ssh')
-            file_mode = 'a+'
-            try:
-                sftp_client.stat('.ssh/authorized_keys')
-            except IOError:
-                file_mode = 'w+'
-            remote_file = sftp_client.open('.ssh/authorized_keys', mode=file_mode)
-            found = False
-            for line in remote_file:
-                if public_key in line:
-                    found = True
-            if not found:
-                remote_file.write(public_key + '\n')
-            remote_file.close()
-            sftp_client.close()
+            # Check if we already have passwordless access to the machines
+            ssh.connect(ip, username='root')
         except paramiko.AuthenticationException:
-            print('Cannot authenticate, probable wrong password.')
+            # Cannot authenticate, it means we have to ask for password
+            if not root_pwd:
+                root_pwd = getpass.getpass('Type the target machines` root password: ')
+            try:
+                ssh.connect(ip, username='root', password=root_pwd)
+                sftp_client = ssh.open_sftp()
+                try:
+                    sftp_client.stat('.ssh')
+                except IOError:
+                    sftp_client.mkdir('.ssh')
+                file_mode = 'a+'
+                try:
+                    sftp_client.stat('.ssh/authorized_keys')
+                except IOError:
+                    file_mode = 'w+'
+                remote_file = sftp_client.open('.ssh/authorized_keys', mode=file_mode)
+                found = False
+                for line in remote_file:
+                    if public_key in line:
+                        found = True
+                if not found:
+                    remote_file.write(public_key + '\n')
+                remote_file.close()
+                sftp_client.close()
+            except paramiko.AuthenticationException:
+                error('Cannot authenticate, probable wrong password.')
+        stdin, stdout, stderr = ssh.exec_command('getent passwd discos')
+        stdin.close()
+
+        if not stdout.read().splitlines() and not discos_pwd:
+            # User discos not present in target machine, asking password
+            discos_pwd = getpass.getpass('Type the `discos` user desired password: ')
+            if not discos_pwd:
+                error('A password is required for user `discos`.')
+            if discos_pwd != getpass.getpass('Confirm password: '):
+                error('Typed password and confirm does not match. Retry.')
+            extra_vars += ' discos_pwd=%s' % discos_pwd
+
+
+# Checking if both or no `deploy` and `station` are present
+if bool(args.deploy) ^ bool(args.station):
+    error('Both or no `--deploy` and `--station` arguments have to be specified.') 
+elif args.deploy and args.station:
+    if args.station not in STATIONS:
+        error('Unknown station `%s`.' % args.station)
+    else:
+        extra_vars += ' branch=%s station=%s' % (args.deploy, args.station)
 
 
 extra_vars += ' ansible_user=root'
@@ -269,10 +268,6 @@ ansible_cmd = [
     '--limit', cluster_arg,
     '--extra-vars', '"%s"' % extra_vars.strip(),
 ]
-if tags:
-    ansible_cmd += ['--tags', ','.join(tags)]
-else:
-    ansible_cmd += ['--skip-tags', 'deploy']
 
 print('\nCalling ansible...\n')
 if args.sim:

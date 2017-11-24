@@ -3,14 +3,8 @@
 - include: yum_packages.yml
 
 
-- name: Check user {{ user }} existence
-  shell: getent passwd {{ user }} | wc -l
-  register: user_exists
-
-
 - include: create_users_groups.yml
-  when: '"0" in user_exists.stdout'
-  with_items: "{{ ansible_hostname }}"
+  when: discos_pwd is defined
 
 
 - include: required_tools.yml
@@ -18,5 +12,6 @@
 - include: acs.yml
 - include: discos_dependencies.yml
 - include: utilities.yml
+
 - include: discos.yml
-  tags: ['deploy']
+  when: branch is defined and station is defined
