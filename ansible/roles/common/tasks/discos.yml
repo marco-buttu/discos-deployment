@@ -14,3 +14,10 @@
   become_user: "{{ user }}"
   become_flags: "-i"
   command: discos-get {{ branch }} -s {{ station }}
+
+
+- name: Set the DISCOS CDB
+  become: true
+  become_user: "{{ user }}"
+  become_flags: "-i"
+  command: discos-set --cdb {{ cdb }} {{ branch }}-{{ station }}

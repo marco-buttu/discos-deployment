@@ -257,6 +257,8 @@ elif args.deploy and args.station:
         error('Unknown station `%s`.' % args.station)
     else:
         extra_vars += ' branch=%s station=%s' % (args.deploy, args.station)
+    # Setting the test CDB for development environment or telescope CDB for production
+    extra_vars += ' cdb=test' if env_arg == 'development' else ' cdb=telescope'
 
 
 extra_vars += ' ansible_user=root'

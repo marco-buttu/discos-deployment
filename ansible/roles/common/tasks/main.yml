@@ -14,4 +14,4 @@
 - include: utilities.yml
 
 - include: discos.yml
-  when: branch is defined and station is defined
+  when: branch is defined and station is defined and cdb is defined
