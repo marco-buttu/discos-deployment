@@ -4,19 +4,19 @@
     branch_path: /home/{{ user }}/{{ branch }}-{{ station }}
 
 
-- name: Remove the {{ branch_path }} directory
+- name: Remove the repository directory (if present)
   become: True
   file: path={{ branch_path }} state=absent
 
 
-- name: Get the DISCOS {{ branch }} repository
+- name: Clone the selected DISCOS branch repository
   become: true
   become_user: "{{ user }}"
   become_flags: "-i"
   command: discos-get {{ branch }} -s {{ station }}
 
 
-- name: Set the DISCOS CDB
+- name: Set the correct CDB
   become: true
   become_user: "{{ user }}"
   become_flags: "-i"
