@@ -40,6 +40,11 @@
     - bzip2-devel
 
 
+- name: Install sshpass package
+  become: true
+  yum: name=sshpass state=present
+
+
 - name: Install a GUI environment
   become: true
   yum: name={{ item }} state=present

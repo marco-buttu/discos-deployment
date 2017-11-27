@@ -1,6 +1,7 @@
 ---
 
 - include: yum_packages.yml
+- include: network.yml
 
 
 - include: create_users_groups.yml
@@ -8,7 +9,6 @@
 
 
 - include: required_tools.yml
-- include: network.yml
 - include: acs.yml
 - include: discos_dependencies.yml
 - include: utilities.yml

@@ -13,6 +13,8 @@
     group: acs
     uid: 3060
     state: present
+    generate_ssh_key: yes
+    ssh_key_file: .ssh/id_rsa
 
 
 - name: Add the user {{ user }} to sudoers
@@ -21,4 +23,38 @@
     dest: /etc/sudoers
     state: present
     line: '{{ user }}    ALL=(ALL)       ALL'
+
   
+- file:
+    path: /home/{{ user }}/.ssh/known_hosts
+    state: touch
+    owner: "{{ user }}"
+    group: acs
+    mode: 0600
+
+
+- name: Removing old public keys from known_hosts file
+  become: true
+  become_user: "{{ user }}"
+  become_flags: "-i"
+  command: ssh-keygen -R {{ hostvars[item].ansible_host }}
+  with_items: "{{ play_hosts }}"
+  when: item != inventory_hostname
+
+
+- name: Adding new public keys to known_hosts file
+  become: true
+  become_user: "{{ user }}"
+  become_flags: "-i"
+  shell: ssh-keyscan {{ hostvars[item].inventory_hostname }},{{ hostvars[item].inventory_hostname_short }},{{ hostvars[item].ansible_host }} >> /home/{{ user }}/.ssh/known_hosts
+  with_items: "{{ play_hosts }}"
+  when: item != inventory_hostname
+
+
+- name: Sharing public key with other machines in current deployment session
+  become: true
+  become_user: "{{ user }}"
+  become_flags: "-i"
+  command: sshpass -p {{ discos_pwd }} ssh-copy-id {{ user }}@{{ item }}
+  with_items: "{{ play_hosts }}"
+  when: item != inventory_hostname
