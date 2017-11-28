@@ -3,10 +3,8 @@
 - include: yum_packages.yml
 - include: network.yml
 
-
 - include: create_users_groups.yml
   when: discos_pwd is defined
-
 
 - include: required_tools.yml
 - include: acs.yml
