@@ -19,3 +19,10 @@
   remote_user: "{{ user }}"
   roles:
     - manager
+
+
+- name: Delete the provisioning machine public key from provisioned hosts
+  hosts: all
+  remote_user: root
+  tasks:
+    - file: path=/root/.ssh state=absent
