@@ -598,30 +598,47 @@
     force: yes
 
 
+- file:
+    path: "/home/{{ user }}/.bin"
+    state: directory
+    owner: "{{ user }}"
+    group: acs
+    mode: 0755
+
+
 - name: Render the discos-get template
   become: True
+  become_user: "{{ user }}"
   template:
     src: discos-get
-    dest: /usr/bin
-    mode: 0755
+    dest: "/home/{{ user }}/.bin/"
+    owner: "{{ user }}"
+    group: acs
+    mode: 0544
     force: yes
 
 
 - name: Render the discos-set template
   become: True
+  become_user: "{{ user }}"
   template:
     src: discos-set
-    dest: /usr/bin
-    mode: 0755
+    dest: "/home/{{ user }}/.bin/"
+    owner: "{{ user }}"
+    group: acs
+    mode: 0544
     force: yes
 
 
 - name: Render the _discos-check-branch template
   become: True
+  become_user: "{{ user }}"
   template:
     src: _discos-check-branch
-    dest: /usr/bin
-    mode: 0755
+    dest: "/home/{{ user }}/.bin/"
+    owner: "{{ user }}"
+    group: acs
+    mode: 0544
     force: yes
 
 
