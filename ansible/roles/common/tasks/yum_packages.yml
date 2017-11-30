@@ -38,6 +38,8 @@
     - perl-devel
     - gettext-devel
     - bzip2-devel
+    - xterm
+    - ksh
 
 
 - name: Install sshpass package
