@@ -7,14 +7,7 @@ as.oa-cagliari.inaf.it ansible_host=192.168.200.201
 [ms]  # minor servo
 ms.oa-cagliari.inaf.it ansible_host=192.168.200.202
 
-[large:children]
+[discos:children]
 manager
 as
 ms
-
-[small:children]
-manager
-
-[multi:children]
-large
-small
