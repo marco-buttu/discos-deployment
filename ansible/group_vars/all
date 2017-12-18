@@ -1,5 +1,5 @@
 ---
 
+user: discos
 local_repository_path: "{{ lookup('env','HOME') }}/repository"
 remote_build_path: /tmp/builds
-
