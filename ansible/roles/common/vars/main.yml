@@ -1,4 +1,11 @@
 ---
+#######################
+# DISCOS user variables
+#######################
+
+user: discos
+
+
 
 ###############
 # ACS Variables
