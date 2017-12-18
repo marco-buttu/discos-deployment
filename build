@@ -1,12 +1,11 @@
 #! /usr/bin/env python
 """Some command line examples:
 
-  $ ./build large:development
-  $ ./build large:srt
+  $ ./build discos:development
+  $ ./build discos:srt
   $ ./build manager:medicina --deploy master
-  $ ./build small:development
-  $ ./build manager:development
-  $ ./build small:development --deploy master --station srt
+  $ ./build as:development
+  $ ./build manager:development --deploy master --station srt
 """
 
 from __future__ import print_function
