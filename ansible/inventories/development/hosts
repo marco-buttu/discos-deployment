@@ -7,14 +7,7 @@ as ansible_host=192.168.10.201
 [ms]  # minor servo
 ms ansible_host=192.168.10.202
 
-[large:children]
+[discos:children]
 manager
 as
 ms
-
-[small:children]
-manager
-
-[multi:children]
-large
-small

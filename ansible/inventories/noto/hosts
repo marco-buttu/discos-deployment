@@ -1,0 +1,5 @@
+[manager]
+manager.AAA ansible_host=BBB
+
+[discos:children]
+manager
