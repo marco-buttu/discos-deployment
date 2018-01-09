@@ -2,6 +2,9 @@ if [ -f /etc/bashrc ]; then
 	. /etc/bashrc
 fi
 
+[ -n "$SSH_CONNECTION" ] && unset SSH_ASKPASS
+export GIT_ASKPASS=
+
 
 # Useful aliases
 # ==============
