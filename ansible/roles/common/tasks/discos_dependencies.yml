@@ -483,7 +483,7 @@
   become_flags: "-i"
   command: chdir={{ remote_build_path }}/{{ pyqt_build_dir }} {{ item }}
   with_items:
-    - python configure-ng.py --confirm-license --qmake /usr/local/{{ qt_version }}/bin/qmake
+    - python configure.py --confirm-license --qmake /usr/local/{{ qt_version }}/bin/qmake
   when: pyqt_library.stat.exists == False
 
 
@@ -512,6 +512,66 @@
     - make install
   when: pyqt_library.stat.exists == False
 
+
+- name: Check if PyQwt is installed
+  stat: path=/alma/{{ acs_tag }}/Python/lib/python2.7/site-packages/PyQt4/Qwt5/__init__.py
+  register: pyqwt_library
+
+
+- name: Check if the {{ pyqwt_file }}  exists in the local repository
+  stat: path={{ local_repository_path }}/{{ pyqwt_file }}
+  delegate_to: 127.0.0.1
+  register: pyqwt_sources
+
+
+- name: Download {{ pyqwt_file }}
+  get_url:
+    validate_certs: no
+    url: "{{ pyqwt_url }}"
+    dest: "{{ local_repository_path }}"
+  when:
+    - pyqwt_library.stat.exists == False
+    - pyqwt_sources.stat.exists == False
+  delegate_to: 127.0.0.1
+
+
+- name: Copy {{ pyqwt_file }} to the remote {{ remote_build_path }}
+  unarchive:
+    src={{ local_repository_path }}/{{ pyqwt_file }}
+    dest={{ remote_build_path }}
+  when: pyqwt_library.stat.exists == False
+
+
+- name: Change the {{ pyqwt_build_dir }} permissions
+  become: true
+  file:
+    path={{ remote_build_path }}/{{ pyqwt_build_dir }}
+    state=directory
+    recurse=yes
+    owner=discos
+    group=acs
+    mode=0755
+
+
+- name: Configure PyQwt
+  become: true
+  become_user: "{{ user }}"
+  become_flags: "-i"
+  command: chdir={{ remote_build_path }}/{{ pyqwt_build_dir }}/configure {{ item }}
+  with_items:
+    - python configure.py -Q ../qwt-5.2
+  when: pyqwt_library.stat.exists == False
+
+
+- name: Install PyQwt
+  become: true
+  become_user: "{{ user }}"
+  become_flags: "-i"
+  command: chdir={{ remote_build_path }}/{{ pyqwt_build_dir }}/configure {{ item }}
+  with_items:
+    - make
+    - make install
+  when: pyqwt_library.stat.exists == False
 
 
 #################

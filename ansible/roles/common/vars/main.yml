@@ -56,7 +56,7 @@ sip_base_path: https://sourceforge.net/projects/pyqt/files/sip
 sip_version: sip-4.19.2
 sip_build_dir: "{{ sip_version }}"
 sip_file: "{{ sip_version }}.tar.gz"
-sip_url: "{{ sip_base_path }}/{{ sip_version }}/{{ sip_file}}"
+sip_url: "{{ sip_base_path }}/{{ sip_version }}/{{ sip_file }}"
 
 pyqt_base_path: https://sourceforge.net/projects/pyqt/files/PyQt4
 pyqt_version: PyQt-4.12
@@ -64,6 +64,11 @@ pyqt_build_dir: PyQt4_gpl_x11-4.12
 pyqt_file: "{{ pyqt_build_dir }}.tar.gz"
 pyqt_url: "{{ pyqt_base_path }}/{{ pyqt_version }}/{{ pyqt_file }}"
 
+pyqwt_base_path: https://sourceforge.net/projects/pyqwt/files/pyqwt5
+pyqwt_version: PyQwt-5.2.0
+pyqwt_build_dir: "{{ pyqwt_version }}"
+pyqwt_file: "{{ pyqwt_build_dir }}.tar.gz"
+pyqwt_url: "{{ pyqwt_base_path }}/{{ pyqwt_version }}/{{ pyqwt_file }}"
 
 
 ##################
