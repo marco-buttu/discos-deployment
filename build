@@ -14,8 +14,17 @@ import sys
 import argparse
 import subprocess
 import getpass
-import paramiko
 
+try:
+    import paramiko
+except ImportError:
+    import pip
+    with open(os.devnull, "w") as devnull:
+        old_stdout = sys.stdout
+        sys.stdout = devnull
+        pip.main(['install', 'paramiko'])
+        sys.stdout = old_stdout
+    import paramiko
 
 STATIONS = ('srt', 'medicina', 'noto')
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
