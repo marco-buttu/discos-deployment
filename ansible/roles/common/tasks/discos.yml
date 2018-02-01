@@ -21,3 +21,14 @@
   become_user: "{{ user }}"
   become_flags: "-i"
   command: discos-set --cdb {{ cdb }} {{ branch }}-{{ station }}
+
+
+- name: Install DISCOS
+  become: true
+  become_user: "{{ user }}"
+  become_flags: "-i"
+  command: chdir={{ branch_path }}/SystemMake {{ item }}
+  with_items:
+    - make
+    - make all
+    - make install
