@@ -14,17 +14,11 @@ import sys
 import argparse
 import subprocess
 import getpass
-
-try:
-    import paramiko
-except ImportError:
-    import pip
-    with open(os.devnull, "w") as devnull:
-        old_stdout = sys.stdout
-        sys.stdout = devnull
-        pip.main(['install', 'paramiko'])
-        sys.stdout = old_stdout
-    import paramiko
+import pip
+pip.main(['install', '-q', 'paramiko'])
+pip.main(['install', '-q', 'passlib'])
+import paramiko
+from passlib.hash import md5_crypt
 
 STATIONS = ('srt', 'medicina', 'noto')
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -156,7 +150,7 @@ os.chdir(ANSIBLE_DIR)
 # Create the .ssh directory
 ssh_dir = os.path.join(os.environ['HOME'], '.ssh')
 if not os.path.exists(ssh_dir):
-    os.mkdir(ssh_dir)
+    os.mkdir(ssh_dir, 0700)
 
 # Generate the public/private key pair (if not present)
 key_file = os.path.join(ssh_dir, 'id_rsa')
@@ -236,8 +230,8 @@ if not args.sim:
                 try:
                     sftp_client.stat('.ssh')
                 except IOError:
-                    sftp_client.mkdir('.ssh')
-                file_mode = 'a+'
+                    sftp_client.mkdir('.ssh', 0700)
+                file_mode = 'r+'
                 try:
                     sftp_client.stat('.ssh/authorized_keys')
                 except IOError:
@@ -263,16 +257,15 @@ if not args.sim:
                 error('A password is required for user `discos`.')
             if discos_pwd != getpass.getpass('Confirm password: '):
                 error('Typed password and confirm does not match. Retry.')
+            discos_pwd = md5_crypt.using(salt='discos').hash(discos_pwd)
             extra_vars += ' discos_pwd=%s' % discos_pwd
-
-extra_vars += ' ansible_user=root'
 
 # Call ansible
 ansible_cmd = [
     'ansible-playbook', playbook,
     '--inventory-file', inventory,
     '--limit', cluster_arg,
-    '--extra-vars', '"%s"' % extra_vars.strip(),
+    '--extra-vars', "'%s'" % extra_vars.strip(),
 ]
 
 print('\nCalling ansible...\n')

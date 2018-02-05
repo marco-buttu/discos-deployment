@@ -9,7 +9,7 @@
   become: true
   user:
     name: "{{ user }}"
-    password: "{{ discos_pwd | password_hash('md5', user[:8]) }}"
+    password: "{{ discos_pwd }}"
     group: acs
     uid: 3060
     state: present
