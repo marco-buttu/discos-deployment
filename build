@@ -244,6 +244,7 @@ if not args.sim:
                 if not found:
                     remote_file.write(public_key + '\n')
                 remote_file.close()
+                sftp_client.chmod('.ssh/authorized_keys', 0600)
                 sftp_client.close()
             except paramiko.AuthenticationException:
                 error('Cannot authenticate, probable wrong password.')
