@@ -27,7 +27,7 @@
   become: true
   become_user: "{{ user }}"
   become_flags: "-i"
-  command: chdir={{ branch_path }}/SystemMake {{ item }}
+  shell: source ~/.bashrc && chdir={{ branch_path }}/SystemMake {{ item }}
   with_items:
     - make
     - make all
