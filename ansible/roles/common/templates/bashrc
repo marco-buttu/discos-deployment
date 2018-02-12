@@ -14,17 +14,17 @@ alias la='ls -A'
 alias lt='ls -lt | more'
 
 
-# Load DISCOS environment
-# =======================
-if [ -f {{ discosconf_dir }}/load_branch ]; then
-    source {{ discosconf_dir }}/load_branch
-fi
-
-
 # Load ACS definitions
 # ====================
 if [ -f {{ acsconf_dir }}/.bash_profile.acs ]; then
     source {{ acsconf_dir }}/.bash_profile.acs
+fi
+
+
+# Load DISCOS environment
+# =======================
+if [ -f {{ discosconf_dir }}/load_branch ]; then
+    source {{ discosconf_dir }}/load_branch
 fi
 
 
