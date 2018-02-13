@@ -6,3 +6,8 @@
     src: hosts
     dest: /etc/hosts
     mode: 0644
+
+
+- name: Update hostname
+  hostname:
+    name: "{{ inventory_hostname }}"
