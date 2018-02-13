@@ -8,6 +8,11 @@
     mode: 0644
 
 
+- name: Update hostname
+  hostname:
+    name: "{{ inventory_hostname }}"
+
+
 - name: Update the local hosts file
   become: true
   local_action: lineinfile
