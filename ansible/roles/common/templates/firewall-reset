@@ -1,0 +1,25 @@
+#!/bin/bash
+# Configuration script for the DISCOS firewall
+
+echo "Firewalling..."
+
+iptables -F
+iptables -F --table nat
+iptables -X
+iptables -X --table nat
+iptables -A INPUT -i lo -p all -j ACCEPT
+iptables -A OUTPUT -o lo -p all -j ACCEPT
+iptables -P INPUT DROP
+iptables -P OUTPUT ACCEPT
+iptables -P FORWARD DROP
+{% for rule in firewall_rules %}
+iptables {{ rule }}
+{% endfor %}
+
+iptables-save > /etc/sysconfig/iptables
+
+echo "Done"
+
+echo "Restarting service..."
+service iptables restart
+echo "End!"
