@@ -13,17 +13,6 @@
     name: "{{ inventory_hostname }}"
 
 
-- name: Update the local hosts file
-  become: true
-  local_action: lineinfile
-  run_once: true
-  args:
-    dest: /etc/hosts
-    regexp: "{{ hostvars[item].ansible_host }}"
-    line: "{{ hostvars[item].ansible_host }} {{ hostvars[item].inventory_hostname }} {{ hostvars[item].inventory_hostname_short }}"
-  with_items: "{{ play_hosts }}"
-
-
 - name: Copy the firewall-reset template
   template:
     src: firewall-reset
