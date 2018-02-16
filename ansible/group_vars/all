@@ -4,4 +4,3 @@ ansible_user: root
 user: discos
 local_repository_path: "{{ lookup('env','HOME') }}/repository"
 remote_build_path: /tmp/builds
-firewall_rules: []

@@ -1,4 +1,0 @@
----
-
-firewall-rules:
-  - "-A INPUT -s {{ ansible_host | regex_replace('[0-9]{1,3}$', '0/24') }} -j ACCEPT"

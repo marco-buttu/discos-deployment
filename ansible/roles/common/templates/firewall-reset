@@ -12,9 +12,17 @@ iptables -A OUTPUT -o lo -p all -j ACCEPT
 iptables -P INPUT DROP
 iptables -P OUTPUT ACCEPT
 iptables -P FORWARD DROP
+iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+# Allow ssh port, but if a an IP address fails to connect 3 times in 120 seconds the futher request is automatically dropped
+iptables -A INPUT -p tcp -m state --dport 22 --state NEW -m recent --set
+iptables -A INPUT -p tcp -m state --dport 22 --state NEW -m recent --update --seconds 120 --hitcount 4 -j SSHATTACK
+iptables -A INPUT -m state --state NEW -m tcp -p tcp --dport 22 -j ACCEPT
+{% if firewall_rules is defined %}
+# Machine specific rules
 {% for rule in firewall_rules %}
 iptables {{ rule }}
 {% endfor %}
+{% endif %}
 
 iptables-save > /etc/sysconfig/iptables
 
