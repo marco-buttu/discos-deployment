@@ -1,6 +1,6 @@
 ---
 
-- name: Copy the hosts file
+- name: Copy the hosts file template
   become: True
   template:
     src: hosts
@@ -22,3 +22,19 @@
     regexp: "{{ hostvars[item].ansible_host }}"
     line: "{{ hostvars[item].ansible_host }} {{ hostvars[item].inventory_hostname }} {{ hostvars[item].inventory_hostname_short }}"
   with_items: "{{ play_hosts }}"
+
+
+- name: Copy the firewall-reset template
+  template:
+    src: firewall-reset
+    dest: "/usr/bin/"
+    mode: 755
+    force: yes
+  become: true
+
+
+- name: Add firewall-reset to startup executed scripts
+  lineinfile:
+    path: /etc/rc.d/rc.local
+    line: firewall-reset
+  become: true
