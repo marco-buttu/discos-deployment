@@ -38,6 +38,7 @@ container_services: "{{ acssw }}/lib/python/site-packages/Acspy/Servants/Contain
 
 cfitsio: { file: 'cfitsio3370.tar.gz', build_dir: 'cfitsio' }
 ccfits: { file: 'CCfits-2.4.tar.gz', build_dir: 'CCfits' }
+fv_file: "fv5.4_pc_linux64.tar.gz"
 
 modbus: { file: 'libmodbus-3.0.6.tar.gz', build_dir: 'libmodbus-3.0.6' }
 
