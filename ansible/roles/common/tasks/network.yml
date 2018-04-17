@@ -22,6 +22,6 @@
   become: true
 
 
-- name: Launche the firewall-reset script
+- name: Launch the firewall-reset script
   command: firewall-reset
   become: true
