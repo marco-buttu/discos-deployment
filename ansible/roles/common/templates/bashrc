@@ -58,7 +58,7 @@ export PATH=$PATH:$QTDIR/bin:$HOME/.bin
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib:/usr/lib64:$QTLIB
 export PYTHONSTARTUP=$HOME/.pyrc
 export EDITOR=vi
-{% if ansible_hostname not in groups['manager'] %}
+{% if inventory_hostname not in groups['manager'] %}
 
 
 # Manager reference
