@@ -1,0 +1,5 @@
+---
+
+firewall_rules:
+    - '-A INPUT -p icmp -j ACCEPT'
+    - '-A OUTPUT -p icmp -j ACCEPT'

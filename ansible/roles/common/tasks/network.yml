@@ -22,8 +22,6 @@
   become: true
 
 
-- name: Add firewall-reset to startup executed scripts
-  lineinfile:
-    path: /etc/rc.d/rc.local
-    line: firewall-reset
+- name: Launch the firewall-reset script
+  command: firewall-reset
   become: true
