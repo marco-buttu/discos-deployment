@@ -192,26 +192,26 @@
   register: gmock_lib
 
 
-- name: Check if the {{ googletest.file }}  exists in the local repository
-  stat: path={{ local_repository_path }}/{{ googletest.file }}
+- name: Check if the {{ googletest_file }}  exists in the local repository
+  stat: path={{ local_repository_path }}/{{ googletest_file }}
   delegate_to: 127.0.0.1
   register: gmock_sources
 
 
-- name: Download {{ googletest.file }}
+- name: Download {{ googletest_file }}
   get_url:
     validate_certs: no
-    url: https://github.com/google/googletest/archive/master.zip
-    dest: "{{ local_repository_path }}/{{ googletest.file }}"
+    url: "https://github.com/google/googletest/archive/{{ googletest_repo }}.zip"
+    dest: "{{ local_repository_path }}/{{ googletest_file }}"
   when:
     - gmock_lib.stat.exists == False
     - gmock_sources.stat.exists == False
   delegate_to: 127.0.0.1
 
 
-- name: Copy {{ googletest.file }} to the remote {{ remote_build_path }}
+- name: Copy {{ googletest_file }} to the remote {{ remote_build_path }}
   unarchive:
-    src={{ local_repository_path }}/{{ googletest.file }}
+    src={{ local_repository_path }}/{{ googletest_file }}
     dest={{ remote_build_path }}
   when: gmock_lib.stat.exists == False
 
@@ -290,7 +290,7 @@
   become: True
   file: path={{ item }} state=absent
   with_items:
-    - "{{ remote_build_path }}/{{ googletest.build_dir }}"
+    - "{{ remote_build_path }}/{{ googletest_build_dir }}"
 
 
 #####
