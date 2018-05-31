@@ -5,3 +5,6 @@ repository
 ansible/inventories/*/group_vars/*
 !ansible/inventories/*/group_vars/all
 ansible/all.retry
+dist/
+discos_deployment.egg-info/
+build/

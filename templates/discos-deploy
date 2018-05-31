@@ -1,11 +1,11 @@
 #! /usr/bin/env python
 """Some command line examples:
 
-  $ ./build discos:development
-  $ ./build discos:srt
-  $ ./build manager:medicina --deploy master
-  $ ./build as:development
-  $ ./build manager:development --deploy master --station srt
+  $ discos-deploy discos:development
+  $ discos-deploy discos:srt
+  $ discos-deploy manager:medicina --deploy master
+  $ discos-deploy as:development
+  $ discos-deploy manager:development --deploy master --station srt
 """
 
 from __future__ import print_function
@@ -20,8 +20,8 @@ pip.main(['install', '-q', 'passlib'])
 import paramiko
 from passlib.hash import md5_crypt
 
+ROOT_DIR = '{{ root_dir }}'
 STATIONS = ('srt', 'medicina', 'noto')
-ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
 ANSIBLE_DIR = os.path.join(ROOT_DIR, 'ansible')
 INVENTORIES_DIR = os.path.join(ANSIBLE_DIR, 'inventories')
 
@@ -71,7 +71,7 @@ for env in ENVIRONMENTS:
         systems.append('%s:%s' % (cluster, env))
 
 parser = argparse.ArgumentParser(
-    description='Make a disco environment. %s' % __doc__,
+    description='Make a DISCOS environment. %s' % __doc__,
     formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument(
     'system',
@@ -110,7 +110,7 @@ if args.system.count(':') != 1:
            'e.g. if the cluster is "%s" '
            'and the environment is "%s",\n'
            'the system is "%s:%s", and the command will be:'
-           '\n\n  $ ./build %s:%s.\n\n' % (c, e, c, e, c, e))
+           '\n\n  $ discos-deploy %s:%s.\n\n' % (c, e, c, e, c, e))
     error(msg, choices=systems, name='system')
 else:
     cluster_arg, env_arg = args.system.split(':')
