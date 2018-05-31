@@ -25,3 +25,18 @@
 - name: Launch the firewall-reset script
   command: firewall-reset
   become: true
+
+
+- name: Prevent ssh to accept different localizations
+  replace:
+    dest: /etc/ssh/sshd_config
+    regexp: '^AcceptEnv'
+    replace: '# AcceptEnv'
+  become: true
+
+
+- name: Restart ssh service of the remote machine
+  service:
+    name: sshd
+    state: restarted
+  become: true
