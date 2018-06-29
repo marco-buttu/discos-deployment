@@ -211,6 +211,7 @@ for host_name in current_machines:
         subprocess.call(
             'ssh-keyscan -H %s >> %s' % (ip, known_hosts), shell=True)
 
+ansible_env = os.environ.copy()
 discos_pwd = ''
 if not args.sim:
     ssh = paramiko.SSHClient()
@@ -258,8 +259,7 @@ if not args.sim:
                 error('A password is required for user `discos`.')
             if discos_pwd != getpass.getpass('Confirm password: '):
                 error('Typed password and confirm does not match. Retry.')
-            discos_pwd = md5_crypt.using(salt='discos').hash(discos_pwd)
-            extra_vars += ' discos_pwd=%s' % discos_pwd
+            ansible_env["DISCOS_PWD"] = discos_pwd
 
 # Call ansible
 ansible_cmd = [
@@ -273,4 +273,4 @@ print('\nCalling ansible...\n')
 if args.sim:
     print(' '.join(ansible_cmd))
 else:
-    subprocess.call(' '.join(ansible_cmd), shell=True)
+    subprocess.call(' '.join(ansible_cmd), env=ansible_env, shell=True)

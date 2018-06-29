@@ -3,8 +3,12 @@
 - include: yum_packages.yml
 - include: network.yml
 
+- name: Check if DISCOS user exists on remote machine
+  shell: "getent passwd {{ user }} | wc -l"
+  register: is_present
+
 - include: create_users_groups.yml
-  when: discos_pwd is defined
+  when: is_present.stdout == "0"
 
 - include: required_tools.yml
 - include: acs.yml
