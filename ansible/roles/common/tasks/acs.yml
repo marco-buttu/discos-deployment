@@ -91,45 +91,6 @@
     - "{{ remote_build_path }}"
 
 
-#########################
-# Apply some patch to ACS
-#########################
-
-
-- name: Read the ContainerServices.py file
-  shell: cat {{ container_services }}
-  register: container_services_content
-
-
-- name: Replace ContainerServices.py
-  become: True
-  template:
-    src: ContainerServices.py
-    dest: "{{ container_services }}"
-    owner: "{{ user }}"
-    group: acs
-    mode: 0644
-    force: yes
-  when: container_services_content.stdout.find('getattr') == -1
-
-
-- name: Read the BaciHelper.py file
-  shell: cat {{ baci_helper }}
-  register: baci_helper_content
-
-
-- name: Replace BaciHelper.py
-  become: True
-  template:
-    src: BaciHelper.py
-    dest: "{{ baci_helper }}"
-    owner: "{{ user }}"
-    group: acs
-    mode: 0644
-    force: yes
-  when: baci_helper_content.stdout.find('getattr') == -1
-
-
 ################################
 # Set the ACS user's environment
 ################################
@@ -188,6 +149,102 @@
     src: "{{ java_home.stdout | regex_replace('/jre/bin/java') }}"
     dest: /usr/java/default
     state: link
+
+
+#########################
+# Apply some patch to ACS
+#########################
+
+
+- name: Read the ContainerServices.py file
+  shell: cat {{ container_services }}
+  register: container_services_content
+
+
+- name: Replace ContainerServices.py
+  become: True
+  template:
+    src: ContainerServices.py
+    dest: "{{ container_services }}"
+    owner: "{{ user }}"
+    group: acs
+    mode: 0644
+    force: yes
+  when: container_services_content.stdout.find('getattr') == -1
+
+
+- name: Read the BaciHelper.py file
+  shell: cat {{ baci_helper }}
+  register: baci_helper_content
+
+
+- name: Replace BaciHelper.py
+  become: True
+  template:
+    src: BaciHelper.py
+    dest: "{{ baci_helper }}"
+    owner: "{{ user }}"
+    group: acs
+    mode: 0644
+    force: yes
+  when: baci_helper_content.stdout.find('getattr') == -1
+
+
+- name: Replace ExecuteContainer.java
+  become: True
+  template:
+    src: ExecuteContainer.java
+    dest: "{{ execute_container }}"
+    owner: "{{ user }}"
+    group: acs
+    mode: 0644
+    backup: yes
+
+
+- name: Replace Executor.java
+  become: True
+  template:
+    src: Executor.java
+    dest: "{{ executor }}"
+    owner: "{{ user }}"
+    group: acs
+    mode: 0644
+    backup: yes
+
+
+- file:
+    path: "{{ acs_command_center }}/idl"
+    owner: "{{ user }}"
+    group: acs
+    state: directory
+    mode: 0755
+
+
+- name: Copy interfaces to acscommandcenter
+  become: True
+  command: "cp {{ acssw }}/idl/{{ item }} {{ acs_command_center }}/idl/"
+  with_items:
+    - AcsCommandCenterEntities.xml
+    - AcsCommandCenterProject.xsd
+    - AcsCommandCenterTools.xsd
+
+
+- name: Build acscommandcenter
+  become: True
+  become_user: "{{ user }}"
+  become_flags: "-i"
+  shell: source ~/.bashrc && chdir={{ acs_command_center }}/src {{ item }}
+  with_items:
+      - make clean
+      - make
+
+
+- name: Copy Acs Command Center .jar files
+  become: True
+  shell: "cp -b {{ acs_command_center }}/lib/{{ item }} {{ acssw }}/lib/"
+  with_items:
+      - acscommandcenter.jar
+      - AcsCommandCenterEntities.jar
 
 
 ############################
