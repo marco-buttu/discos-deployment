@@ -30,6 +30,11 @@ baci_helper: "{{ acssw }}/lib/python/site-packages/Acspy/Util/BaciHelper.py"
 
 container_services: "{{ acssw }}/lib/python/site-packages/Acspy/Servants/ContainerServices.py"
 
+acs_command_center: "{{ acssw }}/Sources/acscommandcenter/"
+
+execute_container: "{{ acs_command_center }}/src/alma/acs/commandcenter/engine/ExecuteContainer.java"
+
+executor: "{{ acs_command_center }}/src/alma/acs/commandcenter/engine/Executor.java"
 
 
 ###############################
