@@ -1,6 +1,8 @@
 import os
 import sys
 import tempfile
+import pip
+pip.main(['install', '-q', 'jinja2'])
 from jinja2 import Template
 
 template = Template(open('templates/discos-deploy').read())
