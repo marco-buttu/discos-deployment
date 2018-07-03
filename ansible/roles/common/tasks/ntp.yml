@@ -1,0 +1,16 @@
+---
+
+- name: Copy the ntp.conf template
+  template:
+    src: ntp.conf
+    dest: /etc/ntp.conf
+    backup: yes
+  become: true
+
+
+- name: Restart ntp service
+  service:
+    name: ntpd
+    state: restarted
+    enabled: yes
+  become: true
