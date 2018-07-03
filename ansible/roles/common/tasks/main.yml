@@ -3,6 +3,9 @@
 - include: yum_packages.yml
 - include: network.yml
 
+- include: ntp.yml
+  when: ntp_server_ip is defined
+
 - name: Check if DISCOS user exists on remote machine
   shell: "getent passwd {{ user }} | wc -l"
   register: is_present
