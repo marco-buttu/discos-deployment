@@ -27,6 +27,13 @@
   become: true
 
 
+- name: Configure the firewall
+  service:
+    name: iptables
+    state: "{{ firewall_state }}"
+    enabled: "{{ firewall_enabled }}"
+
+
 - name: Prevent ssh to accept different localizations
   replace:
     dest: /etc/ssh/sshd_config
@@ -40,3 +47,9 @@
     name: sshd
     state: restarted
   become: true
+
+
+- name: Disable SELINUX
+  selinux:
+    conf: /etc/sysconfig/selinux
+    state: disabled

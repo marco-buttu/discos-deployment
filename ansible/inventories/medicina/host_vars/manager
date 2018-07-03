@@ -32,3 +32,6 @@ firewall_rules:
   - '-A FORWARD -s 192.167.189.52 -o eth2 -j ACCEPT'
   - '-A FORWARD -s 192.167.189.175 -o eth2 -j ACCEPT'
   - '-A FORWARD -s 192.167.189.37 -o eth2 -j ACCEPT'
+
+firewall_state: started
+firewall_enabled: yes
