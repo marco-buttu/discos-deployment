@@ -9,7 +9,6 @@
     - vim-enhanced
     - subversion
     - python-devel
-    - git
     - gcc-c++
     - gdb
     - cmake

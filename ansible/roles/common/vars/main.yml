@@ -41,6 +41,14 @@ executor: "{{ acs_command_center }}/src/alma/acs/commandcenter/engine/Executor.j
 # DISCOS Dependencies Variables
 ###############################
 
+git_orig: {
+    base: "https://github.com/git/git/archive/",
+    version: "2.18.0",
+    extension: ".tar.gz"
+}
+
+git_dest: { file: 'git-v{{ git_orig.version }}{{ git_orig.extension }}' }
+
 cfitsio: { file: 'cfitsio3370.tar.gz', build_dir: 'cfitsio' }
 ccfits: { file: 'CCfits-2.4.tar.gz', build_dir: 'CCfits' }
 fv_file: "fv5.4_pc_linux64.tar.gz"
