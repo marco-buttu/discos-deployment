@@ -1,3 +1,4 @@
 ---
 
 ntp_server_ip: 192.168.202.80
+lustre_server_ip: 192.168.25.200

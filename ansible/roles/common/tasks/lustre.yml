@@ -1,0 +1,64 @@
+---
+
+- name: Add lustre configuration into modprobe.d
+  become: true
+  lineinfile:
+    path: /etc/modprobe.d/lustre.conf
+    line: "options lnet networks=tcp"
+    state: present
+    create: yes
+
+
+- name: Install lustre yum packages
+  become: true
+  yum: name={{ item }} state=present validate_certs=no
+  with_items:
+    - "{{ lustre_client }}"
+    - "{{ kmod_lustre_client }}"
+
+
+- name: Load lustre modules
+  modprobe:
+    name: lnet
+    state: present
+
+
+- name: Configure lustre client
+  command: "lnetctl lnet configure"
+  become: true
+
+
+- name: Configure lustre network interface
+  command: "lnetctl net add --net tcp0 --if {{ lustre_network_interface }}"
+  become: true
+  when: lustre_network_interface is defined
+
+
+- name: Create the lustre disk mount point if it does not exist
+  file:
+    path: /mnt/discos
+    state: directory
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    mode: 0755
+  become: true
+  when: lustre_network_interface is defined
+
+
+- name: Mount the lustre disk
+  mount:  
+    path: /mnt/discos
+    src: "{{ lustre_server_ip }}@tcp0:/discos"
+    fstype: lustre
+    state: mounted
+  become: true
+  when: lustre_network_interface is defined
+
+
+- name: Add the lustre disk mount operation to boot operations
+  lineinfile:
+    path: /etc/rc.d/rc.local
+    state: present
+    line: "mount -t lustre {{ lustre_server_ip }}@tcp0:/discos /mnt/discos/"
+  become: true
+  when: lustre_network_interface is defined
