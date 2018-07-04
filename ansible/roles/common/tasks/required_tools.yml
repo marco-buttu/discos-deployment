@@ -10,6 +10,14 @@
   register: git_exists
 
 
+- name: Download Git
+  get_url:
+    url: "{{ git_orig.base }}/{{ git_orig.version }}/{{ git_orig.extension }}"
+    dest: "{{ local_repository_path }}/{{ git_dest.file }}"
+  when: git_exists.stat.exists == False
+  delegate_to: 127.0.0.1
+
+
 - name: Clean the build directory
   become: True
   file: path={{ item }} state=absent
@@ -30,22 +38,31 @@
   when: git_exists.stat.exists == False
 
 
-- name: Clone Git
+- name: Copy {{ git_dest.file }} to the remote
   become: True
-  command: chdir={{ remote_build_path }} {{ item }}
-  with_items:
-    - git clone https://github.com/git/git
+  copy:
+    src: "{{ local_repository_path }}/{{ git_dest.file }}"
+    dest: "{{ remote_build_path }}"
+  when: git_exists.stat.exists == False
+
+
+- name: Extract the Git archive
+  become: True
+  unarchive:
+    src: "{{ remote_build_path }}/{{ git_dest.file }}"
+    dest: "{{ remote_build_path }}"
+    remote_src: yes
   when: git_exists.stat.exists == False
 
 
 - name: Remove the git package
-  become: true
+  become: True
   yum: name=git state=absent
 
 
-- name: Insall Git from sources
+- name: Install Git from sources
   become: True
-  command: chdir={{ remote_build_path }}/git {{ item }}
+  command: "chdir={{ remote_build_path }}/git-{{ git_orig.version }} {{ item }}"
   with_items:
     - make prefix={{ git_dir }} all
     - make prefix={{ git_dir }} install
@@ -53,7 +70,7 @@
 
 
 - name: Add git to the PATH
-  become: true
+  become: True
   lineinfile:
     dest: /etc/bashrc
     line: 'PATH=$PATH:{{ git_dir }}/bin'
