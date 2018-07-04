@@ -13,6 +13,7 @@
 - include: create_users_groups.yml
   when: is_present.stdout == "0"
 
+- include: lustre.yml
 - include: required_tools.yml
 - include: acs.yml
 - include: discos_dependencies.yml
