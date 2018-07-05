@@ -1,3 +1,5 @@
+127.0.0.1 localhost localhost.localdomain localhost4 localhost4.localdomain4
+
 {% for hostname in play_hosts %}
 {% if 'ansible_host' in hostvars[hostname] %}
 {{ hostvars[hostname].ansible_host }} {{ hostvars[hostname].inventory_hostname }} {{ hostvars[hostname].inventory_hostname_short }}
