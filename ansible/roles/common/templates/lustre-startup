@@ -1,0 +1,7 @@
+#!/bin/bash
+
+if [[ $(mount | grep '{{ lustre_server_ip }}@tcp0:/discos' | wc -l) -eq 0 ]]; then
+    lnetctl lnet configure
+    lnetctl net add --net tcp0 --if {{ lustre_network_interface }}
+    mount -t lustre {{ lustre_server_ip }}@tcp0:/discos /mnt/discos/
+fi
