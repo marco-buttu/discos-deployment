@@ -39,6 +39,7 @@
     - bzip2-devel
     - xterm
     - ksh
+    - bluefish
 
 
 - name: Install sshpass package
