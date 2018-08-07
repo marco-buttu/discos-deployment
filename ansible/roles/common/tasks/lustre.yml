@@ -69,4 +69,5 @@
   lineinfile:
     path: /etc/rc.d/rc.local
     line: lustre-startup
+
   when: lustre_network_interface is defined
