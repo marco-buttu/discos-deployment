@@ -1,0 +1,13 @@
+#!/usr/bin/gnuplot
+# gnuplot scritp for NTP loopstats daily plotting - GMM feb 2007
+set title " NTP offset mrdctl"                           
+set xlabel "hours"
+set ylabel "offset (sec)"
+set y2label "freq. (PPM)"
+set  y2tic
+set key box
+set key outside below
+ plot  "/var/log/ntpstats/loopstats" using ($2/3600):3:5 w yerr t "offset(sec)",\
+	"" u ($2/3600):3 smooth cspline t "mean",\
+	"" u ($2/3600):4:6 w yerr axes x1y2 t "PPM"
+pause -1

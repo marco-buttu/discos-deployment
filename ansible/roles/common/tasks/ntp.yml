@@ -14,3 +14,11 @@
     state: restarted
     enabled: yes
   become: true
+
+
+- name: Copy the plot_loopstats script
+  template:
+    src: plot_loopstats
+    dest: /usr/local/bin/plot_loopstats
+    mode: 0755
+  become: true
