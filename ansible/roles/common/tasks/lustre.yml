@@ -55,11 +55,13 @@
     dest: /usr/bin
     mode: 0755
     force: yes
+  when: lustre_network_interface is defined
 
 
 - name: Execute the lustre-startup script
   become: True
   command: lustre-startup
+  when: lustre_network_interface is defined
 
 
 - name: Add lustre-startup to boot executed scripts
@@ -67,3 +69,4 @@
   lineinfile:
     path: /etc/rc.d/rc.local
     line: lustre-startup
+  when: lustre_network_interface is defined
