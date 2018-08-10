@@ -2,8 +2,8 @@
 from __future__ import print_function
 import os
 
-BRANCH_ROOT = os.path.join('/home', 'discos')
-BRANCH_LIST = '/home/discos/.discos/branches'
+BRANCH_ROOT = os.environ['HOME']
+BRANCH_LIST = os.path.join(BRANCH_ROOT, '.discos/branches')
 
 
 discos_branch = os.environ['DISCOS_BRANCH']
@@ -22,7 +22,7 @@ if discos_branch:
     if not os.path.exists(active_branch):
         # Clear the the DISCOS_BRANCH environment variable
         lines = []
-        load_branch = '{{ discosconf_dir }}/load_branch'
+        load_branch = os.path.join(BRANCH_ROOT, '.discos/load_branch')
         for line in open(load_branch):
             if 'export DISCOS_BRANCH=' in line:
                 lines.append('export DISCOS_BRANCH=\n')

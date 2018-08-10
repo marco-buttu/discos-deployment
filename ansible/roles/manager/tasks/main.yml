@@ -1,18 +1,5 @@
 ---
 
-- name: Create the directory structure
-  become: True
-  file:
-    path: "{{ item }}"
-    state: directory
-    owner: "{{ user }}"
-    group: acs
-    mode: "u+rwx,g+xr,o+x"
-    recurse: yes
-  with_items:
-    - /archive/
-    - /archive/data
-    - /archive/schedules
-    - /archive/logs
-    - /archive/events
-    - /archive/extraData
+- include: observers.yml
+- include: lustre.yml
+- include: archive.yml

@@ -23,17 +23,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     end
 
 
-    # ACS node n.2 (active surface)
-    config.vm.define "as" do |node|
-        node.vm.hostname = "as"
+    # ACS node n.2 (console)
+    config.vm.define "console" do |node|
+        node.vm.hostname = "console"
         node.vm.network :private_network, ip: "192.168.10.201"
-    end
-
-
-    # ACS node n.3 (minor servo)
-    config.vm.define "ms" do |node|
-        node.vm.hostname = "ms"
-        node.vm.network :private_network, ip: "192.168.10.202"
     end
 
 end

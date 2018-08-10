@@ -364,6 +364,9 @@
       - qt
       - qt-devel
       - qt4
+  register: result
+  retries: 2
+  until: result | succeeded
 
 
 - name: Check if {{ qt_lib }} exists
@@ -696,7 +699,7 @@
 
 
 - file:
-    path: "/home/{{ user }}/.bin"
+    path: "/{{ user }}/{{ user }}/.bin"
     state: directory
     owner: "{{ user }}"
     group: acs
@@ -708,7 +711,7 @@
   become_user: "{{ user }}"
   template:
     src: discos-get
-    dest: "/home/{{ user }}/.bin/"
+    dest: "/{{ user }}/{{ user }}/.bin/"
     owner: "{{ user }}"
     group: acs
     mode: 0544
@@ -720,7 +723,7 @@
   become_user: "{{ user }}"
   template:
     src: discos-set
-    dest: "/home/{{ user }}/.bin/"
+    dest: "/{{ user }}/{{ user }}/.bin/"
     owner: "{{ user }}"
     group: acs
     mode: 0544
@@ -732,7 +735,7 @@
   become_user: "{{ user }}"
   template:
     src: _discos-check-branch
-    dest: "/home/{{ user }}/.bin/"
+    dest: "/{{ user }}/{{ user }}/.bin/"
     owner: "{{ user }}"
     group: acs
     mode: 0544
