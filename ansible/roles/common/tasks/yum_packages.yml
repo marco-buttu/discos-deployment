@@ -39,8 +39,16 @@
     - bzip2-devel
     - xterm
     - ksh
-    - bluefish
     - gnuplot
+    - tigervnc-server
+
+
+- name: Install some graphical text editors
+  become: true
+  yum: name={{ item }} state=present
+  with_items:
+    - bluefish
+    - gedit
 
 
 - name: Install sshpass package

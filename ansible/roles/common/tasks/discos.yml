@@ -1,7 +1,7 @@
 ---
 
 - set_fact:
-    branch_path: /home/{{ user }}/{{ branch }}-{{ station }}
+    branch_path: /{{ user }}/{{ user }}/{{ branch }}-{{ station }}
 
 
 - name: Remove the repository directory (if present)

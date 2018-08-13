@@ -1,0 +1,12 @@
+---
+
+#########################
+# Lustre Client Variables
+#########################
+
+lustre_release: { major: '2.10.3', minor: '1' }
+lustre_url: 'https://downloads.whamcloud.com/public/lustre/lustre-{{ lustre_release.major }}/el6/client/RPMS/x86_64'
+lustre_client_file: "lustre-client-{{ lustre_release.major }}-{{ lustre_release.minor }}.el6.x86_64.rpm"
+kmod_lustre_client_file: "kmod-lustre-client-{{ lustre_release.major }}-{{ lustre_release.minor }}.el6.x86_64.rpm"
+lustre_client_url: "{{ lustre_url }}/{{ lustre_client_file }}"
+kmod_lustre_client_url: "{{ lustre_url }}/{{ kmod_lustre_client_file }}"

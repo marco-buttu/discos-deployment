@@ -12,7 +12,7 @@ else:
 import jinja2
 
 
-BRANCH_ROOT = os.path.join('/home', '{{ user }}')
+BRANCH_ROOT = os.environ['HOME']
 STATIONS = ('SRT', 'Medicina', 'Noto')
 
 

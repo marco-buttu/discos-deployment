@@ -96,12 +96,22 @@
 ################################
 
 
-- name: Copy the .acs dir from /alma to /home/{{ user }}
+- name: Copy the .acs dir from /alma to /{{ user }}/{{ user }}
   become: True
   become_user: "{{ user }}"
   command: chdir={{ acssw }}/config {{ item }}
   with_items:
-    - cp .acs /home/{{ user }} -R
+    - cp .acs /{{ user }}/{{ user }} -R
+
+
+- name: Create the .acs/tmp directory
+  file:
+    path: "/{{ user }}/{{ user }}/.acs/tmp/{{ inventory_hostname_short }}"
+    state: directory
+    owner: "{{ user }}"
+    group: acs
+    mode: 0775
+    recurse: yes
 
 
 - name: Copy the bashrc template
@@ -109,7 +119,7 @@
   become_user: "{{ user }}"
   template:
     src: bashrc
-    dest: /home/{{ user }}/.bashrc
+    dest: /{{ user }}/{{ user }}/.bashrc
     owner: "{{ user }}"
     group: acs
     mode: 0644
@@ -197,7 +207,7 @@
     dest: "{{ execute_container }}"
     owner: "{{ user }}"
     group: acs
-    mode: 0644
+    mode: 0755
     backup: yes
 
 
@@ -208,7 +218,7 @@
     dest: "{{ executor }}"
     owner: "{{ user }}"
     group: acs
-    mode: 0644
+    mode: 0755
     backup: yes
 
 

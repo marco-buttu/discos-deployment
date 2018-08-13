@@ -1,0 +1,12 @@
+---
+
+- name: Add the observers group
+  become: true
+  group: name=observers gid=336 state=present
+
+
+- name: Append group observers to {{ user }} secondary groups
+  become: true
+  user:
+    name: "{{ user }}"
+    groups: observers

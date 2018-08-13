@@ -21,7 +21,8 @@ setup(
     scripts=[
         'scripts/discos-deploy',
         'scripts/discos-vms',
-        'scripts/discos-login'
+        'scripts/discos-login',
+        'scripts/discos-vnc'
     ],
     license='GPL',
     platforms='all',

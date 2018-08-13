@@ -3,8 +3,8 @@ import os
 import argparse
 
 
-BRANCH_ROOT = os.path.join('/home', '{{ user }}')
-BRANCH_LIST = '{{ discosconf_dir }}/branches'
+BRANCH_ROOT = os.environ['HOME']
+BRANCH_LIST = os.path.join(BRANCH_ROOT, '.discos/branches')
 
 with open(BRANCH_LIST, 'r') as f:
     declared_branches = [b.strip() for b in f.readlines()]

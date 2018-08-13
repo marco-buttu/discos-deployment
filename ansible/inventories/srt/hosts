@@ -1,13 +1,9 @@
 [manager]
-manager.oa-cagliari.inaf.it ansible_host=192.168.200.200
+discos-manager.srt.inaf.it ansible_host=192.168.201.101
 
-[as]  # active surface
-as.oa-cagliari.inaf.it ansible_host=192.168.200.201
-
-[ms]  # minor servo
-ms.oa-cagliari.inaf.it ansible_host=192.168.200.202
+[console]
+discos-console.srt.inaf.it ansible_host=192.168.201.102
 
 [discos:children]
 manager
-as
-ms
+console

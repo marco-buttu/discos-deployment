@@ -1,0 +1,8 @@
+---
+
+- name: Apply a patch to GNOME in order to avoid an annoying popup when logged in with VNC
+  become: True
+  lineinfile:
+    path: /etc/xdg/autostart/gpk-update-icon.desktop
+    line: X-GNOME-Autostart-enabled=false
+    state: present

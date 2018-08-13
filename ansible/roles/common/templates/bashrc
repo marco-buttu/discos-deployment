@@ -16,15 +16,16 @@ alias lt='ls -lt | more'
 
 # Load ACS definitions
 # ====================
-if [ -f {{ acsconf_dir }}/.bash_profile.acs ]; then
-    source {{ acsconf_dir }}/.bash_profile.acs
+if [ -f $HOME/.acs/.bash_profile.acs ]; then
+    source $HOME/.acs/.bash_profile.acs
 fi
+export ACS_TMP=$HOME/.acs/tmp/{{ inventory_hostname_short }}
 
 
 # Load DISCOS environment
 # =======================
-if [ -f {{ discosconf_dir }}/load_branch ]; then
-    source {{ discosconf_dir }}/load_branch
+if [ -f $HOME/.discos/load_branch ]; then
+    source $HOME/.discos/load_branch
 fi
 
 
@@ -45,7 +46,7 @@ fi
 
 # Update the environment at every prompt
 # ======================================
-PROMPT_COMMAND='source {{ discosconf_dir }}/prompt_command.sh'
+PROMPT_COMMAND='source $HOME/.discos/prompt_command.sh'
 
 
 # Variables to export

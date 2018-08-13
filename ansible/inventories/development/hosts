@@ -1,13 +1,9 @@
 [manager]
-manager ansible_host=192.168.10.200
+discos-manager ansible_host=192.168.10.200
 
-[as]  # active surface
-as ansible_host=192.168.10.201
-
-[ms]  # minor servo
-ms ansible_host=192.168.10.202
+[console]
+discos-console ansible_host=192.168.10.201
 
 [discos:children]
 manager
-as
-ms
+console

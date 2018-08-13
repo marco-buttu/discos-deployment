@@ -10,7 +10,7 @@ fi
 if [[ $(mount | grep '{{ lustre_server_ip }}@tcp0:/discos' | wc -l) -eq 0 ]]; then
     if [[ $(ping -I {{ lustre_network_interface }} -c 1 -w 1 {{ lustre_server_ip }} > /dev/null) -eq 0 ]]; then
         echo -n "Mounting remote lustre partition..."
-        mount -t lustre {{ lustre_server_ip }}@tcp0:/discos /mnt/discos/
+        mount -t lustre {{ lustre_server_ip }}@tcp0:/discos /archive/data
         echo "done."
     else
         echo "Remote lustre server unreachable."

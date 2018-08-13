@@ -1,0 +1,50 @@
+---
+
+- name: Create the directory structure
+  become: True
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ user }}"
+    group: acs
+    mode: "u+rwx,g+xr,o+x"
+    recurse: yes
+  with_items:
+    - /archive/
+    - /archive/data
+    - /archive/schedules
+    - /archive/logs
+    - /archive/events
+    - /archive/extraData
+
+
+- name: Create the DISCOS logrotate directory
+  become: True
+  file:
+    path: "/{{ user }}/{{ user }}/.discos/logrotate"
+    state: directory
+    owner: "{{ user }}"
+    group: acs
+    mode: 0770
+    recurse: yes
+
+
+- name: Render the discos-logrotate template
+  become: True
+  become_user: "{{ user }}"
+  template:
+    src: discos-logrotate
+    dest: "/{{ user }}/{{ user }}/.discos/logrotate/"
+    owner: "{{ user }}"
+    group: acs
+    mode: 0644
+    force: yes
+
+
+- name: Activate the crontab job for log rotation
+  cron:
+    name: discos-logrotate
+    hour: "23"
+    minute: "59"
+    user: "{{ user }}"
+    job: "/usr/sbin/logrotate -f /{{ user }}/{{ user }}/.discos/logrotate/discos-logrotate"

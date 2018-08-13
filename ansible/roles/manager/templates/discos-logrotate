@@ -1,0 +1,19 @@
+#==========================================
+# logfiles rotation in /archive/events/acs.xml
+#
+
+/archive/events/acs.xml {
+    rotate 365
+    daily
+    copytruncate
+    dateext
+    dateformat .%Y%m%d
+    extension .xml
+    missingok
+    compress
+    delaycompress
+#   postrotate
+#   endscript
+}
+
+#==========================================

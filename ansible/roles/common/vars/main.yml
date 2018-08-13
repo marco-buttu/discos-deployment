@@ -8,8 +8,6 @@ acs_tag: 'ACS-FEB2017'
 
 acssw: /alma/{{ acs_tag }}/ACSSW
 
-acsconf_dir: /home/{{ user }}/.acs
-
 cdb_versions: ['SRT', 'Medicina', 'Noto']
 
 acs_orig: {
@@ -87,19 +85,9 @@ pyqwt_file: "{{ pyqwt_build_dir }}.tar.gz"
 pyqwt_url: "{{ pyqwt_base_path }}/{{ pyqwt_version }}/{{ pyqwt_file }}"
 
 
-#########################
-# Lustre Client Variables
-#########################
-
-lustre_url: { base: 'https://downloads.whamcloud.com/public/lustre', sub: 'el6/client/RPMS/x86_64' }
-lustre_release: { major: '2.10.3', minor: '1' }
-lustre_client: "{{ lustre_url.base }}/lustre-{{ lustre_release.major }}/{{ lustre_url.sub }}/lustre-client-{{ lustre_release.major }}-{{ lustre_release.minor }}.el6.x86_64.rpm"
-kmod_lustre_client: "{{ lustre_url.base }}/lustre-{{ lustre_release.major }}/{{ lustre_url.sub }}/kmod-lustre-client-{{ lustre_release.major }}-{{ lustre_release.minor }}.el6.x86_64.rpm"
-
-
 ##################
 # DISCOS Variables
 ##################
 
-discosconf_dir: /home/{{ user }}/.discos
+discosconf_dir: /{{ user }}/{{ user }}/.discos
 ghtoken: 47aabb9fb8a55376eb43ede8e375a774e8e50b3b
