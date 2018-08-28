@@ -1,0 +1,23 @@
+# .bashrc
+
+# Source global definitions
+if [ -f /etc/bashrc ]; then
+	. /etc/bashrc
+fi
+
+# User specific aliases and functions
+if [ ! -L $HOME/schedules ]; then
+        ln -sfn /archive/schedules/$USER schedules
+fi
+
+if [ ! -L $HOME/data ]; then
+        ln -sfn /archive/data/$USER data
+fi
+
+if [ ! -L $HOME/extraData ]; then
+        ln -sfn /archive/extraData/$USER extraData
+fi
+
+if [ ! -L $HOME/logs ]; then
+        ln -sfn /archive/logs logs
+fi

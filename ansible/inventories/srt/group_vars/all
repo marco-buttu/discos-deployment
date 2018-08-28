@@ -2,3 +2,5 @@
 
 ntp_server_ip: 192.168.202.80
 lustre_server_ip: 192.168.25.200
+nis_domain_name: discos.srt.inaf.it
+nis_server_ip: 192.168.201.100

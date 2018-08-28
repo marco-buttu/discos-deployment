@@ -16,7 +16,7 @@
 
 - name: Configure the manager
   hosts: manager
-  remote_user: "{{ user }}"
+  remote_user: root
   roles:
     - manager
 

@@ -1,21 +1,32 @@
 ---
 
-- name: Create the directory structure
-  become: True
+- name: Populate the /archive directory tree
   file:
-    path: "{{ item }}"
+    path: "{{ item.path }}"
     state: directory
     owner: "{{ user }}"
-    group: acs
-    mode: "u+rwx,g+xr,o+x"
+    group: "{{ item.group }}"
+    mode: "{{ item.mode }}"
     recurse: yes
+    follow: yes
   with_items:
-    - /archive/
-    - /archive/data
-    - /archive/schedules
-    - /archive/logs
-    - /archive/events
-    - /archive/extraData
+    - { path: "/archive/data", group: "observers", mode: "710" }
+    - { path: "/archive/extraData", group: "observers", mode: "710" }
+    - { path: "/archive/events", group: "acs", mode: "750" }
+    - { path: "/archive/logs", group: "observers", mode: "750" }
+    - { path: "/archive/schedules", group: "observers", mode: "710" }
+  become: true
+
+
+- name: Set ACLs for the /archive directory tree
+  acl:
+    path: "{{ item[0] }}"
+    entry: "default:{{ item[1] }}"
+    state: present
+  with_nested:
+    - [ "/archive/data", "/archive/extraData", "/archive/schedules" ]
+    - [ "user::rwx", "group::---" ]
+  become: true
 
 
 - name: Create the DISCOS logrotate directory
