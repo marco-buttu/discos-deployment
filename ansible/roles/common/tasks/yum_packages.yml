@@ -41,6 +41,10 @@
     - ksh
     - gnuplot
     - tigervnc-server
+    - rpcbind
+    - ypbind
+    - nfs-utils
+    - nfs4-acl-tools
 
 
 - name: Install some graphical text editors

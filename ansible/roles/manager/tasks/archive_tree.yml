@@ -1,0 +1,61 @@
+---
+
+- name: Populate the /archive directory tree
+  file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: "{{ user }}"
+    group: "{{ item.group }}"
+    mode: "{{ item.mode }}"
+    recurse: yes
+    follow: yes
+  with_items:
+    - { path: "/archive/data", group: "observers", mode: "710" }
+    - { path: "/archive/extraData", group: "observers", mode: "710" }
+    - { path: "/archive/events", group: "acs", mode: "750" }
+    - { path: "/archive/logs", group: "observers", mode: "750" }
+    - { path: "/archive/schedules", group: "observers", mode: "710" }
+  become: true
+
+
+- name: Set ACLs for the /archive directory tree
+  acl:
+    path: "{{ item[0] }}"
+    entry: "default:{{ item[1] }}"
+    state: present
+  with_nested:
+    - [ "/archive/data", "/archive/extraData", "/archive/schedules" ]
+    - [ "user::rwx", "group::---" ]
+  become: true
+
+
+- name: Create the DISCOS logrotate directory
+  become: True
+  file:
+    path: "/discos/{{ user }}/.discos/logrotate"
+    state: directory
+    owner: "{{ user }}"
+    group: acs
+    mode: 0770
+    recurse: yes
+
+
+- name: Render the discos-logrotate template
+  become: True
+  become_user: "{{ user }}"
+  template:
+    src: discos-logrotate
+    dest: "/discos/{{ user }}/.discos/logrotate/"
+    owner: "{{ user }}"
+    group: acs
+    mode: 0644
+    force: yes
+
+
+- name: Activate the crontab job for log rotation
+  cron:
+    name: discos-logrotate
+    hour: "23"
+    minute: "59"
+    user: "{{ user }}"
+    job: "/usr/sbin/logrotate -f /discos/{{ user }}/.discos/logrotate/discos-logrotate"

@@ -22,7 +22,7 @@
     password: "{{ discos_pwd | password_hash('md5', user[:8]) }}"
     group: acs
     uid: 3060
-    home: "/{{ user }}/{{ user }}"
+    home: "/discos/{{ user }}"
     state: present
     generate_ssh_key: yes
     ssh_key_file: .ssh/id_rsa
@@ -37,7 +37,7 @@
 
   
 - file:
-    path: /{{ user }}/{{ user }}/.ssh/known_hosts
+    path: /discos/{{ user }}/.ssh/known_hosts
     state: touch
     owner: "{{ user }}"
     group: acs
@@ -56,7 +56,7 @@
   become: true
   become_user: "{{ user }}"
   become_flags: "-i"
-  shell: ssh-keyscan {{ hostvars[item].inventory_hostname }},{{ hostvars[item].inventory_hostname_short }},{{ hostvars[item].ansible_host }} >> /{{ user }}/{{ user }}/.ssh/known_hosts
+  shell: ssh-keyscan {{ hostvars[item].inventory_hostname }},{{ hostvars[item].inventory_hostname_short }},{{ hostvars[item].ansible_host }} >> /discos/{{ user }}/.ssh/known_hosts
   with_items: "{{ play_hosts }}"
 
 

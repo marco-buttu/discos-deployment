@@ -89,5 +89,5 @@ pyqwt_url: "{{ pyqwt_base_path }}/{{ pyqwt_version }}/{{ pyqwt_file }}"
 # DISCOS Variables
 ##################
 
-discosconf_dir: /{{ user }}/{{ user }}/.discos
+discosconf_dir: /discos/{{ user }}/.discos
 ghtoken: 47aabb9fb8a55376eb43ede8e375a774e8e50b3b

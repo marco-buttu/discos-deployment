@@ -1,0 +1,32 @@
+---
+
+- name: Set ypdomainname
+  command: "ypdomainname {{ network_domain_name }}"
+  become: true
+
+
+- name: Set NISDOMAIN
+  lineinfile:
+    path: /etc/sysconfig/network
+    state: present
+    line: "NISDOMAIN={{ network_domain_name }}"
+  become: true
+
+
+- name: Configure NIS
+  command: "authconfig --enablenis --nisdomain={{ network_domain_name }} --nisserver={{ nis_server_ip }} --update"
+  become: true
+
+
+- name: Start rpcbind service
+  service:
+    name: rpcbind
+    state: started
+    enabled: yes
+
+
+- name: Start ypbind service
+  service:
+    name: ypbind
+    state: started
+    enabled: yes
