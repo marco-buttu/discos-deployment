@@ -32,7 +32,7 @@
 - name: Create the DISCOS logrotate directory
   become: True
   file:
-    path: "/{{ user }}/{{ user }}/.discos/logrotate"
+    path: "/discos/{{ user }}/.discos/logrotate"
     state: directory
     owner: "{{ user }}"
     group: acs
@@ -45,7 +45,7 @@
   become_user: "{{ user }}"
   template:
     src: discos-logrotate
-    dest: "/{{ user }}/{{ user }}/.discos/logrotate/"
+    dest: "/discos/{{ user }}/.discos/logrotate/"
     owner: "{{ user }}"
     group: acs
     mode: 0644
@@ -58,4 +58,4 @@
     hour: "23"
     minute: "59"
     user: "{{ user }}"
-    job: "/usr/sbin/logrotate -f /{{ user }}/{{ user }}/.discos/logrotate/discos-logrotate"
+    job: "/usr/sbin/logrotate -f /discos/{{ user }}/.discos/logrotate/discos-logrotate"

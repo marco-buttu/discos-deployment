@@ -1,7 +1,7 @@
 ---
 
 - name: Set ypdomainname
-  command: "ypdomainname {{ nis_domain_name }}"
+  command: "ypdomainname {{ network_domain_name }}"
   become: true
 
 
@@ -9,88 +9,23 @@
   lineinfile:
     path: /etc/sysconfig/network
     state: present
-    line: "NISDOMAIN={{ nis_domain_name }}"
+    line: "NISDOMAIN={{ network_domain_name }}"
   become: true
 
 
 - name: Configure NIS
-  command: "authconfig --enablenis --nisdomain={{ nis_domain_name }} --nisserver={{ nis_server_ip }} --update"
+  command: "authconfig --enablenis --nisdomain={{ network_domain_name }} --nisserver={{ nis_server_ip }} --update"
   become: true
 
 
-- name: Set RPCNFSDCOUNT
-  replace:
-    dest: /etc/sysconfig/nfs
-    regexp: '^#RPCNFSDCOUNT=8'
-    replace: 'RPCNFSDCOUNT=64'
-  become: true
-
-
-- name: Set idmapd.conf domain
-  replace:
-    dest: /etc/idmapd.conf
-    regexp: '^#Domain = local.domain.edu'
-    replace: 'Domain = {{ nis_domain_name }}'
-  become: true
-
-
-- name: Create the /exports/home directory
-  file:
-    path: /exports/home
-    state: directory
-    owner: root
-    group: root
-    mode: 0755
-    recurse: yes
-  become: true
-
-
-- name: Mount the /home directory into /exports/home
-  mount:
-    path: /exports/home
-    src: /home
-    fstype: ext4
-    opts: bind
-    state: mounted
-
-    
-- set_fact:
-    nis_server_network: "{{ '.'.join(nis_server_ip.split('.')[0:3]) }}.0/24"
-
-
-- name: Configure /etc/exports
-  lineinfile:
-    path: /etc/exports
-    state: present
-    line: "{{ item }}"
-  with_items:
-    - "exports          {{ nis_server_network }}   (ro, no_subtree_check, fsid=0, crossmnt)"
-    - "/exports/home    {{ nis_server_network }}   (rw, no_subtree_check, no_root_squash)"
-  become: true
-
-
-- name: Configure rpcbind service
+- name: Start rpcbind service
   service:
     name: rpcbind
     state: started
     enabled: yes
 
 
-- name: Configure rpcidmapd service
-  service:
-    name: rpcidmapd
-    state: started
-    enabled: yes
-
-
-- name: Configure nfs service
-  service:
-    name: nfs
-    state: started
-    enabled: yes
-
-
-- name: Configure ypbind service
+- name: Start ypbind service
   service:
     name: ypbind
     state: started

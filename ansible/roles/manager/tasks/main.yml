@@ -15,4 +15,8 @@
 
 - include: lustre.yml
 - include: archive_tree.yml
+
+- include: nis.yml
+  when: nis_server_ip is defined
+
 - include: guests.yml

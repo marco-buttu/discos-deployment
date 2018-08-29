@@ -1,31 +1,30 @@
 ---
 
 - name: Render the discos-addProject template
-  become: True
-  become_user: "{{ user }}"
   template:
     src: discos-addProject
-    dest: "/{{ user }}/{{ user }}/bin/"
+    dest: "/discos/{{ user }}/bin/"
     owner: "{{ user }}"
     group: acs
     mode: 0544
     force: yes
+  become: true
+  become_user: "{{ user }}"
 
 
 - name: Render the discos-removeProject template
-  become: True
-  become_user: "{{ user }}"
   template:
     src: discos-removeProject
-    dest: "/{{ user }}/{{ user }}/bin/"
+    dest: "/discos/{{ user }}/bin/"
     owner: "{{ user }}"
     group: acs
     mode: 0544
     force: yes
+  become: true
+  become_user: "{{ user }}"
 
 
 - name: Copy the bashrc template into /etc/skel
-  become: True
   template:
     src: bashrc
     dest: /etc/skel/.bashrc
@@ -33,10 +32,10 @@
     group: root
     mode: 0644
     force: yes
+  become: true
 
 
 - name: Copy the bash_profile template into /etc/skel
-  become: True
   template:
     src: bash_profile
     dest: /etc/skel/.bash_profile
@@ -44,3 +43,4 @@
     group: root
     mode: 0644
     force: yes
+  become: true

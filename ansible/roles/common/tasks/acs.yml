@@ -96,17 +96,17 @@
 ################################
 
 
-- name: Copy the .acs dir from /alma to /{{ user }}/{{ user }}
+- name: Copy the .acs dir from /alma to /discos/{{ user }}
   become: True
   become_user: "{{ user }}"
   command: chdir={{ acssw }}/config {{ item }}
   with_items:
-    - cp .acs /{{ user }}/{{ user }} -R
+    - cp .acs /discos/{{ user }} -R
 
 
 - name: Create the .acs/tmp directory
   file:
-    path: "/{{ user }}/{{ user }}/.acs/tmp/{{ inventory_hostname_short }}"
+    path: "/discos/{{ user }}/.acs/tmp/{{ inventory_hostname_short }}"
     state: directory
     owner: "{{ user }}"
     group: acs
@@ -119,7 +119,7 @@
   become_user: "{{ user }}"
   template:
     src: bashrc
-    dest: /{{ user }}/{{ user }}/.bashrc
+    dest: /discos/{{ user }}/.bashrc
     owner: "{{ user }}"
     group: acs
     mode: 0644

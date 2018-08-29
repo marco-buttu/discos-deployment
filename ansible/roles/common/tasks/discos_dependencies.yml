@@ -699,7 +699,7 @@
 
 
 - file:
-    path: "/{{ user }}/{{ user }}/bin"
+    path: "/discos/{{ user }}/bin"
     state: directory
     owner: "{{ user }}"
     group: acs
@@ -711,7 +711,7 @@
   become_user: "{{ user }}"
   template:
     src: discos-get
-    dest: "/{{ user }}/{{ user }}/bin/"
+    dest: "/discos/{{ user }}/bin/"
     owner: "{{ user }}"
     group: acs
     mode: 0544
@@ -723,7 +723,7 @@
   become_user: "{{ user }}"
   template:
     src: discos-set
-    dest: "/{{ user }}/{{ user }}/bin/"
+    dest: "/discos/{{ user }}/bin/"
     owner: "{{ user }}"
     group: acs
     mode: 0544
@@ -735,7 +735,7 @@
   become_user: "{{ user }}"
   template:
     src: _discos-check-branch
-    dest: "/{{ user }}/{{ user }}/bin/"
+    dest: "/discos/{{ user }}/bin/"
     owner: "{{ user }}"
     group: acs
     mode: 0544

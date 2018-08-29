@@ -5,7 +5,7 @@
   become_user: "{{ user }}"
   template:
     src: pyrc
-    dest: /{{ user }}/{{ user }}/.pyrc
+    dest: /discos/{{ user }}/.pyrc
     owner: "{{ user }}"
     group: acs
     mode: 0644
@@ -35,7 +35,7 @@
   become_user: "{{ user }}"
   template:
     src: ipython_startup_01.py
-    dest: "/{{ user }}/{{ user }}/.ipython/profile_default/startup/01.py"
+    dest: "/discos/{{ user }}/.ipython/profile_default/startup/01.py"
     owner: "{{ user }}"
     group: acs
     mode: 0644
@@ -46,7 +46,7 @@
   become_user: "{{ user }}"
   template:
     src: vimrc
-    dest: /{{ user }}/{{ user }}/.vimrc
+    dest: "/discos/{{ user }}/.vimrc"
     owner: "{{ user }}"
     group: acs
     mode: 0644
