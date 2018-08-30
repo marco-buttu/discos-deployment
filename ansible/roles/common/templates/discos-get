@@ -99,38 +99,22 @@ subprocess.call([
     'origin',
     'https://github.com/discos/discos.git'])
 
-# Create the introot inside the branch
-introot_name = 'introot'
-introot = os.path.join(BRANCH_PATH, introot_name)
+# Create the introot inside /discos/introots/
+introot = os.path.join('/discos/introots', branch_name)
 code = subprocess.call(
     ['getTemplateForDirectory', 'INTROOT', introot],
     stdout=open(os.devnull, 'w'))
 if code:
     sys.exit(code)
 else:
-    print('Introot created into %s' % BRANCH_PATH)
+    print('Introot created into %s' % introot)
 
-# Render the branchenv template and copy it inside the branch
-def render(template_path, context, dest_path):
-    path, file_name = os.path.split(template_path)
-    rendered_template = jinja2.Environment(
-        loader=jinja2.FileSystemLoader(path or './')
-    ).get_template(file_name).render(context)
-    with open(dest_path, 'w') as f:
-        f.write(rendered_template)
-
-context = {
-    'introot': introot,
-    'branch_path': BRANCH_PATH,
-    'station': cargs.station,
-}
-template_path = '{{ discosconf_dir }}/templates/branchenv'
-dest_path = '%s/.branchenv' % BRANCH_PATH
-render(template_path, context, dest_path)
-
+# Create the .station file
+with open(os.path.join(introot, '.station'), 'w') as f:
+    f.write(cargs.station)
 
 # Add the branch to the list of available branches
-with open('{{ discosconf_dir }}/branches', 'a+') as f:
+with open('/discos/config/discos/branches', 'a+') as f:
     content = f.read()
     if not branch_name in content:
         f.write(branch_name + '\n')

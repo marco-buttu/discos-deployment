@@ -1,19 +1,24 @@
 #!/usr/bin/env python
 from __future__ import print_function
-import os
+import os, shutil
 
 BRANCH_ROOT = os.environ['HOME']
-BRANCH_LIST = os.path.join(BRANCH_ROOT, '.discos/branches')
+BRANCH_LIST = os.path.join(BRANCH_ROOT, '/discos/config/discos/branches')
 
 
 discos_branch = os.environ['DISCOS_BRANCH']
 
-# Remove unavailable branches from the list
+# Remove unavailable branches from the list and remove their introots
 branches = []
 for line in open(BRANCH_LIST, 'r'):
     branch = line.strip()
     if os.path.exists(os.path.join(BRANCH_ROOT, branch)):
         branches.append(branch)
+    else:
+        try:
+            shutil.rmtree('/discos/introots/%s' % branch)
+        except:
+            pass
     lines = [b + '\n' for b in branches]
     open(BRANCH_LIST, 'w').writelines(lines)
 
@@ -22,7 +27,7 @@ if discos_branch:
     if not os.path.exists(active_branch):
         # Clear the the DISCOS_BRANCH environment variable
         lines = []
-        load_branch = os.path.join(BRANCH_ROOT, '.discos/load_branch')
+        load_branch = os.path.join(BRANCH_ROOT, '/discos/config/discos/load_branch')
         for line in open(load_branch):
             if 'export DISCOS_BRANCH=' in line:
                 lines.append('export DISCOS_BRANCH=\n')

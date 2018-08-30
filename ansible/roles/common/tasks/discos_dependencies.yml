@@ -182,7 +182,6 @@
     - "{{ remote_build_path }}/{{ modbus.build_dir }}"
 
 
-
 ##############################
 # GMOCK and GTEST Installation
 ##############################
@@ -343,7 +342,6 @@
     - "{{ remote_build_path }}/f2c-master"
 
 
-
 #######################
 # QT AND PYQT LIBRARIES
 #######################
@@ -351,7 +349,7 @@
 - name: Increment the process stack size in order to compile AS GUI
   become: true
   pam_limits:
-    domain: discos
+    domain: "{{ user }}"
     limit_type: '-'
     limit_item: stack
     value: 65532
@@ -407,7 +405,7 @@
 
 
 - name: Install Qt
-  become: True
+  become: true
   command: chdir={{ remote_build_path }}/{{ qt_build_dir }} {{ item }}
   with_items:
     - ./configure -no-openssl -opensource --prefix=/usr/local/{{ qt_version }}
@@ -459,6 +457,7 @@
     owner=discos
     group=acs
     mode=0755
+
 
 - name: Install sip
   become: true
@@ -629,76 +628,41 @@
     - pip install subprocess32
 
 
-
 ####################
 # DISCOS ENVIRONMENT
 ####################
 
 - name: Create the DISCOS conf directory
-  become: True
+  become: true
   file:
-    path: "{{ discosconf_dir }}"
+    path: "/discos/config/discos"
     state: directory
     owner: "{{ user }}"
     group: acs
-    mode: 0770
+    mode: 0750
     recurse: yes
 
 
-- name: Create the DISCOS template directory
-  become: True
-  file:
-    path: "{{ discosconf_dir }}/templates"
-    state: directory
-    owner: "{{ user }}"
-    group: acs
-    mode: 0770
-    recurse: yes
-
-
-- name: Create a the branches file
-  become: True
+- name: Create the branches file
+  become: true
   become_user: "{{ user }}"
-  file: path={{ discosconf_dir }}/branches state=touch
+  file: path=/discos/config/discos/branches state=touch
 
 
 - name: Copy the load_branch template
-  become: True
+  become: true
   become_user: "{{ user }}"
   template:
     src: load_branch
-    dest: "{{ discosconf_dir }}"
+    dest: "/discos/config/discos/"
     owner: "{{ user }}"
     group: acs
     mode: 0644
     force: yes
 
 
-- name: Copy prompt_command.sh 
-  become: True
-  become_user: "{{ user }}"
-  template:
-    src: prompt_command.sh
-    dest: "{{ discosconf_dir }}"
-    owner: "{{ user }}"
-    group: acs
-    mode: 0644
-    force: yes
-
-
-- name: Copy the branchenv template
-  become: True
-  become_user: "{{ user }}"
-  copy:
-    src: "{{ role_path }}/templates/branchenv"
-    dest: "{{ discosconf_dir }}/templates/branchenv"
-    owner: "{{ user }}"
-    group: acs
-    mode: 0644
-    force: yes
-
-
-- file:
+- name: Create the /bin directory for user {{ user }}
+  file:
     path: "/discos/{{ user }}/bin"
     state: directory
     owner: "{{ user }}"
@@ -747,7 +711,6 @@
   file: path={{ remote_build_path }} state=absent
 
 
-
 #########################
 # COMPONENTS REQUIREMENTS
 #########################
@@ -755,7 +718,7 @@
 - name: Increment the maximum number of user processes in order to run the AS
   become: true
   pam_limits:
-    domain: discos
+    domain: "{{ user }}"
     limit_type: '-'
     limit_item: nproc
     value: 63266

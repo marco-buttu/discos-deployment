@@ -1,7 +1,3 @@
-if [ -f /etc/bashrc ]; then
-	. /etc/bashrc
-fi
-
 [ -n "$SSH_CONNECTION" ] && unset SSH_ASKPASS
 export GIT_ASKPASS=
 
@@ -16,16 +12,16 @@ alias lt='ls -lt | more'
 
 # Load ACS definitions
 # ====================
-if [ -f $HOME/.acs/.bash_profile.acs ]; then
-    source $HOME/.acs/.bash_profile.acs
+if [ -f /discos/config/acs/.bash_profile.acs ]; then
+    source /discos/config/acs/.bash_profile.acs
 fi
-export ACS_TMP=$HOME/.acs/tmp/{{ inventory_hostname_short }}
+export ACS_TMP=/data/acstmp/{{ inventory_hostname_short }}
 
 
 # Load DISCOS environment
 # =======================
-if [ -f $HOME/.discos/load_branch ]; then
-    source $HOME/.discos/load_branch
+if [ -f /discos/config/discos/load_branch ]; then
+    source /discos/config/discos/load_branch
 fi
 
 
@@ -46,7 +42,7 @@ fi
 
 # Update the environment at every prompt
 # ======================================
-PROMPT_COMMAND='source $HOME/.discos/prompt_command.sh'
+PROMPT_COMMAND='source $HOME/.prompt_command.sh'
 
 
 # Variables to export

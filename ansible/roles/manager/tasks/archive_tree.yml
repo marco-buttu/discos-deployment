@@ -2,7 +2,7 @@
 
 - name: Populate the /archive directory tree
   file:
-    path: "{{ item.path }}"
+    path: "/archive/{{ item.path }}"
     state: directory
     owner: "{{ user }}"
     group: "{{ item.group }}"
@@ -10,46 +10,45 @@
     recurse: yes
     follow: yes
   with_items:
-    - { path: "/archive/data", group: "observers", mode: "710" }
-    - { path: "/archive/extraData", group: "observers", mode: "710" }
-    - { path: "/archive/events", group: "acs", mode: "750" }
-    - { path: "/archive/logs", group: "observers", mode: "750" }
-    - { path: "/archive/schedules", group: "observers", mode: "710" }
+    - { path: "data", group: "observers", mode: "0710" }
+    - { path: "extraData", group: "observers", mode: "0710" }
+    - { path: "events", group: "acs", mode: "0750" }
+    - { path: "logs", group: "observers", mode: "0750" }
+    - { path: "schedules", group: "observers", mode: "0710" }
   become: true
 
 
 - name: Set ACLs for the /archive directory tree
   acl:
-    path: "{{ item[0] }}"
+    path: "/archive/{{ item[0] }}"
     entry: "default:{{ item[1] }}"
     state: present
   with_nested:
-    - [ "/archive/data", "/archive/extraData", "/archive/schedules" ]
+    - [ "data", "extraData", "schedules" ]
     - [ "user::rwx", "group::---" ]
   become: true
 
 
-- name: Create the DISCOS logrotate directory
-  become: True
+- name: Create the DISCOS misc directory
   file:
-    path: "/discos/{{ user }}/.discos/logrotate"
+    path: "/discos/{{ user }}/misc"
     state: directory
     owner: "{{ user }}"
     group: acs
-    mode: 0770
     recurse: yes
+  become: true
 
 
 - name: Render the discos-logrotate template
-  become: True
   become_user: "{{ user }}"
   template:
     src: discos-logrotate
-    dest: "/discos/{{ user }}/.discos/logrotate/"
+    dest: "/discos/{{ user }}/misc/"
     owner: "{{ user }}"
     group: acs
     mode: 0644
     force: yes
+  become: true
 
 
 - name: Activate the crontab job for log rotation
@@ -58,4 +57,4 @@
     hour: "23"
     minute: "59"
     user: "{{ user }}"
-    job: "/usr/sbin/logrotate -f /discos/{{ user }}/.discos/logrotate/discos-logrotate"
+    job: "/usr/sbin/logrotate -f /discos/{{ user }}/misc/discos-logrotate"

@@ -69,6 +69,14 @@
     - "@fonts"
 
 
+- name: Apply a patch to GNOME in order to avoid an annoying VNC popup
+  become: True
+  lineinfile:
+    path: /etc/xdg/autostart/gpk-update-icon.desktop
+    line: X-GNOME-Autostart-enabled=false
+    state: present
+
+
 - name: "To avoid yum automatic updates, remove yum-cron"
   become: true
   yum: name=yum-cron state=absent

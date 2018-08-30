@@ -1,18 +1,25 @@
 ---
 
-- set_fact:
-    discos_pwd: "{{ lookup('env', 'DISCOS_PWD') }}"
-
 - name: Add the acs group
   become: true
   group: name=acs gid=335 state=present
 
 
-- name: Create the /{{ user }} directory
+- name: Create the /discos directory
   file:
-    path: /{{ user }}
+    path: /discos
     state: directory
     mode: 0755
+
+
+- name: Retrieve the typed discos password
+  set_fact:
+    discos_pwd: "{{ lookup('env', 'DISCOS_PWD') }}"
+
+
+- name: Check whether `discos` user exists
+  shell: "getent passwd {{ user }} | wc -l"
+  register: is_present
 
 
 - name: Add the user {{ user }}
@@ -26,6 +33,7 @@
     state: present
     generate_ssh_key: yes
     ssh_key_file: .ssh/id_rsa
+  when: is_present.stdout == "0"
 
 
 - name: Add the user {{ user }} to sudoers
@@ -35,8 +43,58 @@
     state: present
     line: '{{ user }}    ALL=(ALL)       ALL'
 
-  
-- file:
+
+- name: Populate the /discos/ directory tree
+  file:
+    path: "/discos/{{ item }}"
+    state: directory
+    owner: "{{ user }}"
+    group: acs
+    mode: 0750
+    recurse: yes
+    follow: yes
+  with_items:
+    - "config"
+    - "introots"
+
+
+- name: Copy the bashrc template to /discos/config
+  template:
+    src: bashrc
+    dest: /discos/config/bashrc
+    owner: "{{ user }}"
+    group: acs
+    mode: 0644
+    force: yes
+  become: true
+  become_user: "{{ user }}"
+
+
+- name: Add the custom bashrc sourcing to the default one
+  blockinfile:
+    path: "/discos/{{ user }}/.bashrc"
+    state: present
+    marker: "######## DISCOS configuration ########"
+    block: |
+        if [ -f /discos/config/bashrc ]; then
+            source /discos/config/bashrc
+        fi
+
+
+- name: Copy prompt_command.sh
+  become: true
+  become_user: "{{ user }}"
+  template:
+    src: prompt_command.sh
+    dest: "/discos/{{ user }}/.prompt_command.sh"
+    owner: "{{ user }}"
+    group: acs
+    mode: 0644
+    force: yes
+
+
+- name: Create the .ssh/known_hosts file
+  file:
     path: /discos/{{ user }}/.ssh/known_hosts
     state: touch
     owner: "{{ user }}"
@@ -66,3 +124,4 @@
   become_flags: "-i"
   command: sshpass -p {{ discos_pwd }} ssh-copy-id {{ user }}@{{ item }}
   with_items: "{{ play_hosts }}"
+  when: is_present.stdout == "0"
