@@ -42,7 +42,7 @@ fi
 
 # Update the environment at every prompt
 # ======================================
-PROMPT_COMMAND='source $HOME/.prompt_command.sh'
+PROMPT_COMMAND='source /discos/config/discos/prompt_command.sh'
 
 
 # Variables to export

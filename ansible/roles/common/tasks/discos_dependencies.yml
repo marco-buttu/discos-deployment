@@ -632,16 +632,6 @@
 # DISCOS ENVIRONMENT
 ####################
 
-- name: Create the DISCOS conf directory
-  become: true
-  file:
-    path: "/discos/config/discos"
-    state: directory
-    owner: "{{ user }}"
-    group: acs
-    mode: 0750
-    recurse: yes
-
 
 - name: Create the branches file
   become: true
