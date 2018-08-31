@@ -39,7 +39,7 @@ for line in open(load_branch):
         lines.append('export INTROOT=/discos/introots/%s\n' % args.branch)
     elif 'export STATION=' in line:
         with open('/discos/introots/%s/.station' % args.branch) as station:
-            lines.append('export STATION=%s\n' % station.readline())
+            lines.append('export STATION=%s\n' % station.readline().strip())
     elif 'export DISCOS_BRANCH=' in line:
         lines.append('export DISCOS_BRANCH=%s\n' % args.branch)
     elif 'export CDB=' in line:

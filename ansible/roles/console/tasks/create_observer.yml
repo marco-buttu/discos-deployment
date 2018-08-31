@@ -1,0 +1,30 @@
+---
+
+- name: Retrieve the typed observer password
+  set_fact:
+      observer_pwd: "{{ lookup('env', 'OBSERVER_PWD') }}"
+
+
+- name: Add the user {{ observer }}
+  become: true
+  user:
+    name: "{{ observer }}"
+    password: "{{ observer_pwd | password_hash('md5', user[:8]) }}"
+    group: acs
+    uid: 3061
+    home: "/discos/{{ observer }}"
+    state: present
+    generate_ssh_key: yes
+    ssh_key_file: .ssh/id_rsa
+  when: observer_pwd != ""
+
+
+- name: Add the custom bashrc sourcing to the default one
+  blockinfile:
+    path: "/discos/{{ observer }}/.bashrc"
+    state: present
+    marker: "######## DISCOS configuration {mark} ########"
+    block: |
+        if [ -f /discos/config/discos/bashrc ]; then
+            source /discos/config/discos/bashrc
+        fi

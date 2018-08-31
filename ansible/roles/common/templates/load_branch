@@ -5,12 +5,13 @@ export STATION=
 export ACS_CDB=/alma/{{ acs_tag }}/acsdata/config/defaultCDB
 export DISCOS_BRANCH=
 export CDB=
-BRANCHENV=/discos/{{ user }}/$DISCOS_BRANCH/.branchenv
-
 
 # Load DISCOS definitions
 # =======================
-if [ -n "${DISCOS_BRANCH}" ] && [ -f "$BRANCHENV" ]
-then
-    source $BRANCHENV
+if [ -n "${DISCOS_BRANCH}" ]; then
+    if [ $CDB = "test" ]; then
+        export ACS_CDB=/discos/{{ user }}/$DISCOS_BRANCH/$STATION
+    else
+        export ACS_CDB=/discos/{{ user }}/$DISCOS_BRANCH/$STATION/Configuration
+    fi
 fi
