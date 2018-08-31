@@ -2,6 +2,7 @@
 
 - include: yum_packages.yml
 - include: network.yml
+- include: ntp.yml
 
 - include: nis.yml
   when: network_domain_name is defined and nis_server_ip is defined
@@ -9,16 +10,7 @@
 - include: nfs.yml
   when: network_domain_name is defined and network_ip_address is defined
 
-- include: ntp.yml
-  when: ntp_server_ip is defined
-
-- name: Check if DISCOS user exists on remote machine
-  shell: "getent passwd {{ user }} | wc -l"
-  register: is_present
-
-- include: create_users_groups.yml
-  when: is_present.stdout == "0"
-
+- include: create_discos.yml
 - include: required_tools.yml
 - include: acs.yml
 - include: discos_dependencies.yml

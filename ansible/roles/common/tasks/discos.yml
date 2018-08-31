@@ -30,5 +30,4 @@
   shell: source ~/.bashrc && chdir={{ branch_path }}/SystemMake {{ item }}
   with_items:
     - make
-    - make all
     - make install

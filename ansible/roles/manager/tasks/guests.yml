@@ -10,6 +10,7 @@
     force: yes
   become: true
   become_user: "{{ user }}"
+  when: nis_server_ip is defined
 
 
 - name: Render the discos-removeProject template
@@ -22,6 +23,7 @@
     force: yes
   become: true
   become_user: "{{ user }}"
+  when: nis_server_ip is defined
 
 
 - name: Copy the bashrc template into /etc/skel

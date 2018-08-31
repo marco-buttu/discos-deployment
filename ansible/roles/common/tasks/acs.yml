@@ -96,34 +96,22 @@
 ################################
 
 
-- name: Copy the .acs dir from /alma to /discos/{{ user }}
+- name: Copy the .acs dir from /alma to /discos/config
   become: True
   become_user: "{{ user }}"
   command: chdir={{ acssw }}/config {{ item }}
   with_items:
-    - cp .acs /discos/{{ user }} -R
+    - cp -r .acs /discos/config/acs
 
 
-- name: Create the .acs/tmp directory
+- name: Create the acstmp directory
   file:
-    path: "/discos/{{ user }}/.acs/tmp/{{ inventory_hostname_short }}"
+    path: "/data/acstmp/{{ inventory_hostname_short }}"
     state: directory
     owner: "{{ user }}"
     group: acs
     mode: 0775
     recurse: yes
-
-
-- name: Copy the bashrc template
-  become: True
-  become_user: "{{ user }}"
-  template:
-    src: bashrc
-    dest: /discos/{{ user }}/.bashrc
-    owner: "{{ user }}"
-    group: acs
-    mode: 0644
-    force: yes
 
 
 - name: Copy the acsStartContainer with debugger
@@ -222,7 +210,8 @@
     backup: yes
 
 
-- file:
+- name: Create the idl directory under acscommandcenter
+  file:
     path: "{{ acs_command_center }}/idl"
     owner: "{{ user }}"
     group: acs

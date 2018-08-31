@@ -2,7 +2,6 @@
 
 - include: observers.yml
 
-
 - name: Create the /archive directory
   become: true
   file:
@@ -11,7 +10,6 @@
     owner: "{{ user }}"
     group: observers
     mode: 0755
-
 
 - include: lustre.yml
 - include: archive_tree.yml

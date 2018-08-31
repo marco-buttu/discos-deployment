@@ -4,7 +4,7 @@ import argparse
 
 
 BRANCH_ROOT = os.environ['HOME']
-BRANCH_LIST = os.path.join(BRANCH_ROOT, '.discos/branches')
+BRANCH_LIST = os.path.join(BRANCH_ROOT, '/discos/config/discos/branches')
 
 with open(BRANCH_LIST, 'r') as f:
     declared_branches = [b.strip() for b in f.readlines()]
@@ -33,9 +33,14 @@ BRANCH_PATH = os.path.join(BRANCH_ROOT, args.branch)
 
 # Set the DISCOS_BRANCH environment variable
 lines = []
-load_branch = '{{ discosconf_dir }}/load_branch'
+load_branch = '/discos/config/discos/load_branch'
 for line in open(load_branch):
-    if 'export DISCOS_BRANCH=' in line:
+    if 'export INTROOT=' in line:
+        lines.append('export INTROOT=/discos/introots/%s\n' % args.branch)
+    elif 'export STATION=' in line:
+        with open('/discos/introots/%s/.station' % args.branch) as station:
+            lines.append('export STATION=%s\n' % station.readline().strip())
+    elif 'export DISCOS_BRANCH=' in line:
         lines.append('export DISCOS_BRANCH=%s\n' % args.branch)
     elif 'export CDB=' in line:
         lines.append('export CDB=%s\n' % args.cdb)
