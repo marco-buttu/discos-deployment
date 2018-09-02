@@ -10,6 +10,12 @@ To automatically deploy DISCOS, you need to install four dependencies:
 <https://www.virtualbox.org/>`_.  It usually takes about 15 minutes.
 
 
+.. note:: If you are accustomed to python virtual environments
+   (like `pyenv` or similar), you can install the required pip packages
+   mentioned in the procedure below in your preferred environment,
+   without the need of administrator permissions.
+
+
 Install Git
 ===========
 Before installing Git, verify if it is already installed:
@@ -25,7 +31,7 @@ website <https://git-scm.com/book/en/v1/Getting-Started-Installing-Git>`_.
 
 Install Ansible
 ===============
-Verify if Alsible is already installed:
+Verify if Ansible is already installed:
 
 .. code-block:: shell
 
@@ -68,5 +74,17 @@ Now verify if Vagrant is already installed:
 If it is not, download the binary file from
 the `vagrant official website <https://www.vagrantup.com/downloads.html>`_
 and install it.
+
+
+Install the required python packages
+====================================
+In order to deploy the virtual machines correctly, you need to install the
+`paramiko` python package. You can install it by typing:
+
+.. code-block:: shell
+
+    $ sudo pip install paramiko
+
+
 At this point you are ready to deploy DISCOS.  The :ref:`deploy_quickstart`
 section is a good starting point, because it covers a typical scenario.
