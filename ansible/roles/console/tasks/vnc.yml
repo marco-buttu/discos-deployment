@@ -1,0 +1,36 @@
+---
+
+- name: Configure tigervnc-server
+  lineinfile:
+    path: /etc/sysconfig/vncservers
+    line: "{{ item }}"
+    state: present
+  with_items:
+    - 'VNCSERVERS="1:{{ user }} 2:{{ observer }}"'
+    - 'VNCSERVERARGS[1]="-name {{ inventory_hostname }}-{{ user }} -localhost -SecurityTypes None -geometry {{ vnc_resolution }} -depth 32 -AlwaysShared -nolisten tcp -rfbport {{ vnc_starting_port+user_vnc_port|int }}"'
+    - 'VNCSERVERARGS[2]="-name {{ inventory_hostname }}-{{ observer }} -localhost -SecurityTypes None -geometry {{ vnc_resolution }} -depth 32 -AlwaysShared -nolisten tcp -rfbport {{ vnc_starting_port+observer_vnc_port|int }}"'
+  become: true
+
+
+- name: Deny ssh tunneling to user {{ observer }} for ports other than the VNC one
+  blockinfile:
+    path: "/etc/ssh/sshd_config"
+    state: present
+    marker: "##### {{ observer }} port forwarding configuration {mark} #####"
+    block: |
+        Match User {{ observer }}
+            PermitOpen localhost:{{ vnc_starting_port+observer_vnc_port|int }}
+
+
+- name: Restart ssh service
+  service:
+    name: sshd
+    state: restarted
+    enabled: yes
+
+
+- name: Start vncserver service
+  service:
+    name: vncserver
+    state: started
+    enabled: yes

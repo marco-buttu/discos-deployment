@@ -7,9 +7,6 @@
 - include: nis.yml
   when: network_domain_name is defined and nis_server_ip is defined
 
-- include: nfs.yml
-  when: network_domain_name is defined and network_ip_address is defined
-
 - include: create_discos.yml
 - include: required_tools.yml
 - include: acs.yml
