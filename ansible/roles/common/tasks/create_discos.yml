@@ -49,6 +49,7 @@
     recurse: yes
     follow: yes
   with_items:
+    - "config"
     - "config/discos"
     - "introots"
 

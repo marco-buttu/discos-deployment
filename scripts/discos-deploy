@@ -14,13 +14,9 @@ import sys
 import argparse
 import subprocess
 import getpass
-import pip
-pip.main(['install', '-q', 'paramiko'])
-pip.main(['install', '-q', 'passlib'])
 import paramiko
-from passlib.hash import md5_crypt
 
-ROOT_DIR = '{{ root_dir }}'
+ROOT_DIR = os.path.dirname(os.path.realpath(__file__)).rsplit('/', 1)[0]
 STATIONS = ('srt', 'medicina', 'noto')
 ANSIBLE_DIR = os.path.join(ROOT_DIR, 'ansible')
 INVENTORIES_DIR = os.path.join(ANSIBLE_DIR, 'inventories')
@@ -185,7 +181,11 @@ else:
     if args.deploy:
         extra_vars += ' branch=%s station=%s cdb=telescope' % (args.deploy, env_arg)
 
-root_pwd = ''
+# Initialize a root password for each machine
+root_pwds = {}
+for machine in current_machines:
+    root_pwds[machine] = ''
+
 # Call vagrant to provision the VMs
 if env_arg == 'development':
     print('\nCalling Vagrant...\n')
@@ -197,7 +197,8 @@ if env_arg == 'development':
         if code:
             print('ERROR: some problems running %s' % vagrant_cmd)
             sys.exit(code)
-    root_pwd = 'vagrant'
+    for key in root_pwds.keys():
+        root_pwds[key] = 'vagrant'
 
 # Add the IPs to known_hosts
 print('\nUpdating known_hosts...')
@@ -211,55 +212,105 @@ for host_name in current_machines:
         subprocess.call(
             'ssh-keyscan -H %s >> %s' % (ip, known_hosts), shell=True)
 
-ansible_env = os.environ.copy()
-discos_pwd = ''
-if not args.sim:
-    ssh = paramiko.SSHClient()
-    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    for machine in current_machines:
-        ip = hosts[env_arg][machine]['ansible_host']
-        try:
-            # Check if we already have passwordless access to the machines
-            ssh.connect(ip, username='root')
-        except paramiko.AuthenticationException:
-            # Cannot authenticate, it means we have to ask for password
-            if not root_pwd:
-                root_pwd = getpass.getpass('Type the target machines` root password: ')
-            try:
-                ssh.connect(ip, username='root', password=root_pwd)
-                sftp_client = ssh.open_sftp()
-                try:
-                    sftp_client.stat('.ssh')
-                except IOError:
-                    sftp_client.mkdir('.ssh', 0700)
-                file_mode = 'r+'
-                try:
-                    sftp_client.stat('.ssh/authorized_keys')
-                except IOError:
-                    file_mode = 'w+'
-                remote_file = sftp_client.open('.ssh/authorized_keys', mode=file_mode)
-                found = False
-                for line in remote_file:
-                    if public_key in line:
-                        found = True
-                if not found:
-                    remote_file.write(public_key + '\n')
-                remote_file.close()
-                sftp_client.chmod('.ssh/authorized_keys', 0600)
-                sftp_client.close()
-            except paramiko.AuthenticationException:
-                error('Cannot authenticate, probable wrong password.')
-        stdin, stdout, stderr = ssh.exec_command('getent passwd discos')
-        stdin.close()
 
-        if not stdout.read().splitlines() and not discos_pwd:
-            # User discos not present in target machine, asking password
-            discos_pwd = getpass.getpass('Type the `discos` user desired password: ')
-            if not discos_pwd:
-                error('A password is required for user `discos`.')
-            if discos_pwd != getpass.getpass('Confirm password: '):
-                error('Typed password and confirm does not match. Retry.')
-            ansible_env["DISCOS_PWD"] = discos_pwd
+def ssh_connect(ssh, ip, password=None):
+    try:
+        if password:
+            ssh.connect(ip, username='root', password=password)
+        else:
+            ssh.connect(ip, username='root')
+        return True
+    except paramiko.AuthenticationException:
+        return False
+
+
+ansible_env = os.environ.copy()
+manager_sessions = []
+console_sessions = []
+if not args.sim:
+    for machine in current_machines:
+        root_pwd = ''
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ip = hosts[env_arg][machine]['ansible_host']
+        authenticated = ssh_connect(ssh, ip)
+        if not authenticated:
+            authenticated = ssh_connect(ssh, ip, root_pwds[machine])
+        if not authenticated:
+            # Cannot authenticate, it means we have to ask for password
+            root_pwd = getpass.getpass(
+                'Type the root password for machine %s: ' % machine
+            )
+            authenticated = ssh_connect(ssh, ip, root_pwd)
+        if not authenticated:
+            error(
+                'Cannot authenticate to machine %s, probable wrong password.'
+                % machine
+            )
+        else:
+            root_pwds[machine] = root_pwd
+            if 'manager' in machine:
+                manager_sessions.append(ssh)
+            if 'console' in machine:
+                console_sessions.append(ssh)
+
+
+for ssh in manager_sessions + console_sessions:
+    sftp_client = ssh.open_sftp()
+    try:
+        sftp_client.stat('.ssh')
+    except IOError:
+        sftp_client.mkdir('.ssh', 0700)
+    file_mode = 'r+'
+    try:
+        sftp_client.stat('.ssh/authorized_keys')
+    except IOError:
+        file_mode = 'w+'
+    remote_file = sftp_client.open('.ssh/authorized_keys', mode=file_mode)
+    found = False
+    for line in remote_file:
+        if public_key in line:
+            found = True
+    if not found:
+        remote_file.write(public_key + '\n')
+    remote_file.close()
+    sftp_client.chmod('.ssh/authorized_keys', 0600)
+    sftp_client.close()
+
+
+discos_pwd = ''
+for ssh in manager_sessions:
+    if discos_pwd:
+        break
+    stdin, stdout, stderr = ssh.exec_command('getent passwd discos')
+    stdin.close()
+
+    if not stdout.read().splitlines():
+        # User discos not present in a target machine, asking password
+        discos_pwd = getpass.getpass('Type the `discos` user desired password: ')
+        if not discos_pwd:
+            error('A password is required for user `discos`.')
+        if discos_pwd != getpass.getpass('Confirm password: '):
+            error('Typed password and confirm does not match. Retry.')
+        ansible_env['DISCOS_PWD'] = discos_pwd
+
+
+observer_pwd = ''
+for ssh in console_sessions:
+    if observer_pwd:
+        break
+    stdin, stdout, stderr = ssh.exec_command('getent passwd observer')
+    stdin.close()
+
+    if not stdout.read().splitlines():
+        # User observer not present in a target machine, asking password
+        observer_pwd = getpass.getpass('Type the `observer` user desired password: ')
+        if not observer_pwd:
+            error('A password is required for user `observer`.')
+        if observer_pwd != getpass.getpass('Confirm password: '):
+            error('Typed password and confirm does not match. Retry.')
+        ansible_env['OBSERVER_PWD'] = observer_pwd
+
 
 # Call ansible
 ansible_cmd = [
@@ -268,9 +319,10 @@ ansible_cmd = [
     '--limit', cluster_arg,
     '--extra-vars', "'%s'" % extra_vars.strip(),
 ]
+ansible_cmd = ' '.join(ansible_cmd)
 
 print('\nCalling ansible...\n')
 if args.sim:
-    print(' '.join(ansible_cmd))
+    print(ansible_cmd)
 else:
-    subprocess.call(' '.join(ansible_cmd), env=ansible_env, shell=True)
+    subprocess.call(ansible_cmd, env=ansible_env, shell=True)

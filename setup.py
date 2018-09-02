@@ -1,30 +1,22 @@
+#! /usr/bin/env python
 import os
-import sys
-import tempfile
-import pip
-pip.main(['install', '-q', 'jinja2'])
-from jinja2 import Template
+import subprocess
 
-template = Template(open('templates/discos-deploy').read())
-script = open('scripts/discos-deploy', 'w')
-script.write(template.render(root_dir=os.path.dirname(os.path.realpath(__file__))))
-script.close()
+home = os.environ['HOME']
+bashrc = os.path.join(home, '.bashrc')
+deployment_path = os.path.dirname(os.path.realpath(__file__)).lstrip(home)
+source_file_path = '$HOME/%s/scripts/source.sh' % deployment_path
+source_line = 'source %s' % source_file_path
 
-try:
-    from setuptools import setup, find_packages
-except ImportError:
-    from distutils.core import setup, find_packages
+found = False
+for line in open(bashrc):
+    if source_line in line:
+        found = True
 
-setup(
-    name='discos-deployment',
-    version='0.1',
-    scripts=[
-        'scripts/discos-deploy',
-        'scripts/discos-vms',
-        'scripts/discos-login',
-        'scripts/discos-vnc'
-    ],
-    license='GPL',
-    platforms='all',
-)
-os.remove('scripts/discos-deploy')
+if not found:
+    lines = []
+    lines.append('\nif [ -f %s ]; then\n' % source_file_path)
+    lines.append('\t' + source_line + '\n')
+    lines.append('fi')
+    open(bashrc, 'a').writelines(lines)
+    subprocess.call('. ~/.bashrc', shell=True)

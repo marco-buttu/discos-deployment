@@ -30,34 +30,18 @@ Verify if Alsible is already installed:
 .. code-block:: shell
 
    ansible --version
-   ansible 2.3.2.0
+   ansible 2.6.3
 
 If the command ``ansible --version`` fails, than you have to install Ansible.
 
-Ansible requires the package ``sshpass`` to be installed properly. You can install it with the following command:
+The suggested way to do this is via `pip`:
 
 .. code-block:: shell
 
-    $ sudo yum install sshpass
+    $ sudo pip install ansible
 
-...if you are using a Red-Hat based distro or:
-
-.. code-block:: shell
-
-    $ sudo apt-get install sshpass
-
-...if you are using a Debian based one.
-
-Then you can install Ansible by executing the following command:
-
-.. code-block:: shell
-
-    $ pip install "ansible==2.3.2"
-
-In case the ``pip install`` command fails, try to install Ansible
-(greater than 2.0, lesser than 2.4, otherwise the provisioning procedure could fail)
-as explained in the `official ansible website
-<http://docs.ansible.com/ansible/intro_installation.html#installation>`_.
+In case the last command fails, try to install Ansible as explained in the `official
+ansible website <http://docs.ansible.com/ansible/intro_installation.html#installation>`_.
 
 
 Install VirtualBox and Vagrant

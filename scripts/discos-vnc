@@ -1,24 +1,84 @@
-#!/bin/bash
+#! /usr/bin/env python
 
-machine=""
-for line in `VBoxManage list vms | awk '{print substr($1, 2, length($1) - 2)}'`
-do
-    if [[ $line = *"deployment_$1_"* ]]; then
-        machine=$line
-    fi
-done
-unset line
-if [ "$machine" = "" ]; then
-    echo "Machine $1 unrecognized."
-    exit 1
-fi
-state=`VBoxManage showvminfo "$machine" | grep State`
-if [[ $state != *"running"* ]]; then
-    echo "Machine $1 not running. Please start it by typing 'discos-vms -m $1 start'"
-else
-    ip=`VBoxManage guestproperty get "$machine" /VirtualBox/GuestInfo/Net/1/V4/IP | awk '{split($0, a); print a[2]}'`
-    vncviewer $ip:1 -fullscreen
-    unset ip
-fi
-unset machine
-unset state
+import sys
+import os
+import subprocess
+from argparse import ArgumentParser, ArgumentTypeError
+
+remote_starting_port = 15000
+local_starting_port = 5900
+users = {
+    'discos': 1,
+    'observer': 2
+}
+cmd = subprocess.Popen(
+    'VBoxManage list vms',
+    shell=True,
+    stdout=subprocess.PIPE
+)
+output = cmd.stdout
+machines = {}
+for line in output:
+    m_id = line.split()[0].strip('"')
+    m_name = m_id.replace('deployment_', '').split('_')[0]
+    machines[m_name] = m_id
+
+parser = ArgumentParser()
+parser.add_argument(
+    '-u',
+    '--user',
+    required=False,
+    choices=users.keys(),
+    default='discos'
+)
+parser.add_argument(
+    'machine',
+    choices=machines.keys()
+)
+args = parser.parse_args()
+
+def machine_state(name):
+    machine_id = machines[name]
+    cmd = subprocess.Popen(
+        'VBoxManage showvminfo "%s"' % machine_id,
+        shell=True,
+        stdout=subprocess.PIPE
+    )
+    for line in cmd.stdout:
+        if 'State' in line:
+            state = ' '.join(line.strip().split()[1:-2])
+            return state
+
+if machine_state(args.machine) == 'powered off':
+    print 'Machine %s is not running.' % args.machine
+else:
+    IP = subprocess.Popen(
+        (
+            'VBoxManage guestproperty get %s /VirtualBox/GuestInfo/Net/1/V4/IP'
+            % machines[args.machine]
+        ),
+        shell=True,
+        stdout=subprocess.PIPE
+    ).stdout.read().strip()
+    if IP == 'No value set!':
+        print 'Machine %s unreachable.' % args.machine
+    else:
+        remote_port = remote_starting_port + users[args.user]
+        local_port = local_starting_port + users[args.user]
+        IP = IP.split(' ')[1]
+        ssh_command = (
+            'ssh -L %d:localhost:%d -N -f -l %s %s'
+            % (local_port, remote_port, args.user, IP)
+        )
+        subprocess.call(
+            ssh_command,
+            shell=True
+        )
+        subprocess.call(
+            'vncviewer localhost:%d -fullscreen' % users[args.user],
+            shell=True
+        )
+        subprocess.call(
+            "pkill -f '%s'" % ssh_command,
+            shell=True
+        )
