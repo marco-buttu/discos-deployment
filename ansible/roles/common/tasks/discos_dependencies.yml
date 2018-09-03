@@ -364,7 +364,7 @@
       - qt4
   register: result
   retries: 2
-  until: result | succeeded
+  until: result is succeeded
 
 
 - name: Check if {{ qt_lib }} exists
