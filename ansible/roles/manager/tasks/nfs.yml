@@ -42,8 +42,8 @@
     state: present
     line: "{{ item }}"
   with_items:
-    - "exports          {{ network_ip_address }}   (ro, no_subtree_check, fsid=0, crossmnt)"
-    - "/exports/home    {{ network_ip_address }}   (rw, no_subtree_check, no_root_squash)"
+    - "exports          {{ network_ip_address }}(ro,no_subtree_check,fsid=0,crossmnt)"
+    - "/exports/home    {{ network_ip_address }}(rw,no_subtree_check,no_root_squash)"
   become: true
 
 

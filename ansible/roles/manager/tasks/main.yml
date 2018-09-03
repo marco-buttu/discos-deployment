@@ -17,4 +17,7 @@
 - include: nis.yml
   when: nis_server_ip is defined
 
+- include: nfs.yml
+  when: network_domain_name is defined and network_ip_address is defined
+
 - include: guests.yml
