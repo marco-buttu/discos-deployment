@@ -2,7 +2,7 @@
 
 - include: yum_packages.yml
 - include: network.yml
-- include: ntp.yml
+- include: time.yml
 
 - include: nis.yml
   when: network_domain_name is defined and nis_server_ip is defined

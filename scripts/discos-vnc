@@ -16,6 +16,7 @@ cmd = subprocess.Popen(
     shell=True,
     stdout=subprocess.PIPE
 )
+cmd.wait()
 output = cmd.stdout
 machines = {}
 for line in output:
@@ -44,6 +45,7 @@ def machine_state(name):
         shell=True,
         stdout=subprocess.PIPE
     )
+    cmd.wait()
     for line in cmd.stdout:
         if 'State' in line:
             state = ' '.join(line.strip().split()[1:-2])
@@ -52,14 +54,16 @@ def machine_state(name):
 if machine_state(args.machine) == 'powered off':
     print 'Machine %s is not running.' % args.machine
 else:
-    IP = subprocess.Popen(
+    cmd = subprocess.Popen(
         (
             'VBoxManage guestproperty get %s /VirtualBox/GuestInfo/Net/1/V4/IP'
             % machines[args.machine]
         ),
         shell=True,
         stdout=subprocess.PIPE
-    ).stdout.read().strip()
+    )
+    cmd.wait()
+    IP = cmd.stdout.read().strip()
     if IP == 'No value set!':
         print 'Machine %s unreachable.' % args.machine
     else:
@@ -76,7 +80,9 @@ else:
         )
         subprocess.call(
             'vncviewer localhost:%d -fullscreen' % users[args.user],
-            shell=True
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
         )
         subprocess.call(
             "pkill -f '%s'" % ssh_command,

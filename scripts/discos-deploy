@@ -11,10 +11,13 @@
 from __future__ import print_function
 import os
 import sys
+import time
 import argparse
 import subprocess
 import getpass
-import paramiko
+import socket
+from pexpect import pxssh
+from Crypto.PublicKey import RSA
 
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__)).rsplit('/', 1)[0]
 STATIONS = ('srt', 'medicina', 'noto')
@@ -151,10 +154,16 @@ if not os.path.exists(ssh_dir):
 # Generate the public/private key pair (if not present)
 key_file = os.path.join(ssh_dir, 'id_rsa')
 if not os.path.exists(key_file):
-    subprocess.call("ssh-keygen -f %s -t rsa -N '' -q" % key_file, shell=True)
-public_key = ''
-with open(key_file + '.pub') as pubkey_file:
-    public_key = pubkey_file.read().strip()
+    key = RSA.generate(2048)
+    private_key = key.exportKey('PEM')
+    public_key = key.publickey().exportKey('OpenSSH')
+    public_key += ' %s@%s' % (getpass.getuser(), socket.gethostname())
+    open(key_file, 'w').write(private_key)
+    os.chmod(key_file, 0600)
+    open(key_file + '.pub', 'w').write(public_key)
+    os.chmod(key_file + '.pub', 0644)
+
+public_key = open(key_file + '.pub').read().strip()
 
 # Machines to provision in the current process
 current_machines = []
@@ -184,44 +193,83 @@ else:
 # Initialize a root password for each machine
 root_pwds = {}
 for machine in current_machines:
-    root_pwds[machine] = ''
-
-# Call vagrant to provision the VMs
-if env_arg == 'development':
-    print('\nCalling Vagrant...\n')
-    vagrant_cmd = ['vagrant', 'up'] + current_machines
-    if args.sim:
-        print(' '.join(vagrant_cmd))
+    if env_arg == 'development':
+        root_pwds[machine] = 'vagrant'
     else:
-        code = subprocess.call(' '.join(vagrant_cmd), shell=True)
-        if code:
-            print('ERROR: some problems running %s' % vagrant_cmd)
-            sys.exit(code)
-    for key in root_pwds.keys():
-        root_pwds[key] = 'vagrant'
+        root_pwds[machine] = ''
+
+# Bring up the virtual machines if environment=development
+if env_arg == 'development':
+    print('Calling Vagrant...\n')
+    if args.sim:
+        print('vagrant up %s' % ' '.join(current_machines))
+    else:
+        for machine in current_machines:
+            sys.stdout.write('Starting machine %s' % machine)
+            sys.stdout.flush()
+            proc = subprocess.Popen(
+                ['vagrant', 'up', machine],
+                shell=False,
+                stdout=subprocess.PIPE
+            )
+            while True:
+                code = proc.poll()
+                if code is not None:
+                    if code != 0:
+                        print(
+                            '\nERROR: some problems starting machine %s'
+                            % machine
+                        )
+                        sys.exit(code)
+                    else:
+                        print('done.')
+                        break
+                else:
+                    sys.stdout.write('.')
+                    sys.stdout.flush()
+                    time.sleep(1)
+
 
 # Add the IPs to known_hosts
-print('\nUpdating known_hosts...')
-known_hosts = os.path.join(ssh_dir, 'known_hosts')
-for host_name in current_machines:
-    ip = hosts[env_arg][host_name]['ansible_host']
-    if not args.sim:
+if not args.sim:
+    known_hosts = os.path.join(ssh_dir, 'known_hosts')
+    for host_name in current_machines:
+        ip = hosts[env_arg][host_name]['ansible_host']
         subprocess.call(
-            'ssh-keygen -R %s' % ip,
-            shell=True)
+            ['ssh-keygen', '-R', ip],
+            shell=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
         subprocess.call(
-            'ssh-keyscan -H %s >> %s' % (ip, known_hosts), shell=True)
+            ['ssh-keyscan', '-H', ip],
+            shell=False,
+            stderr=subprocess.PIPE,
+            stdout=open(known_hosts, 'a')
+        )
 
 
-def ssh_connect(ssh, ip, password=None):
+def ssh_login(ip, password=None):
     try:
-        if password:
-            ssh.connect(ip, username='root', password=password)
+        ssh = pxssh.pxssh()
+        if not password:
+            ssh.login(ip, 'root')
         else:
-            ssh.connect(ip, username='root')
-        return True
-    except paramiko.AuthenticationException:
-        return False
+            ssh.login(ip, 'root', password)
+        return ssh
+    except pxssh.ExceptionPxssh:
+        return None
+
+
+def ssh_command(ssh, command):
+    ssh.sendline(command)
+    ssh.prompt()
+    output = [string.strip() for string in ssh.before.split('\n')][1:-1]
+    ssh.sendline('echo $?')
+    ssh.prompt()
+    retval = not bool(int(ssh.before.split('\n')[1:-1][0].strip()))
+    #retval = not bool(int(ssh.before.split('\n')[0]))
+    return {'returncode': retval, 'stdout': output}
 
 
 ansible_env = os.environ.copy()
@@ -229,20 +277,18 @@ manager_sessions = []
 console_sessions = []
 if not args.sim:
     for machine in current_machines:
-        root_pwd = ''
-        ssh = paramiko.SSHClient()
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        root_pwd = root_pwds[machine]
         ip = hosts[env_arg][machine]['ansible_host']
-        authenticated = ssh_connect(ssh, ip)
-        if not authenticated:
-            authenticated = ssh_connect(ssh, ip, root_pwds[machine])
-        if not authenticated:
+        ssh = ssh_login(ip)
+        if not ssh:
+            ssh = ssh_login(ip, root_pwds[machine])
+        if not ssh:
             # Cannot authenticate, it means we have to ask for password
             root_pwd = getpass.getpass(
-                'Type the root password for machine %s: ' % machine
+                '\nType the root password for machine %s: ' % machine
             )
-            authenticated = ssh_connect(ssh, ip, root_pwd)
-        if not authenticated:
+            ssh = ssh_login(ip, root_pwd)
+        if not ssh:
             error(
                 'Cannot authenticate to machine %s, probable wrong password.'
                 % machine
@@ -256,38 +302,28 @@ if not args.sim:
 
 
 for ssh in manager_sessions + console_sessions:
-    sftp_client = ssh.open_sftp()
-    try:
-        sftp_client.stat('.ssh')
-    except IOError:
-        sftp_client.mkdir('.ssh', 0700)
-    file_mode = 'r+'
-    try:
-        sftp_client.stat('.ssh/authorized_keys')
-    except IOError:
-        file_mode = 'w+'
-    remote_file = sftp_client.open('.ssh/authorized_keys', mode=file_mode)
+    ssh_command(ssh, 'mkdir .ssh')
+    ssh_command(ssh, 'chmod 0700 .ssh')
+    auth_file = ssh_command(ssh, 'cat .ssh/authorized_keys')
     found = False
-    for line in remote_file:
-        if public_key in line:
-            found = True
-    if not found:
-        remote_file.write(public_key + '\n')
-    remote_file.close()
-    sftp_client.chmod('.ssh/authorized_keys', 0600)
-    sftp_client.close()
+    if auth_file['returncode']:
+        for line in auth_file['stdout']:
+            if public_key in line:
+                found = True
+    if not auth_file['returncode'] or not found:
+        ssh_command(ssh, 'echo "%s" >> .ssh/authorized_keys' % public_key)
+        ssh_command(ssh, 'chmod 0600 .ssh/authorized_keys')
 
 
 discos_pwd = ''
-for ssh in manager_sessions:
+for ssh in manager_sessions + console_sessions:
     if discos_pwd:
         break
-    stdin, stdout, stderr = ssh.exec_command('getent passwd discos')
-    stdin.close()
+    result = ssh_command(ssh, 'getent passwd discos')
 
-    if not stdout.read().splitlines():
+    if not result['stdout']:
         # User discos not present in a target machine, asking password
-        discos_pwd = getpass.getpass('Type the `discos` user desired password: ')
+        discos_pwd = getpass.getpass('\nType the `discos` user desired password: ')
         if not discos_pwd:
             error('A password is required for user `discos`.')
         if discos_pwd != getpass.getpass('Confirm password: '):
@@ -299,17 +335,24 @@ observer_pwd = ''
 for ssh in console_sessions:
     if observer_pwd:
         break
-    stdin, stdout, stderr = ssh.exec_command('getent passwd observer')
-    stdin.close()
+    result = ssh_command(ssh, 'getent passwd observer')
 
-    if not stdout.read().splitlines():
+    if not result['stdout']:
         # User observer not present in a target machine, asking password
-        observer_pwd = getpass.getpass('Type the `observer` user desired password: ')
+        observer_pwd = getpass.getpass('\nType the `observer` user desired password: ')
         if not observer_pwd:
             error('A password is required for user `observer`.')
         if observer_pwd != getpass.getpass('Confirm password: '):
             error('Typed password and confirm does not match. Retry.')
         ansible_env['OBSERVER_PWD'] = observer_pwd
+
+
+# Close the ssh sessions
+for ssh in manager_sessions + console_sessions:
+    ssh.logout()
+
+del manager_sessions
+del console_sessions
 
 
 # Call ansible
@@ -319,10 +362,9 @@ ansible_cmd = [
     '--limit', cluster_arg,
     '--extra-vars', "'%s'" % extra_vars.strip(),
 ]
-ansible_cmd = ' '.join(ansible_cmd)
 
-print('\nCalling ansible...\n')
+print('\nCalling ansible...')
 if args.sim:
-    print(ansible_cmd)
+    print(' '.join(ansible_cmd))
 else:
-    subprocess.call(ansible_cmd, env=ansible_env, shell=True)
+    subprocess.call(ansible_cmd, env=ansible_env, shell=False)
