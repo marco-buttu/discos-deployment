@@ -7,7 +7,8 @@
 # Who                                 when            What                                             
 # Andrea Orlati(aorlati@ira.inaf.it)  12/02/2011      Creation           
 # Andrea Orlati(aorlati@ira.inaf.it)  11/01/2013      Adapted to environment of escs 0.3                 
-# Andrea Orlati)andrea.orlati@inaf.it)13/08/2018      ported to discos environment  
+# Andrea Orlati)andrea.orlati@inaf.it)13/08/2018      ported to discos environment
+# Andrea Orlati)andrea.orlati@inaf.it)03/08/2018      support for localhost, i.e. in case of test environment
 #*********************************************************************************************
 #   NAME
 #               addObserver
@@ -37,13 +38,13 @@
 
 
 function printUsage {
-   echo "Creates a new user/project for the DISCOS observing system, it also creates all the required directory structures"
-   echo ""
-   echo "Usage: `basename $0` -u|--user project [-l|--login serverLogin] [-s|--server serverAdder]"
-   echo ""
-   echo "-u|--user allows to give the name of the project to be created"
-   echo "[-l|--login] provides the account to be used to login into authentication server. If not given internal default is used"
-   echo "[-s|--server] provides the authetication server address. If not given the internal default is used"
+    echo "Creates a new user/project for the DISCOS observing system, it also creates all the required directory structures"
+    echo ""
+    echo "Usage: `basename $0` -u|--user project [-l|--login serverLogin] [-s|--server serverAdder]"
+    echo ""
+    echo "-u|--user allows to give the name of the project to be created"
+    echo "[-l|--login] provides the account to be used to login into authentication server. If not given internal default is used"
+    echo "[-s|--server] provides the authentication server address. If not given the internal default is used"
 }
 
 CL_HELP=
@@ -55,11 +56,15 @@ LONGOPTS=help,user,login,server:
 SHORTOPTS=hu:l:s:
 
 SERVERUSER={{ user }}
+{% if nis_server_ip is defined %}
 SERVER={{ nis_server_ip }}
+{% else %}
+SERVER=localhost
+{% endif %}
 
 getopt -n `basename $0` -Q -u -a -l $LONGOPTS $SHORTOPTS "$@" || {
-   printUsage
-   exit
+    printUsage
+    exit
 }
 
 set -- `getopt -u -a -l $LONGOPTS $SHORTOPTS "$@"`
@@ -69,45 +74,54 @@ set -- `getopt -u -a -l $LONGOPTS $SHORTOPTS "$@"`
 #
 while : 
 do
-        case "$1" in
-            --help)             CL_HELP=true ;; 
-            -h)                 CL_HELP=true ;;
-            --user)             CL_USER=$2 ; shift ;;
-            -u)                 CL_USER=$2 ; shift ;;
-            --login)            CL_LOGIN=$2 ; shift ;;
-            -l)                 CL_LOGIN=$2 ; shift ;;
-             --server)          CL_SERVER=$2 ; shift ;;
-            -s)                 CL_SERVER=$2 ; shift ;;
-            --) break ;;
-        esac
-        shift
+    case "$1" in
+        --help)             CL_HELP=true ;;
+        -h)                 CL_HELP=true ;;
+        --user)             CL_USER=$2 ; shift ;;
+        -u)                 CL_USER=$2 ; shift ;;
+        --login)            CL_LOGIN=$2 ; shift ;;
+        -l)                 CL_LOGIN=$2 ; shift ;;
+        --server)          CL_SERVER=$2 ; shift ;;
+        -s)                 CL_SERVER=$2 ; shift ;;
+        --) break ;;
+    esac
+    shift
 done
 shift
 
-if [ "$CL_HELP" ] ; then
-   printUsage
-   exit
+if [ "$CL_HELP" ]; then
+    printUsage
+    exit
 fi
 
-if [ ! -n "$CL_USER" ]
-then
-   echo "%%%% user name is mandatory!"
-   echo	
-   printUsage
-   exit
+if [ ! -n "$CL_USER" ]; then
+    echo "%%%% user name is mandatory!\n"
+    printUsage
+    exit
 fi
 
-if [ "$CL_SERVER" ] 
-then
+if [ "$CL_SERVER" ]; then
     SERVER=$CL_SERVER
 fi
 
-if [ "$CL_LOGIN" ]
-then
+if [ "$CL_LOGIN" ]; then
     SERVERUSER=$CL_LOGIN
 fi
 
-echo "**** please type password for user "$CL_LOGIN" for the authetication server "$SERVER" :"
+ADDRESSES=$(hostname -I)
+LO=" 127.0.0.1"
+HOSTADDRESSES=$(echo $ADDRESSES | tr " " "\n")$LO
+
+REMOTESERVER="YES"
+
+for x in $HOSTADDRESSES
+do
+    if [ "$SERVER" == "$x" ]; then
+        REMOTESERVER="NO"
+    fi
+done
+
+echo "**** please type password for user "$SERVERUSER" for the authentication server "$SERVER" :"
 read -r -s PASSWORD
 
 echo "**** please select password for the new project :"
@@ -116,33 +130,41 @@ read -r -s USERPASSWORD
 echo "**** please retype for matching check :"
 read -r -s MATCHPASS
 
-if [ $USERPASSWORD = $MATCHPASS ]
-then
+if [ $USERPASSWORD = $MATCHPASS ]; then
     echo "**** Ok"
 else
     echo "%%%% sorry, no match...."
     exit
 fi
 
-echo "**** adding new user......"
-sshpass -p $PASSWORD ssh -t $SERVERUSER@$SERVER "echo $PASSWORD | sudo -S /usr/sbin/useradd -g observers -G observers,users -M -n -s /bin/bash $CL_USER"
-sshpass -p $PASSWORD ssh -t $SERVERUSER@$SERVER "echo $PASSWORD | sudo -S /usr/sbin/usermod -U $CL_USER"
-sshpass -p $PASSWORD ssh -t $SERVERUSER@$SERVER "echo $PASSWORD > temppwd ; echo $USERPASSWORD >> temppwd" 
-sshpass -p $PASSWORD ssh -t $SERVERUSER@$SERVER "cat temppwd | sudo -S passwd $CL_USER --stdin" 
-sshpass -p $PASSWORD ssh -t $SERVERUSER@$SERVER "rm temppwd"
-echo "**** done"
-echo "**** update yellow pages......"
-sshpass -p $PASSWORD ssh -t $SERVERUSER@$SERVER "echo $PASSWORD | sudo -S /usr/lib64/yp/ypinit -m" 
-echo $PASSWORD | sudo -S /sbin/service ypbind stop
-sleep 1s
-sshpass -p $PASSWORD ssh -t $SERVERUSER@$SERVER "echo $PASSWORD | sudo -S systemctl restart ypserv" 
-sleep 2s
-echo $PASSWORD | sudo -S /sbin/service ypbind start
-CHECKIT=$(id -u $CL_USER)
-if [ ! -n "$CHECKIT" ]
-then
-    echo "%%%% something goes wrong, please check everything is properly working"
-    exit
+if [ "$REMOTESERVER" == "YES" ]; then
+    echo "**** adding new user remotely......"
+    sshpass -p $PASSWORD ssh -t $SERVERUSER@$SERVER "echo $PASSWORD | sudo -S /usr/sbin/useradd -g observers -G observers,users -M -n -s /bin/bash $CL_USER"
+    sshpass -p $PASSWORD ssh -t $SERVERUSER@$SERVER "echo $PASSWORD | sudo -S /usr/sbin/usermod -U $CL_USER"
+    sshpass -p $PASSWORD ssh -t $SERVERUSER@$SERVER "echo $PASSWORD > temppwd ; echo $USERPASSWORD >> temppwd"
+    sshpass -p $PASSWORD ssh -t $SERVERUSER@$SERVER "cat temppwd | sudo -S passwd $CL_USER --stdin"
+    sshpass -p $PASSWORD ssh -t $SERVERUSER@$SERVER "rm temppwd"
+    echo "**** done"
+    echo "**** update yellow pages......"
+    sshpass -p $PASSWORD ssh -t $SERVERUSER@$SERVER "echo $PASSWORD | sudo -S /usr/lib64/yp/ypinit -m"
+    echo $PASSWORD | sudo -S /sbin/service ypbind stop
+    sleep 1s
+    sshpass -p $PASSWORD ssh -t $SERVERUSER@$SERVER "echo $PASSWORD | sudo -S systemctl restart ypserv"
+    sleep 2s
+    echo $PASSWORD | sudo -S /sbin/service ypbind start
+    CHECKIT=$(id -u $CL_USER)
+    if [ ! -n "$CHECKIT" ]; then
+        echo "%%%% something goes wrong, please check everything is properly working"
+        exit
+    fi
+else
+    echo "**** adding new user locally......"
+    echo $PASSWORD | sudo -S /usr/sbin/useradd -g observers -G observers,users -M -n -s /bin/bash $CL_USER
+    echo $PASSWORD | sudo -S /usr/sbin/usermod -U $CL_USER
+    echo $PASSWORD > temppwd ; echo $USERPASSWORD >> temppwd
+    cat temppwd | sudo -S passwd $CL_USER --stdin
+    rm temppwd
+    echo "**** done"
 fi
 echo "**** project $CL_USER correctly added as registered project"
 echo "**** directory structures......"
