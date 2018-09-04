@@ -7,7 +7,8 @@
 # Who                                 when            What                                             
 # Andrea Orlati(aorlati@ira.inaf.it)  12/02/2011      Creation           
 # Andrea Orlati(aorlati@ira.inaf.it)  11/01/2013      Adapted to environment of escs 0.3                 
-# Andrea Orlati)andrea.orlati@inaf.it)13/08/2018      ported to discos environment  
+# Andrea Orlati)andrea.orlati@inaf.it)13/08/2018      ported to discos environment
+# Andrea Orlati)andrea.orlati@inaf.it)03/08/2018      support for localhost, i.e. in case of test environment
 #*********************************************************************************************
 #   NAME
 # 
@@ -35,15 +36,13 @@
 #
 
 function printUsage {
-    echo "Removes a user/project from the ESCS observing system"
-    echo ""
-    echo "Usage: `basename $0` -u|--user project [-l|--login serverLogin] [-s|--server serverAdder]"
-    echo ""
+    echo "Removes a user/project from the ESCS observing system\n"
+    echo "Usage: `basename $0` -u|--user project [-l|--login serverLogin] [-s|--server serverAdder]\n"
     echo "-u|--user allows to give the name of the project to be deleted"
     echo "[-l|--login] provides the account to be used to login into authentication server. If not given internal default is used"
-    echo "[-s|--server] provides the authetication server address. If not given the internal default is used"
+    echo "[-s|--server] provides the authentication server address. If not given the internal default is used"
 }
-  
+
 CL_HELP=
 CL_USER=
 CL_USER=
@@ -51,9 +50,13 @@ CL_SERVER=
   
 LONGOPTS=help,user,login,server:
 SHORTOPTS=hu:l:s:
- 
+
 SERVERUSER={{ user }}
+{% if nis_server_ip is defined %}
 SERVER={{ nis_server_ip }}
+{% else %}
+SERVER=localhost
+{% endif %}
 
 getopt -n `basename $0` -Q -u -a -l $LONGOPTS $SHORTOPTS "$@" || {
     printUsage
@@ -82,13 +85,12 @@ do
 done
 shift
 
-if [ "$CL_HELP" ] ; then
+if [ "$CL_HELP" ]; then
     printUsage
     exit
 fi
  
-if [ ! -n "$CL_USER" ]
-then
+if [ ! -n "$CL_USER" ]; then
     echo "%%%% user name is mandatory!"
     echo 
     printUsage
@@ -101,29 +103,46 @@ case $yn in
             * ) echo "**** bye!"; exit;;
 esac
 
-if [ "$CL_SERVER" ]
-then
+if [ "$CL_SERVER" ]; then
     SERVER=$CL_SERVER
 fi
 
-if [ "$CL_LOGIN" ]
-then
+if [ "$CL_LOGIN" ]; then
     SERVERUSER=$CL_LOGIN
 fi
 
-echo "**** please type password for user "$CL_LOGIN" for the authetication server "$SERVER" :"
+ADDRESSES=$(hostname -I)
+LO=" 127.0.0.1"
+HOSTADDRESSES=$(echo $ADDRESSES | tr " " "\n")$LO
+
+REMOTESERVER="YES"
+
+for x in $HOSTADDRESSES
+do
+    if [ "$SERVER" == "$x" ]; then
+        REMOTESERVER="NO"
+    fi
+done
+
+echo "**** please type password for user "$SERVERUSER" for the authentication server "$SERVER" :"
 read -r -s PASSWORD
- 
-echo "**** deleting the user......"
-sshpass -p $PASSWORD ssh -t $SERVERUSER@$SERVER "echo $PASSWORD | sudo -S /usr/sbin/userdel -r $CL_USER"
-echo "**** done"
-echo "**** update yellow pages......"
-sshpass -p $PASSWORD ssh -t $SERVERUSER@$SERVER "echo $PASSWORD | sudo -S /usr/lib64/yp/ypinit -m"
-echo $PASSWORD | sudo -S /sbin/service ypbind stop
-sleep 1s
-sshpass -p $PASSWORD ssh -t $SERVERUSER@$SERVER "echo $PASSWORD | sudo -S systemctl restart ypserv"
-sleep 2s
-echo $PASSWORD | sudo -S /sbin/service ypbind start
+
+if [ "$REMOTESERVER" == "YES" ]; then
+    echo "**** deleting the remote user......"
+    sshpass -p $PASSWORD ssh -t $SERVERUSER@$SERVER "echo $PASSWORD | sudo -S /usr/sbin/userdel -r $CL_USER"
+    echo "**** done"
+    echo "**** update yellow pages......"
+    sshpass -p $PASSWORD ssh -t $SERVERUSER@$SERVER "echo $PASSWORD | sudo -S /usr/lib64/yp/ypinit -m"
+    echo $PASSWORD | sudo -S /sbin/service ypbind stop
+    sleep 1s
+    sshpass -p $PASSWORD ssh -t $SERVERUSER@$SERVER "echo $PASSWORD | sudo -S systemctl restart ypserv"
+    sleep 2s
+    echo $PASSWORD | sudo -S /sbin/service ypbind start
+else
+    echo "**** deleting the local user......"
+    echo $PASSWORD | sudo -S /usr/sbin/userdel -r $CL_USER
+fi
+
 echo "**** clean up the related folders....."
 rm -rf /archive/data/$CL_USER
 rm -rf /archive/schedules/$CL_USER
