@@ -1,5 +1,10 @@
 ---
 
+- name: Set the timezone to UTC
+  timezone:
+    name: Etc/UTC
+
+
 - name: Copy the ntp.conf template
   template:
     src: ntp.conf
