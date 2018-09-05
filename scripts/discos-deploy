@@ -1,10 +1,10 @@
-#! /usr/bin/env python
+#!/usr/bin/python2.7
 """Some command line examples:
 
   $ discos-deploy discos:development
   $ discos-deploy discos:srt
   $ discos-deploy manager:medicina --deploy master
-  $ discos-deploy as:development
+  $ discos-deploy console:development --no-vagrant
   $ discos-deploy manager:development --deploy master --station srt
 """
 
@@ -17,7 +17,6 @@ import subprocess
 import getpass
 import socket
 from pexpect import pxssh
-from Crypto.PublicKey import RSA
 
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__)).rsplit('/', 1)[0]
 STATIONS = ('srt', 'medicina', 'noto')
@@ -74,19 +73,31 @@ parser = argparse.ArgumentParser(
     formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument(
     'system',
-    help='%s, %s, ...' % (systems[-1], systems[-2]))
+    help='%s, %s, ...' % (systems[-1], systems[-2])
+)
 parser.add_argument(
     '-s',
     '--station',
     choices=STATIONS,
-    default=None)
+    default=None,
+    help='the desired station'
+)
 parser.add_argument(
     '-d',
-    '--deploy')
+    '--deploy',
+    help='the desired DISCOS branch to be deployed on the machines'
+)
+parser.add_argument(
+    '-n',
+    '--no-vagrant',
+    action='store_true',
+    help='forces the process to not use Vagrant with development machines'
+)
 parser.add_argument(
     '--sim',
     action='store_true',
-    help='simulation mode')
+    help='simulation mode'
+)
 
 def error(msg, choices=(), name=''):
     if choices:
@@ -99,6 +110,29 @@ def error(msg, choices=(), name=''):
             print(' '*2, choice, file=sys.stderr)
     print('\n%s' %  __doc__, file=sys.stderr)
     sys.exit(1)
+
+def ssh_login(ip, password=None):
+    try:
+        ssh = pxssh.pxssh()
+        if not password:
+            ssh.login(ip, 'root')
+        else:
+            ssh.login(ip, 'root', password)
+        return ssh
+    except pxssh.ExceptionPxssh:
+        return None
+
+def ssh_command(ssh, command):
+    ssh.sendline(command)
+    ssh.prompt()
+    output = [string.strip() for string in ssh.before.split('\n')][1:-1]
+    ssh.sendline('echo $?')
+    ssh.prompt()
+    retval = not bool(int(ssh.before.split('\n')[1:-1][0].strip()))
+    return {'returncode': retval, 'stdout': output}
+
+
+# Script beginning
 args = parser.parse_args()
 
 # Check if the system cluster:environment exists
@@ -146,25 +180,6 @@ inventory = '%s/inventories/%s' % (ANSIBLE_DIR, env_arg)
 playbook = '%s/all.yml'  % ANSIBLE_DIR
 os.chdir(ANSIBLE_DIR)
 
-# Create the .ssh directory
-ssh_dir = os.path.join(os.environ['HOME'], '.ssh')
-if not os.path.exists(ssh_dir):
-    os.mkdir(ssh_dir, 0700)
-
-# Generate the public/private key pair (if not present)
-key_file = os.path.join(ssh_dir, 'id_rsa')
-if not os.path.exists(key_file):
-    key = RSA.generate(2048)
-    private_key = key.exportKey('PEM')
-    public_key = key.publickey().exportKey('OpenSSH')
-    public_key += ' %s@%s' % (getpass.getuser(), socket.gethostname())
-    open(key_file, 'w').write(private_key)
-    os.chmod(key_file, 0600)
-    open(key_file + '.pub', 'w').write(public_key)
-    os.chmod(key_file + '.pub', 0644)
-
-public_key = open(key_file + '.pub').read().strip()
-
 # Machines to provision in the current process
 current_machines = []
 if cluster_arg in groups[env_arg]:
@@ -190,16 +205,18 @@ else:
     if args.deploy:
         extra_vars += ' branch=%s station=%s cdb=telescope' % (args.deploy, env_arg)
 
-# Initialize a root password for each machine
-root_pwds = {}
-for machine in current_machines:
-    if env_arg == 'development':
-        root_pwds[machine] = 'vagrant'
-    else:
-        root_pwds[machine] = ''
 
-# Bring up the virtual machines if environment=development
-if env_arg == 'development':
+root_pwds = {}
+ips = {}
+for machine in current_machines:
+    # Initialize a root password for each machine
+    root_pwds[machine] = ''
+    # Get the ip of each machine
+    ips[machine] = hosts[env_arg][machine]['ansible_host']
+
+
+if env_arg == 'development' and not args.no_vagrant:
+    # Bring virtual machines up with Vagrant
     print('Calling Vagrant...\n')
     if args.sim:
         print('vagrant up %s' % ' '.join(current_machines))
@@ -223,58 +240,68 @@ if env_arg == 'development':
                         sys.exit(code)
                     else:
                         print('done.')
+                        root_pwds[machine] = 'vagrant'
                         break
                 else:
                     sys.stdout.write('.')
                     sys.stdout.flush()
                     time.sleep(1)
+else:
+    # Check if machines are actually reachable
+    for machine in current_machines:
+        sys.stdout.write(
+            'Checking if machine %s is reachable on IP: %s...'
+            % (machine, ips[machine])
+        )
+        sys.stdout.flush()
+        unreachable = subprocess.call(
+            ['ping', '-c', '1', ips[machine]],
+            shell=False,
+            stdout=subprocess.PIPE
+        )
+        if unreachable:
+            print(
+                '\n\nERROR: machine %s not reachable.' % machine
+                + ' Check your configuration and retry.'
+            )
+            sys.exit(unreachable)
+        else:
+            print('ok.')
 
+
+# Create the .ssh directory if it does not exists
+ssh_dir = os.path.join(os.environ['HOME'], '.ssh')
+if not os.path.exists(ssh_dir):
+    os.mkdir(ssh_dir, 0700)
+
+# Generate the public/private key pair (if not present)
+key_file = os.path.join(ssh_dir, 'id_rsa')
+if not os.path.exists(key_file):
+    subprocess.call("ssh-keygen -f %s -t rsa -N '' -q" % key_file, shell=True)
+public_key = open(key_file + '.pub').read().strip()
 
 # Add the IPs to known_hosts
 if not args.sim:
     known_hosts = os.path.join(ssh_dir, 'known_hosts')
-    for host_name in current_machines:
-        ip = hosts[env_arg][host_name]['ansible_host']
+    for machine in current_machines:
         subprocess.call(
-            ['ssh-keygen', '-R', ip],
+            ['ssh-keygen', '-R', ips[machine]],
             shell=False,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )
         subprocess.call(
-            ['ssh-keyscan', '-H', ip],
+            ['ssh-keyscan', '-H', ips[machine]],
             shell=False,
             stderr=subprocess.PIPE,
             stdout=open(known_hosts, 'a')
         )
 
 
-def ssh_login(ip, password=None):
-    try:
-        ssh = pxssh.pxssh()
-        if not password:
-            ssh.login(ip, 'root')
-        else:
-            ssh.login(ip, 'root', password)
-        return ssh
-    except pxssh.ExceptionPxssh:
-        return None
-
-
-def ssh_command(ssh, command):
-    ssh.sendline(command)
-    ssh.prompt()
-    output = [string.strip() for string in ssh.before.split('\n')][1:-1]
-    ssh.sendline('echo $?')
-    ssh.prompt()
-    retval = not bool(int(ssh.before.split('\n')[1:-1][0].strip()))
-    #retval = not bool(int(ssh.before.split('\n')[0]))
-    return {'returncode': retval, 'stdout': output}
-
-
 ansible_env = os.environ.copy()
 manager_sessions = []
 console_sessions = []
+storage_sessions = []
 if not args.sim:
     for machine in current_machines:
         root_pwd = root_pwds[machine]
@@ -297,11 +324,15 @@ if not args.sim:
             root_pwds[machine] = root_pwd
             if 'manager' in machine:
                 manager_sessions.append(ssh)
-            if 'console' in machine:
+            elif 'console' in machine:
                 console_sessions.append(ssh)
+            elif 'storage' in machine:
+                storage_sessions.append(ssh)
 
 
-for ssh in manager_sessions + console_sessions:
+# Insert the local public key into target machines
+# in order to enable passwordless ssh access
+for ssh in manager_sessions + console_sessions + storage_sessions:
     ssh_command(ssh, 'mkdir .ssh')
     ssh_command(ssh, 'chmod 0700 .ssh')
     auth_file = ssh_command(ssh, 'cat .ssh/authorized_keys')
@@ -316,13 +347,13 @@ for ssh in manager_sessions + console_sessions:
 
 
 discos_pwd = ''
-for ssh in manager_sessions + console_sessions:
+for ssh in manager_sessions + console_sessions + storage_sessions:
     if discos_pwd:
         break
     result = ssh_command(ssh, 'getent passwd discos')
 
     if not result['stdout']:
-        # User discos not present in a target machine, asking password
+        # User discos not present in the target machine, asking password
         discos_pwd = getpass.getpass('\nType the `discos` user desired password: ')
         if not discos_pwd:
             error('A password is required for user `discos`.')
@@ -338,7 +369,7 @@ for ssh in console_sessions:
     result = ssh_command(ssh, 'getent passwd observer')
 
     if not result['stdout']:
-        # User observer not present in a target machine, asking password
+        # User observer not present in the target machine, asking password
         observer_pwd = getpass.getpass('\nType the `observer` user desired password: ')
         if not observer_pwd:
             error('A password is required for user `observer`.')
@@ -348,11 +379,12 @@ for ssh in console_sessions:
 
 
 # Close the ssh sessions
-for ssh in manager_sessions + console_sessions:
+for ssh in manager_sessions + console_sessions + storage_sessions:
     ssh.logout()
 
 del manager_sessions
 del console_sessions
+del storage_sessions
 
 
 # Call ansible
