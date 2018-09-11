@@ -1,20 +1,69 @@
 ---
 
-- name: Install all required yum packages
-  become: true
-  yum: name={{ item }} state=present
+- name: Remove yum-cron to avoid yum automatic updates
+  yum:
+    name: yum-cron
+    state: absent
+
+
+- name: Install epel-release yum package
+  yum:
+    name: epel-release
+    state: present
+
+
+- name: Install common required yum packages
+  yum:
+    name: "{{ item }}"
+    state: present
   with_items:
-    - epel-release
     - procmail
     - vim-enhanced
     - subversion
+    - unzip
+    - openssl
+    - gedit
+    - bluefish
+    - screen
+    - gnuplot
+    - xterm
+    - ksh
+    - java-1.8.0-openjdk
+    - ntp
+    - wget
+    - perl
+    - net-snmp
+    - rsync
+    - iptables
+    - rpcbind
+
+
+- name: Install storage required yum packages
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - sg3_utils
+    - lsof
+    - attr
+    - compat-openmpi16
+    - lvm2
+    - iptables-services
+    - ypserv
+  when: inventory_hostname in groups['storage']
+
+
+- name: Install ACS required yum packages
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - gnome-desktop
+    - gnome-desktop-devel
     - python-devel
     - gcc-c++
     - gdb
     - cmake
-    - ncurses
-    - ncurses-devel
-    - screen
     - expat
     - expat-devel
     - expect
@@ -22,61 +71,40 @@
     - gsl-devel
     - boost
     - boost-devel
-    - gnome-desktop
-    - gnome-desktop-devel
+    - openssl-devel
+    - ncurses-devel
     - jpackage-utils
-    - unzip
+    - ncurses
     - libtool
     - libselinux-python
-    - jpackage-utils
-    - java-1.8.0-openjdk
     - java-1.8.0-openjdk-devel
-    - openssl
-    - openssl-devel
     - curl-devel
     - perl-devel
     - gettext-devel
     - bzip2-devel
-    - xterm
-    - ksh
-    - gnuplot
-    - tigervnc-server
-    - rpcbind
     - ypbind
     - nfs-utils
     - nfs4-acl-tools
+    - tigervnc-server
+  when: inventory_hostname in groups['acs']
 
 
-- name: Install some graphical text editors
+- name: Install manager required yum packages
   become: true
-  yum: name={{ item }} state=present
+  yum:
+    name: "{{ item }}"
+    state: present
   with_items:
-    - bluefish
-    - gedit
+    - sshpass
+  when: inventory_hostname in groups['manager']
 
 
-- name: Install sshpass package
-  become: true
-  yum: name=sshpass state=present
-
-
-- name: Install a GUI environment
-  become: true
-  yum: name={{ item }} state=present
+- name: Install a GUI environment for ACS machines
+  yum:
+    name: "{{ item }}"
+    state: present
   with_items:
     - "@X Window System"
     - "@Desktop"
     - "@fonts"
-
-
-- name: Apply a patch to GNOME in order to avoid an annoying VNC popup
-  become: True
-  lineinfile:
-    path: /etc/xdg/autostart/gpk-update-icon.desktop
-    line: X-GNOME-Autostart-enabled=false
-    state: present
-
-
-- name: "To avoid yum automatic updates, remove yum-cron"
-  become: true
-  yum: name=yum-cron state=absent
+  when: inventory_hostname in groups['acs']

@@ -53,7 +53,7 @@ export QTINC=$QTDIR/include
 export qt_prefix=$QTLIB
 export PATH=$PATH:$QTDIR/bin:$HOME/bin
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib:/usr/lib64:$QTLIB
-export PYTHONSTARTUP=$HOME/.pyrc
+export PYTHONSTARTUP=/discos/config/discos/.pyrc
 export EDITOR=vi
 {% if inventory_hostname not in groups['manager'] %}
 

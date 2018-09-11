@@ -1,17 +1,19 @@
 ---
 
 - include: yum_packages.yml
-- include: network.yml
+- include: network_and_security.yml
+- include: discos_users.yml
 - include: time.yml
 
 - include: nis.yml
-  when: network_domain_name is defined and nis_server_ip is defined
+  when:
+    - network_domain_name is defined
+    - network_ip_address is defined
+    - nis_server_ip is defined
 
-- include: create_discos.yml
-- include: required_tools.yml
-- include: acs.yml
-- include: discos_dependencies.yml
-- include: utilities.yml
-
-- include: discos.yml
-  when: branch is defined and station is defined and cdb is defined
+- block:
+  - include: lustre_server.yml
+    when: inventory_hostname in groups['storage']
+  - include: lustre_clients.yml
+    when: inventory_hostname in groups['acs']
+  when: lustre_server_ip is defined

@@ -1,12 +1,46 @@
 ---
 
-- name: Add the observers group
+- name: Render the discos-addProject template
+  template:
+    src: discos-addProject
+    dest: "/discos/{{ user }}/bin/"
+    owner: "{{ user }}"
+    group: acs
+    mode: 0544
+    force: yes
   become: true
-  group: name=observers gid=336 state=present
+  become_user: "{{ user }}"
 
 
-- name: Append group observers to {{ user }} secondary groups
+- name: Render the discos-removeProject template
+  template:
+    src: discos-removeProject
+    dest: "/discos/{{ user }}/bin/"
+    owner: "{{ user }}"
+    group: acs
+    mode: 0544
+    force: yes
   become: true
-  user:
-    name: "{{ user }}"
-    groups: observers
+  become_user: "{{ user }}"
+
+
+- name: Copy the bashrc template into /etc/skel
+  template:
+    src: bashrc
+    dest: /etc/skel/.bashrc
+    owner: root
+    group: root
+    mode: 0644
+    force: yes
+  become: true
+
+
+- name: Copy the bash_profile template into /etc/skel
+  template:
+    src: bash_profile
+    dest: /etc/skel/.bash_profile
+    owner: root
+    group: root
+    mode: 0644
+    force: yes
+  become: true

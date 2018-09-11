@@ -1,0 +1,329 @@
+---
+
+#########################
+# e2fsprogs configuration
+#########################
+
+- name: Check if e2fsprogs packages exist in the local repository
+  stat:
+    path: "{{ local_repository_path }}/{{ item }}-{{ e2fsprogs_url.tail }}"
+  with_items: "{{ e2fsprogs_files }}"
+  delegate_to: 127.0.0.1
+  run_once: true
+  register: e2fsprogs_files_exists
+
+
+- name: Download e2fsprogs packages
+  get_url:
+    validate_certs: no
+    url: "{{ e2fsprogs_url.header }}/{{ item.item }}-{{ e2fsprogs_url.tail }}"
+    dest: "{{ local_repository_path }}/{{ item.item }}-{{ e2fsprogs_url.tail }}"
+  with_items: "{{ e2fsprogs_files_exists.results }}"
+  when: item.stat.exists == False
+  no_log: true
+  delegate_to: 127.0.0.1
+  run_once: true
+
+
+- name: Copy e2fsprogs yum packages to the remote
+  copy:
+    src: "{{ local_repository_path }}/{{ item }}-{{ e2fsprogs_url.tail }}"
+    dest: "/tmp/"
+  with_items: "{{ e2fsprogs_files }}"
+
+
+- name: Install e2fsprogs yum packages
+  yum:
+    name: "/tmp/{{ item }}-{{ e2fsprogs_url.tail }}"
+    state: present
+    validate_certs: no
+  with_items: "{{ e2fsprogs_files }}"
+
+
+- name: Delete e2fsprogs packages from the remote
+  file:
+    path: "/tmp/{{ item }}-{{ e2fsprogs_url.tail }}"
+    state: absent
+  with_items: "{{ e2fsprogs_files }}"
+
+
+######################
+# Lustre configuration
+######################
+
+#- name: Check if {{ lustre_server_kernel_file.name }}-{{ lustre_server_kernel_file.version }}.rpm package exists in the local repository
+#  stat:
+#    path: "{{ local_repository_path }}/{{ lustre_server_kernel_file.name }}-{{ lustre_server_kernel_file.version }}.rpm"
+#  delegate_to: 127.0.0.1
+#  run_once: true
+#  register: lustre_server_kernel_file_exists
+
+
+#- name: Download {{ lustre_server_kernel_file.name }}-{{ lustre_server_kernel_file.version }}.rpm package
+#  get_url:
+#    validate_certs: no
+#    url: "{{ lustre_server_url.header }}/{{ lustre_server_kernel_file.name }}-{{ lustre_server_kernel_file.version }}.rpm"
+#    dest: "{{ local_repository_path }}/{{ lustre_server_kernel_file.name }}-{{ lustre_server_kernel_file.version }}.rpm"
+#  when: lustre_server_kernel_file_exists.stat.exists == False
+#  delegate_to: 127.0.0.1
+#  run_once: true
+
+
+- name: Check if lustre kernel packages exist in the local repository
+  stat:
+    path: "{{ local_repository_path }}/{{ item }}-{{ lustre_server_kernel_url.tail }}"
+  with_items: "{{ lustre_server_kernel_files }}"
+  delegate_to: 127.0.0.1
+  run_once: true
+  register: lustre_server_kernel_files_exists
+
+
+- name: Download lustre kernel packages
+  get_url:
+    validate_certs: no
+    url: "{{ lustre_server_kernel_url.header }}/{{ item.item }}-{{ lustre_server_kernel_url.tail }}"
+    dest: "{{ local_repository_path }}/{{ item.item }}-{{ lustre_server_kernel_url.tail }}"
+  with_items: "{{ lustre_server_kernel_files_exists.results }}"
+  when: item.stat.exists == False
+  no_log: true
+  delegate_to: 127.0.0.1
+  run_once: true
+
+
+- name: Check if lustre server packages exist in the local repository
+  stat:
+    path: "{{ local_repository_path }}/{{ item }}-{{ lustre_server_url.tail }}"
+  with_items: "{{ lustre_server_files }}"
+  delegate_to: 127.0.0.1
+  run_once: true
+  register: lustre_server_files_exists
+
+
+- name: Download lustre server packages
+  get_url:
+    validate_certs: no
+    url: "{{ lustre_server_url.header }}/{{ item.item }}-{{ lustre_server_url.tail }}"
+    dest: "{{ local_repository_path }}/{{ item.item }}-{{ lustre_server_url.tail }}"
+  with_items: "{{ lustre_server_files_exists.results }}"
+  when: item.stat.exists == False
+  no_log: true
+  delegate_to: 127.0.0.1
+  run_once: true
+
+
+#- name: Copy {{ lustre_server_kernel_file.name }}-{{ lustre_server_kernel_file.version }}.rpm to the remote
+#  copy:
+#    src: "{{ local_repository_path }}/{{ lustre_server_kernel_file.name }}-{{ lustre_server_kernel_file.version }}.rpm"
+#    dest: "/tmp/"
+
+
+#- name: Install {{ lustre_server_kernel_file.name }}-{{ lustre_server_kernel_file.version }}.rpm yum package
+#  yum:
+#    name: "/tmp/{{ lustre_server_kernel_file.name }}-{{ lustre_server_kernel_file.version }}.rpm"
+#    state: present
+#    validate_certs: no
+
+
+#- name: Delete {{ lustre_server_kernel_file.name }}-{{ lustre_server_kernel_file.version }}.rpm from the remote
+#  file:
+#    path: "/tmp/{{ lustre_server_kernel_file.name }}-{{ lustre_server_kernel_file.version }}.rpm"
+#    state: absent
+
+
+#- name: Update the kernel with lustre kernel package
+#  shell: "new-kernel-pkg --package kernel --mkinitrd --dracut --depmod --install {{ lustre_server_kernel_file.version }}"
+
+
+#- name: Check if a reboot is needed
+#  shell: "if [ $(rpm -q kernel|tail -n 1) != kernel-$(uname -r) ]; then echo 'reboot'; else echo 'no'; fi"
+#  ignore_errors: true
+#  register: reboot_needed
+
+
+#- name: Reboot the machine if needed
+#  shell: 'sleep 5 && shutdown -r now "Kernel update with lustre modules."'
+#  async: 1
+#  poll: 0
+#  ignore_errors: true
+#  when: reboot_needed.stdout.find("reboot") != -1
+#  register: rebooting
+
+
+#- name: Wait for machine to come back online
+#  wait_for_connection:
+#    connect_timeout: 20
+#    sleep: 5
+#    delay: 5
+#    timeout: 300
+#  when: rebooting is changed
+
+
+- name: Copy lustre server kernel yum packages to the remote
+  copy:
+    src: "{{ local_repository_path }}/{{ item }}-{{ lustre_server_kernel_url.tail }}"
+    dest: "/tmp/"
+  with_items: "{{ lustre_server_kernel_files }}"
+
+
+- name: Install lustre server kernel yum packages
+  yum:
+    name: "/tmp/{{ item }}-{{ lustre_server_kernel_url.tail }}"
+    state: present
+    validate_certs: no
+  with_items: "{{ lustre_server_kernel_files }}"
+
+
+- name: Delete lustre server kernel packages from the remote
+  file:
+    path: "/tmp/{{ item }}-{{ lustre_server_kernel_url.tail }}"
+    state: absent
+  with_items: "{{ lustre_server_kernel_files }}"
+
+
+- name: Check if a reboot is needed
+  shell: "if [ $(rpm -q kernel|tail -n 1) != kernel-$(uname -r) ]; then echo 'reboot'; else echo 'no'; fi"
+  ignore_errors: true
+  register: reboot_needed
+
+
+- name: Reboot the machine if needed
+  shell: 'sleep 5 && shutdown -r now "Kernel update with lustre modules."'
+  async: 1
+  poll: 0
+  ignore_errors: true
+  when: reboot_needed.stdout.find("reboot") != -1
+  register: rebooting
+
+
+- name: Wait for machine to come back online
+  wait_for_connection:
+    connect_timeout: 20
+    sleep: 5
+    delay: 5
+    timeout: 300
+  when: rebooting is changed
+
+
+- name: Copy lustre server yum packages to the remote
+  copy:
+    src: "{{ local_repository_path }}/{{ item }}-{{ lustre_server_url.tail }}"
+    dest: "/tmp/"
+  with_items: "{{ lustre_server_files }}"
+
+
+- name: Install lustre server yum packages
+  yum:
+    name: "/tmp/{{ item }}-{{ lustre_server_url.tail }}"
+    state: present
+    validate_certs: no
+  with_items: "{{ lustre_server_files }}"
+
+
+- name: Delete lustre server packages from the remote
+  file:
+    path: "/tmp/{{ item }}-{{ lustre_server_url.tail }}"
+    state: absent
+  with_items: "{{ lustre_server_files }}"
+
+
+- name: Add lustre configuration into modprobe.d
+  lineinfile:
+    path: /etc/modprobe.d/lustre.conf
+    line: "options lnet networks=tcp({{ lustre_network_interface }})"
+    state: present
+    create: yes
+
+
+- name: Load lustre modules
+  modprobe:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - lnet
+    - lustre
+
+
+- name: Add lustre modules to startup modules
+  lineinfile:
+    path: /etc/sysconfig/modules/lustre.modules
+    line: "{{ item.line }}"
+    state: present
+    create: yes
+    mode: 0755
+    insertbefore: "{{ item.before }}"
+  with_items:
+    - { line: '#!/bin/sh', before: "BOF" }
+    - { line: 'modprobe -v lustre', before: "" }
+
+
+- name: Initialize lustre disk
+  parted:
+    device: "{{ lustre_device }}"
+    label: msdos
+
+
+- name: Create the lustre mgs/mdt partition
+  parted:
+    device: "{{ lustre_mgs_mdt_partition.device }}"
+    number: "{{ lustre_mgs_mdt_partition.number }}"
+    state: present
+    part_start: "{{ lustre_mgs_mdt_partition.start }}"
+    part_end: "{{ lustre_mgs_mdt_partition.end }}"
+
+
+- name: Format the lustre mgs/mdt partition
+  command: "mkfs.lustre --mgs --mdt --fsname=discos --index=0 {{ lustre_mgs_mdt_partition.device}}{{ lustre_mgs_mdt_partition.number }}"
+  register: command_result
+  failed_when:
+    - command_result.rc != 0
+    - command_result.rc != 17 # The return code when the partition is already formatted
+
+
+- name: Mount the lustre mgs/mdt partition
+  mount:
+    path: /lustre/mgs_mdt
+    src: "{{ lustre_mgs_mdt_partition.device }}{{ lustre_mgs_mdt_partition.number }}"
+    fstype: lustre
+    state: mounted
+
+
+- name: Create the lustre data partition
+  parted:
+    device: "{{ lustre_ost_partition.device }}"
+    number: "{{ lustre_ost_partition.number }}"
+    state: present
+    part_start: "{{ lustre_ost_partition.start }}"
+    part_end: "{{ lustre_ost_partition.end }}"
+
+
+- name: Format the lustre data partition
+  command: "mkfs.lustre --ost --fsname=discos --mgsnode={{ lustre_server_ip }}@tcp --index=0 {{ lustre_ost_partition.device }}{{ lustre_ost_partition.number }}"
+  register: command_result
+  failed_when:
+    - command_result.rc != 0
+    - command_result.rc != 17 # The return code when the partition is already formatted
+
+
+- name: Mount the lustre data partition
+  mount:
+    path: /lustre/ost
+    src: "{{ lustre_ost_partition.device }}{{ lustre_ost_partition.number }}"
+    fstype: lustre
+    state: mounted
+
+
+- name: Mount the DISCOS data directory onto lustre data partition
+  mount:
+    path: /archive
+    src: "{{ lustre_server_ip }}@tcp0:/discos"
+    fstype: lustre
+    state: mounted
+
+
+- name: Tune the /archive directory permissions
+  file:
+    path: /archive
+    state: directory
+    owner: "{{ user }}"
+    group: observers
+    mode: 0755

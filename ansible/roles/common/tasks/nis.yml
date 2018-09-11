@@ -1,32 +1,74 @@
 ---
 
-- name: Set ypdomainname
-  command: "ypdomainname {{ network_domain_name }}"
-  become: true
+- name: Perform a basic NIS configuration for all machines
+  block:
+    - name: Set ypdomainname
+      command: "ypdomainname {{ network_domain_name }}"
+    - name: Set NISDOMAIN
+      lineinfile:
+        path: /etc/sysconfig/network
+        state: present
+        line: "NISDOMAIN={{ network_domain_name }}"
 
 
-- name: Set NISDOMAIN
-  lineinfile:
-    path: /etc/sysconfig/network
-    state: present
-    line: "NISDOMAIN={{ network_domain_name }}"
-  become: true
+- name: Configure NIS on storage machine
+  block:
+    - name: Set yp securenets
+      lineinfile:
+        path: /var/yp/securenets
+        state: present
+        line: "{{ item }}"
+        create: yes
+      with_items:
+        - "255.255.255.0 {{ network_ip_address.split('/')[0] }}"
+        - "255.0.0.0 127.0.0.1"
+    - name: Start rpcbind service
+      service:
+        name: rpcbind
+        state: started
+        enabled: yes
+    - name: Start ypserv service
+      service:
+        name: ypserv
+        state: started
+        enabled: yes
+    - name: Start ypxfrd service
+      service:
+        name: ypxfrd
+        state: started
+        enabled: yes
+    - name: Start yppasswdd
+      service:
+        name: yppasswdd
+        state: started
+        enabled: yes
+    - name: Set up NIS maps
+      command: "/usr/lib64/yp/ypinit -m"
+  when: inventory_hostname in groups['storage']
 
 
-- name: Configure NIS
+- name: Configure NIS on ACS machines
   command: "authconfig --enablenis --nisdomain={{ network_domain_name }} --nisserver={{ nis_server_ip }} --update"
-  become: true
+  when: inventory_hostname in groups['acs']
 
 
-- name: Start rpcbind service
-  service:
-    name: rpcbind
-    state: started
-    enabled: yes
+- name: Enable home directory automatic generation on manager machine
+  command: "authconfig --enablemkhomedir --update"
+  when: inventory_hostname in groups['manager']
 
 
-- name: Start ypbind service
-  service:
-    name: ypbind
-    state: started
-    enabled: yes
+- name: Start NIS services on ACS machines
+  block:
+    - name: Start rcpbind service
+      service:
+        name: rpcbind
+        state: started
+        enabled: yes
+    - name: Start ypbind service
+      service:
+        name: ypbind
+        state: started
+        enabled: yes
+      no_log: true
+      ignore_errors: true  # This becomes necessary when the NIS server is not online
+  when: inventory_hostname in groups['acs']

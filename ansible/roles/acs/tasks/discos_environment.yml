@@ -1,0 +1,127 @@
+---
+
+- name: Populate the /discos/ directory tree
+  file:
+    path: "/discos/{{ item }}"
+    state: directory
+    owner: "{{ user }}"
+    group: acs
+    mode: 0750
+    recurse: yes
+    follow: yes
+  with_items:
+    - "config"
+    - "config/discos"
+    - "introots"
+
+
+- name: Copy the bashrc template
+  template:
+    src: bashrc
+    dest: "/discos/config/discos/"
+    owner: "{{ user }}"
+    group: acs
+    mode: 0644
+    force: yes
+
+
+- name: Copy prompt_command.sh
+  template:
+    src: prompt_command.sh
+    dest: "/discos/config/discos/"
+    owner: "{{ user }}"
+    group: acs
+    mode: 0644
+    force: yes
+
+
+- name: Create the branches file
+  file:
+    path: "/discos/config/discos/branches"
+    state: touch
+    owner: "{{ user }}"
+    group: acs
+ 
+ 
+- name: Copy the load_branch template
+  template:
+    src: load_branch
+    dest: "/discos/config/discos/"
+    owner: "{{ user }}"
+    group: acs
+    mode: 0644
+    force: yes
+ 
+ 
+- name: Create the /bin directory for user {{ user }}
+  file:
+    path: "/discos/{{ user }}/bin"
+    state: directory
+    owner: "{{ user }}"
+    group: acs
+    mode: 0755
+ 
+ 
+- name: Render the discos-get template
+  template:
+    src: discos-get
+    dest: "/discos/{{ user }}/bin/"
+    owner: "{{ user }}"
+    group: acs
+    mode: 0544
+    force: yes
+
+
+- name: Render the discos-set template
+  template:
+    src: discos-set
+    dest: "/discos/{{ user }}/bin/"
+    owner: "{{ user }}"
+    group: acs
+    mode: 0544
+    force: yes
+ 
+ 
+- name: Render the _discos-check-branch template
+  template:
+    src: _discos-check-branch
+    dest: "/discos/{{ user }}/bin/"
+    owner: "{{ user }}"
+    group: acs
+    mode: 0544
+    force: yes
+
+
+- name: Copy the pyrc template
+  template:
+    src: pyrc
+    dest: "/discos/{{ item.name }}/.pyrc"
+    owner: "{{ item.name }}"
+    group: acs
+    mode: 0644
+  no_log: true
+  with_items: "{{ users }}"
+
+
+- name: Copy vimrc
+  template:
+    src: vimrc
+    dest: "/discos/{{ item.name }}/.vimrc"
+    owner: "{{ item.name }}"
+    group: acs
+    mode: 0644
+  no_log: true
+  with_items: "{{ users }}"
+
+
+- name: Add the custom bashrc sourcing to the default one
+  blockinfile:
+    path: "/discos/{{ item.name }}/.bashrc"
+    state: present
+    marker: "######## DISCOS configuration {mark} ########"
+    block: |
+        if [ -f /discos/config/discos/bashrc ]; then
+            source /discos/config/discos/bashrc
+        fi
+  no_log: true
+  with_items: "{{ users }}"

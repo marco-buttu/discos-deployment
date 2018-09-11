@@ -1,0 +1,124 @@
+---
+
+- name: Check if lustre client packages exist in the local repository
+  stat:
+    path: "{{ local_repository_path }}/{{ item }}-{{ lustre_client_url.tail }}"
+  with_items: "{{ lustre_client_files }}"
+  delegate_to: 127.0.0.1
+  run_once: true
+  register: lustre_client_files_exists
+
+
+- name: Download lustre client packages
+  get_url:
+    validate_certs: no
+    url: "{{ lustre_client_url.header }}/{{ item.item }}-{{ lustre_client_url.tail }}"
+    dest: "{{ local_repository_path }}/{{ item.item }}-{{ lustre_client_url.tail }}"
+  with_items: "{{ lustre_client_files_exists.results }}"
+  when: item.stat.exists == False
+  #no_log: true
+  delegate_to: 127.0.0.1
+  run_once: true
+
+
+#- name: Check if {{ lustre_client_file }} package exists in the local repository
+#  stat:
+#    path: "{{ local_repository_path }}/{{ lustre_client_file }}"
+#  delegate_to: 127.0.0.1
+#  run_once: true
+#  register: lustre_client_file_exists
+
+
+#- name: Download {{ lustre_client_file }} package
+#  get_url:
+#    validate_certs: no
+#    url: "{{ lustre_client_url }}/{{ lustre_client_file }}"
+#    dest: "{{ local_repository_path }}/{{ lustre_client_file }}"
+#  when: lustre_client_file_exists.stat.exists == False
+#  delegate_to: 127.0.0.1
+#  run_once: true
+
+
+#- name: Check if {{ lustre_client_kernel_file }} package exists in the local repository
+#  stat:
+#    path: "{{ local_repository_path }}/{{ lustre_client_kernel_file }}"
+#  delegate_to: 127.0.0.1
+#  run_once: true
+#  register: lustre_client_kernel_exists
+
+
+#- name: Download {{ lustre_client_kernel_file }} package
+#  get_url:
+#    validate_certs: no
+#    url: "{{ lustre_client_url }}/{{ lustre_client_kernel_file }}"
+#    dest: "{{ local_repository_path }}/{{ lustre_client_kernel_file }}"
+#  when: lustre_client_kernel_exists.stat.exists == False
+#  delegate_to: 127.0.0.1
+#  run_once: true
+
+
+- name: Copy lustre client packages to the remote
+  copy:
+    src: "{{ local_repository_path }}/{{ item }}-{{ lustre_client_url.tail }}"
+    dest: "/tmp/"
+  with_items: "{{ lustre_client_files }}"
+
+
+- name: Install lustre yum packages
+  yum:
+    name: "/tmp/{{ item }}-{{ lustre_client_url.tail }}"
+    state: present
+    validate_certs: no
+  with_items: "{{ lustre_client_files }}"
+
+
+- name: Delete lustre packages from the remote
+  file:
+    path: "/tmp/{{ item }}-{{ lustre_client_url.tail }}"
+    state: absent
+  with_items: "{{ lustre_client_files }}"
+
+
+- name: Add lustre configuration into modprobe.d
+  lineinfile:
+    path: /etc/modprobe.d/lustre.conf
+    line: "options lnet networks=tcp"
+    state: present
+    create: yes
+
+
+- name: Load lustre modules
+  modprobe:
+    name: lnet
+    state: present
+
+
+- name: Add lustre modules to startup modules
+  lineinfile:
+    path: /etc/sysconfig/modules/lustre.modules
+    line: "{{ item.line }}"
+    state: present
+    create: yes
+    mode: 0755
+    insertbefore: "{{ item.before }}"
+  with_items:
+    - { line: '#!/bin/sh', before: "BOF" }
+    - { line: 'modprobe -v lnet', before: "" }
+
+
+- name: Copy the lustre-startup script
+  template:
+    src: lustre-startup
+    dest: /usr/bin
+    mode: 0755
+    force: yes
+
+
+- name: Execute the lustre-startup script
+  command: lustre-startup
+
+
+- name: Add lustre-startup to boot executed scripts
+  lineinfile:
+    path: /etc/rc.d/rc.local
+    line: lustre-startup

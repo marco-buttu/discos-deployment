@@ -1,7 +1,9 @@
 ---
 
 - name: Create a temporary directory for the libraries compilation
-  file: path={{ remote_build_path }} state=directory
+  file:
+    path: "{{ remote_build_path }}"
+    state: directory
 
 
 #################################
@@ -9,108 +11,119 @@
 #################################
 
 - name: Check if {{ cfitsio.file }} is installed
-  stat: path=/usr/local/include/fitsio.h
+  stat:
+    path: "/usr/local/include/fitsio.h"
   register: cfitsio_include
 
 
 - name: Check if {{ ccfits.file }} is installed
-  stat: path=/usr/local/include/CCfits
+  stat:
+    path: "/usr/local/include/CCfits"
   register: ccfits_include
 
 
 - name: Check if fitsviewer is installed
-  stat: path=/usr/local/bin/fv
+  stat:
+    path: "/usr/local/bin/fv"
   register: fv_binary
 
 
 - name: Check if the cfitsio sources exist in the local repository
-  stat: path={{ local_repository_path }}/{{ cfitsio.file }}
+  stat:
+    path: "{{ local_repository_path }}/{{ cfitsio.file }}"
   delegate_to: 127.0.0.1
+  run_once: true
   register: cfitsio_sources
 
 
 - name: Check if the ccfits sources exist in the local repository
-  stat: path={{ local_repository_path }}/{{ ccfits.file }}
+  stat:
+    path: "{{ local_repository_path }}/{{ ccfits.file }}"
   delegate_to: 127.0.0.1
+  run_once: true
   register: ccfits_sources
 
 
 - name: Check if the fitsviewer binary exist in the local repository
-  stat: path={{ local_repository_path }}/{{ fv_file }}
+  stat:
+    path: "{{ local_repository_path }}/{{ fv_file }}"
   delegate_to: 127.0.0.1
+  run_once: true
   register: fv_archive
 
 
 - name: Download {{ cfitsio.file }}
   get_url:
     validate_certs: no
-    url: ftp://heasarc.gsfc.nasa.gov/software/fitsio/c/{{ cfitsio.file }}
+    url: "ftp://heasarc.gsfc.nasa.gov/software/fitsio/c/{{ cfitsio.file }}"
     dest: "{{ local_repository_path }}"
   when:
     - cfitsio_include.stat.exists == False
     - cfitsio_sources.stat.exists == False
   delegate_to: 127.0.0.1
+  run_once: true
 
 
 - name: Download {{ ccfits.file }}
   get_url:
     validate_certs: no
-    url: http://heasarc.gsfc.nasa.gov/fitsio/CCfits-2.4/{{ ccfits.file }}
+    url: "http://heasarc.gsfc.nasa.gov/fitsio/CCfits-2.4/{{ ccfits.file }}"
     dest: "{{ local_repository_path }}"
   when:
     - ccfits_include.stat.exists == False
     - ccfits_sources.stat.exists == False
   delegate_to: 127.0.0.1
+  run_once: true
 
 
 - name: Download {{ fv_file }}
   get_url:
     validate_certs: no
-    url: http://heasarc.gsfc.nasa.gov/FTP/software/lheasoft/fv/{{ fv_file }}
+    url: "http://heasarc.gsfc.nasa.gov/FTP/software/lheasoft/fv/{{ fv_file }}"
     dest: "{{ local_repository_path }}"
   when:
     - fv_binary.stat.exists == False
     - fv_archive.stat.exists == False
   delegate_to: 127.0.0.1
+  run_once: true
 
 
 - name: Copy {{ cfitsio.file }} to the remote {{ remote_build_path }}
   unarchive:
-    src={{ local_repository_path }}/{{ cfitsio.file }}
-    dest={{ remote_build_path }}
+    src: "{{ local_repository_path }}/{{ cfitsio.file }}"
+    dest: "{{ remote_build_path }}"
   when: cfitsio_include.stat.exists == False
 
 
 - name: Install cfitsio
-  become: True
-  command: chdir={{ remote_build_path }}/{{ cfitsio.build_dir }} {{ item }}
+  command: "chdir={{ remote_build_path }}/{{ cfitsio.build_dir }} {{ item }}"
   with_items:
-    - ./configure --prefix=/usr/local
-    - make
-    - make install
+    - "./configure --prefix=/usr/local"
+    - "make"
+    - "make install"
   when: cfitsio_include.stat.exists == False
 
 
 - name: Copy {{ ccfits.file }} to the remote {{ remote_build_path }}
   unarchive:
-    src={{ local_repository_path }}/{{ ccfits.file }}
-    dest={{ remote_build_path }}
+    src: "{{ local_repository_path }}/{{ ccfits.file }}"
+    dest: "{{ remote_build_path }}"
   when: ccfits_include.stat.exists == False
 
 
 - name: Install CCfits
-  become: True
-  command: chdir={{ remote_build_path }}/{{ ccfits.build_dir }} {{ item }}
+  command: "chdir={{ remote_build_path }}/{{ ccfits.build_dir }} {{ item }}"
   with_items:
-    - ./configure --prefix=/usr/local
-    - make
-    - make install
+    - "./configure --prefix=/usr/local"
+    - "make"
+    - "make install"
   when: ccfits_include.stat.exists == False
 
 
 - name: Remove the directory used for the libraries compilation
-  become: True
-  file: path={{ item }} state=absent
+  file:
+    path: "{{ item }}"
+    state: absent
   with_items:
     - "{{ remote_build_path }}/{{ cfitsio.build_dir }}"
     - "{{ remote_build_path }}/{{ ccfits.build_dir }}"
@@ -118,8 +131,8 @@
 
 - name: Copy {{ fv_file }} to the remote /usr/local/lib
   unarchive:
-    src={{ local_repository_path }}/{{ fv_file }}
-    dest=/usr/local/lib
+    src: "{{ local_repository_path }}/{{ fv_file }}"
+    dest: "/usr/local/lib"
   when: fv_binary.stat.exists == False
 
 
@@ -137,47 +150,51 @@
 #####################
 
 - name: Check if {{ modbus.file }} is installed
-  stat: path=/usr/local/lib/libmodbus.so
+  stat:
+    path: "/usr/local/lib/libmodbus.so"
   register: modbus_lib
 
 
 - name: "Check if the modbus sources exist in the local repository"
-  stat: path={{ local_repository_path }}/{{ modbus.file }}
+  stat:
+    path: "{{ local_repository_path }}/{{ modbus.file }}"
   delegate_to: 127.0.0.1
+  run_once: true
   register: modbus_sources
 
 
 - name: Download modbus (if it does not exist in the local repo)
   get_url:
     validate_certs: no
-    url: http://libmodbus.org/releases/{{ modbus.file }}
+    url: "http://libmodbus.org/releases/{{ modbus.file }}"
     dest: "{{ local_repository_path }}"
   when:
     - modbus_sources.stat.exists == False
     - modbus_lib.stat.exists == False
   delegate_to: 127.0.0.1
+  run_once: true
 
 
 - name: Copy {{ modbus.file }} to the remote {{ remote_build_path }}
   unarchive:
-    src={{ local_repository_path }}/{{ modbus.file }}
-    dest={{ remote_build_path }}
+    src: "{{ local_repository_path }}/{{ modbus.file }}"
+    dest: "{{ remote_build_path }}"
   when: modbus_lib.stat.exists == False
 
 
 - name: Install modbus
-  become: True
-  command: chdir={{ remote_build_path }}/{{ modbus.build_dir }} {{ item }}
+  command: "chdir={{ remote_build_path }}/{{ modbus.build_dir }} {{ item }}"
   with_items:
-    - ./configure --prefix=/usr/local
-    - make
-    - make install
+    - "./configure --prefix=/usr/local"
+    - "make"
+    - "make install"
   when: modbus_lib.stat.exists == False
 
 
 - name: Remove the directory used for the libraries compilation
-  become: True
-  file: path={{ item }} state=absent
+  file:
+    path: "{{ item }}"
+    state: absent
   with_items:
     - "{{ remote_build_path }}/{{ modbus.build_dir }}"
 
@@ -187,13 +204,16 @@
 ##############################
 
 - name: Check if gmock is installed
-  stat: path=/usr/local/include/gmock
+  stat:
+    path: "/usr/local/include/gmock"
   register: gmock_lib
 
 
 - name: Check if the {{ googletest_file }}  exists in the local repository
-  stat: path={{ local_repository_path }}/{{ googletest_file }}
+  stat:
+    path: "{{ local_repository_path }}/{{ googletest_file }}"
   delegate_to: 127.0.0.1
+  run_once: true
   register: gmock_sources
 
 
@@ -206,24 +226,27 @@
     - gmock_lib.stat.exists == False
     - gmock_sources.stat.exists == False
   delegate_to: 127.0.0.1
+  run_once: true
 
 
 - name: Copy {{ googletest_file }} to the remote {{ remote_build_path }}
   unarchive:
-    src={{ local_repository_path }}/{{ googletest_file }}
-    dest={{ remote_build_path }}
+    src: "{{ local_repository_path }}/{{ googletest_file }}"
+    dest: "{{ remote_build_path }}"
   when: gmock_lib.stat.exists == False
 
 
 - name: Create a gmock/build directory
-  file: path={{ gmock_build }}/build state=directory
+  file:
+    path: "{{ gmock_build }}/build"
+    state: directory
 
 
 - name: Compile gmock
-  command: chdir={{ gmock_build }}/{{ item.subdir }} {{ item.cmd }}
+  command: "chdir={{ gmock_build }}/build {{ item }}"
   with_items:
-    - { cmd: 'cmake ..', subdir: 'build' }
-    - { cmd: 'make', subdir: 'build' }
+    - 'cmake ..'
+    - 'make'
   when: gmock_lib.stat.exists == False
 
 
@@ -240,8 +263,7 @@
 
 
 - name: Copy the gmock static libraries to /usr/local/lib
-  become: true
-  command: chdir={{ gmock_build }}/{{ item.subdir }} {{ item.cmd }}
+  command: "chdir={{ gmock_build }}/{{ item.subdir }} {{ item.cmd }}"
   with_items:
     - { cmd: 'cp -r gmock /usr/local/include', subdir: 'include' }
     - { cmd: 'cp libgmock.a /usr/local/lib', subdir: 'build' }
@@ -250,12 +272,13 @@
 
 
 - name: Check if gtest is installed
-  stat: path=/usr/local/include/gtest
+  stat:
+    path: "/usr/local/include/gtest"
   register: gtest_lib
 
 
 - name: Compile gtest
-  command: chdir={{ gtest_build }}/{{ item.subdir }} {{ item.cmd }}
+  command: "chdir={{ gtest_build }}/{{ item.subdir }} {{ item.cmd }}"
   with_items:
     - { cmd: 'mkdir -p build', subdir: '' }
     - { cmd: 'cmake ..', subdir: 'build' }
@@ -276,8 +299,7 @@
 
 
 - name: Copy the gtest static libraries to /usr/local
-  become: true
-  command: chdir={{ gtest_build }}/{{ item.subdir }} {{ item.cmd }}
+  command: "chdir={{ gtest_build }}/{{ item.subdir }} {{ item.cmd }}"
   with_items:
     - { cmd: 'cp -r gtest /usr/local/include', subdir: 'include' }
     - { cmd: 'cp libgtest.a /usr/local/lib', subdir: 'build' }
@@ -286,8 +308,9 @@
 
 
 - name: Remove the directory used for the libraries compilation
-  become: True
-  file: path={{ item }} state=absent
+  file:
+    path: "{{ item }}"
+    state: absent
   with_items:
     - "{{ remote_build_path }}/{{ googletest_build_dir }}"
 
@@ -297,47 +320,51 @@
 #####
 
 - name: Check if f2c is installed
-  stat: path=/usr/local/include/f2c.h
+  stat:
+    path: "/usr/local/include/f2c.h"
   register: f2c_header
 
 - name: Check if the f2c sources exist in the local repository
-  stat: path={{ local_repository_path }}/f2c.zip
+  stat:
+    path: "{{ local_repository_path }}/f2c.zip"
   delegate_to: 127.0.0.1
+  run_once: true
   register: f2c_sources
 
 
 - name: Download f2c
   get_url:
     validate_certs: no
-    url: https://github.com/barak/f2c/archive/master.zip
+    url: "https://github.com/barak/f2c/archive/master.zip"
     dest: "{{ local_repository_path }}/f2c.zip"
   when:
     - f2c_header.stat.exists == False
     - f2c_sources.stat.exists == False
   delegate_to: 127.0.0.1
+  run_once: true
 
 
 - name: Copy f2c to the remote {{ remote_build_path }}
   unarchive:
-    src={{ local_repository_path }}/f2c.zip
-    dest={{ remote_build_path }}
+    src: "{{ local_repository_path }}/f2c.zip"
+    dest: "{{ remote_build_path }}"
   when: f2c_header.stat.exists == False
 
 
 - name: Install f2c
-  become: true
-  command: chdir={{ remote_build_path }}/f2c-master/src {{ item }}
+  command: "chdir={{ remote_build_path }}/f2c-master/src {{ item }}"
   with_items:
-    - cp makefile.u Makefile
-    - make
-    - cp f2c.h /usr/local/include
-    - cp f2c /usr/local/bin
+    - "cp makefile.u Makefile"
+    - "make"
+    - "cp f2c.h /usr/local/include"
+    - "cp f2c /usr/local/bin"
   when: f2c_header.stat.exists == False
 
 
 - name: Remove the directory used for the libraries compilation
-  become: True
-  file: path={{ item }} state=absent
+  file:
+    path: "{{ item }}"
+    state: absent
   with_items:
     - "{{ remote_build_path }}/f2c-master"
 
@@ -347,7 +374,6 @@
 #######################
 
 - name: Increment the process stack size in order to compile AS GUI
-  become: true
   pam_limits:
     domain: "{{ user }}"
     limit_type: '-'
@@ -356,25 +382,29 @@
 
 
 - name: Verify the Qt library is not installed
-  become: true
-  yum: name={{ item }} state=absent
+  yum:
+    name: "{{ item }}"
+    state: absent
   with_items:
-      - qt
-      - qt-devel
-      - qt4
+      - "qt"
+      - "qt-devel"
+      - "qt4"
   register: result
   retries: 2
   until: result is succeeded
 
 
 - name: Check if {{ qt_lib }} exists
-  stat: path={{ qt_lib }}
+  stat:
+    path: "{{ qt_lib }}"
   register: qt_library
 
 
 - name: Check if the {{ qt_file }}  exists in the local repository
-  stat: path={{ local_repository_path }}/{{ qt_file }}
+  stat:
+    path: "{{ local_repository_path }}/{{ qt_file }}"
   delegate_to: 127.0.0.1
+  run_once: true
   register: qt_sources
 
 
@@ -387,46 +417,51 @@
     - qt_library.stat.exists == False
     - qt_sources.stat.exists == False
   delegate_to: 127.0.0.1
+  run_once: true
 
 
 - name: Copy {{ qt_file }} to the remote {{ remote_build_path }}
   unarchive:
-    src={{ local_repository_path }}/{{ qt_file }}
-    dest={{ remote_build_path }}
+    src: "{{ local_repository_path }}/{{ qt_file }}"
+    dest: "{{ remote_build_path }}"
   when: qt_library.stat.exists == False
 
 
 - name: No license confirmation prompt during installation
   replace:
-    dest={{ remote_build_path }}/{{ qt_build_dir }}/configure
-    regexp='OPT_CONFIRM_LICENSE=no'
-    replace='OPT_CONFIRM_LICENSE=yes'
+    dest: "{{ remote_build_path }}/{{ qt_build_dir }}/configure"
+    regexp: "OPT_CONFIRM_LICENSE=no"
+    replace: "OPT_CONFIRM_LICENSE=yes"
   when: qt_library.stat.exists == False
 
 
 - name: Install Qt
-  become: true
-  command: chdir={{ remote_build_path }}/{{ qt_build_dir }} {{ item }}
+  command: "chdir={{ remote_build_path }}/{{ qt_build_dir }} {{ item }}"
   with_items:
-    - ./configure -no-openssl -opensource --prefix=/usr/local/{{ qt_version }}
-    - gmake
-    - gmake install
+    - "./configure -no-openssl -opensource --prefix=/usr/local/{{ qt_version }}"
+    - "gmake"
+    - "gmake install"
+  become: true
   when: qt_library.stat.exists == False
 
 
 - name: Verify the sip library is not installed
-  become: true
-  yum: name=sip state=absent
+  yum:
+    name: sip
+    state: absent
 
 
 - name: Check if sip is installed
-  stat: path=/alma/{{ acs_tag }}/Python/lib/python2.7/site-packages/sip.so
+  stat:
+    path: "/alma/{{ acs_tag }}/Python/lib/python2.7/site-packages/sip.so"
   register: sip_library
 
 
 - name: Check if the {{ sip_file }}  exists in the local repository
-  stat: path={{ local_repository_path }}/{{ sip_file }}
+  stat:
+    path: "{{ local_repository_path }}/{{ sip_file }}"
   delegate_to: 127.0.0.1
+  run_once: true
   register: sip_sources
 
 
@@ -439,51 +474,55 @@
     - sip_library.stat.exists == False
     - sip_sources.stat.exists == False
   delegate_to: 127.0.0.1
+  run_once: true
 
 
 - name: Copy {{ sip_file }} to the remote {{ remote_build_path }}
   unarchive:
-    src={{ local_repository_path }}/{{ sip_file }}
-    dest={{ remote_build_path }}
+    src: "{{ local_repository_path }}/{{ sip_file }}"
+    dest: "{{ remote_build_path }}"
   when: sip_library.stat.exists == False
 
 
 - name: Change the {{ pyqt_build_dir }} permissions
-  become: true
   file:
-    path={{ remote_build_path }}/{{ sip_build_dir }}
-    state=directory
-    recurse=yes
-    owner=discos
-    group=acs
-    mode=0755
+    path: "{{ remote_build_path }}/{{ sip_build_dir }}"
+    state: directory
+    recurse: yes
+    owner: "{{ user }}"
+    group: acs
+    mode: 0755
 
 
 - name: Install sip
+  command: "chdir={{ remote_build_path }}/{{ sip_build_dir }} {{ item }}"
+  with_items:
+    - "python configure.py"
+    - "make"
+    - "make install"
   become: true
   become_user: "{{ user }}"
   become_flags: "-i"
-  command: chdir={{ remote_build_path }}/{{ sip_build_dir }} {{ item }}
-  with_items:
-    - python configure.py
-    - make
-    - make install
   when: sip_library.stat.exists == False
 
 
 - name: Verify the PyQt4 library is not installed
-  become: true
-  yum: name=PyQt4 state=absent
+  yum:
+    name: PyQt4
+    state: absent
 
 
 - name: Check if PyQt is installed
-  stat: path=/alma/{{ acs_tag }}/Python/lib/python2.7/site-packages/PyQt4/__init__.py
+  stat:
+    path: "/alma/{{ acs_tag }}/Python/lib/python2.7/site-packages/PyQt4/__init__.py"
   register: pyqt_library
 
 
 - name: Check if the {{ pyqt_file }}  exists in the local repository
-  stat: path={{ local_repository_path }}/{{ pyqt_file }}
+  stat:
+    path: "{{ local_repository_path }}/{{ pyqt_file }}"
   delegate_to: 127.0.0.1
+  run_once: true
   register: pyqt_sources
 
 
@@ -496,70 +535,71 @@
     - pyqt_library.stat.exists == False
     - pyqt_sources.stat.exists == False
   delegate_to: 127.0.0.1
+  run_once: true
 
 
 - name: Copy {{ pyqt_file }} to the remote {{ remote_build_path }}
   unarchive:
-    src={{ local_repository_path }}/{{ pyqt_file }}
-    dest={{ remote_build_path }}
+    src: "{{ local_repository_path }}/{{ pyqt_file }}"
+    dest: "{{ remote_build_path }}"
   when: pyqt_library.stat.exists == False
 
 
 - name: Change the {{ pyqt_build_dir }} permissions
-  become: true
   file:
-    path={{ remote_build_path }}/{{ pyqt_build_dir }}
-    state=directory
-    recurse=yes
-    owner=discos
-    group=acs
-    mode=0755
+    path: "{{ remote_build_path }}/{{ pyqt_build_dir }}"
+    state: directory
+    recurse: yes
+    owner: "{{ user }}"
+    group: acs
+    mode: 0755
 
 
 - name: Configure PyQt
+  command: "chdir={{ remote_build_path }}/{{ pyqt_build_dir }} {{ item }}"
+  with_items:
+    - "python configure.py --confirm-license --qmake /usr/local/{{ qt_version }}/bin/qmake"
   become: true
   become_user: "{{ user }}"
   become_flags: "-i"
-  command: chdir={{ remote_build_path }}/{{ pyqt_build_dir }} {{ item }}
-  with_items:
-    - python configure.py --confirm-license --qmake /usr/local/{{ qt_version }}/bin/qmake
   when: pyqt_library.stat.exists == False
 
 
 - name: Remove PrintCurrentPage from source files
-  become: true
-  become_user: "{{ user }}"
-  become_flags: "-i"
   lineinfile:
-    dest={{ item }}
-    state=absent
-    regexp='^.*PrintCurrentPage.*$'
+    dest: "{{ item }}"
+    state: absent
+    regexp: "^.*PrintCurrentPage.*$"
   with_items:
     - "{{ remote_build_path }}/{{ pyqt_build_dir }}/QtGui/sipAPIQtGui.h"
     - "{{ remote_build_path }}/{{ pyqt_build_dir }}/QtGui/sipQtGuiQAbstractPrintDialog.cpp"
     - "{{ remote_build_path }}/{{ pyqt_build_dir }}/sip/QtGui/qabstractprintdialog.sip"
+  become: true
+  become_user: "{{ user }}"
   when: pyqt_library.stat.exists == False
 
 
 - name: Install PyQt
+  command: "chdir={{ remote_build_path }}/{{ pyqt_build_dir }} {{ item }}"
+  with_items:
+    - "make"
+    - "make install"
   become: true
   become_user: "{{ user }}"
-  become_flags: "-i"
-  command: chdir={{ remote_build_path }}/{{ pyqt_build_dir }} {{ item }}
-  with_items:
-    - make
-    - make install
   when: pyqt_library.stat.exists == False
 
 
 - name: Check if PyQwt is installed
-  stat: path=/alma/{{ acs_tag }}/Python/lib/python2.7/site-packages/PyQt4/Qwt5/__init__.py
+  stat:
+    path: "/alma/{{ acs_tag }}/Python/lib/python2.7/site-packages/PyQt4/Qwt5/__init__.py"
   register: pyqwt_library
 
 
 - name: Check if the {{ pyqwt_file }}  exists in the local repository
-  stat: path={{ local_repository_path }}/{{ pyqwt_file }}
+  stat:
+    path: "{{ local_repository_path }}/{{ pyqwt_file }}"
   delegate_to: 127.0.0.1
+  run_once: true
   register: pyqwt_sources
 
 
@@ -572,45 +612,50 @@
     - pyqwt_library.stat.exists == False
     - pyqwt_sources.stat.exists == False
   delegate_to: 127.0.0.1
+  run_once: true
 
 
 - name: Copy {{ pyqwt_file }} to the remote {{ remote_build_path }}
   unarchive:
-    src={{ local_repository_path }}/{{ pyqwt_file }}
-    dest={{ remote_build_path }}
+    src: "{{ local_repository_path }}/{{ pyqwt_file }}"
+    dest: "{{ remote_build_path }}"
   when: pyqwt_library.stat.exists == False
 
 
 - name: Change the {{ pyqwt_build_dir }} permissions
-  become: true
   file:
-    path={{ remote_build_path }}/{{ pyqwt_build_dir }}
-    state=directory
-    recurse=yes
-    owner=discos
-    group=acs
-    mode=0755
+    path: "{{ remote_build_path }}/{{ pyqwt_build_dir }}"
+    state: directory
+    recurse: yes
+    owner: "{{ user }}"
+    group: acs
+    mode: 0755
 
 
 - name: Configure PyQwt
+  command: "chdir={{ remote_build_path }}/{{ pyqwt_build_dir }}/configure {{ item }}"
+  with_items:
+    - "python configure.py -Q ../qwt-5.2"
   become: true
   become_user: "{{ user }}"
   become_flags: "-i"
-  command: chdir={{ remote_build_path }}/{{ pyqwt_build_dir }}/configure {{ item }}
-  with_items:
-    - python configure.py -Q ../qwt-5.2
   when: pyqwt_library.stat.exists == False
 
 
 - name: Install PyQwt
+  command: "chdir={{ remote_build_path }}/{{ pyqwt_build_dir }}/configure {{ item }}"
+  with_items:
+    - "make"
+    - "make install"
   become: true
   become_user: "{{ user }}"
-  become_flags: "-i"
-  command: chdir={{ remote_build_path }}/{{ pyqwt_build_dir }}/configure {{ item }}
-  with_items:
-    - make
-    - make install
   when: pyqwt_library.stat.exists == False
+
+
+- name: Remove the temporary directory used for libraries compilation
+  file:
+    path: "{{ remote_build_path }}"
+    state: absent
 
 
 #################
@@ -618,87 +663,14 @@
 #################
 
 - name: Install some third-party Python packages
+  command: "{{ item }}"
+  with_items:
+    - "pip install mock==1.1.1"
+    - "pip install jinja2"
+    - "pip install subprocess32"
   become: true
   become_user: "{{ user }}"
   become_flags: "-i"
-  command: "{{ item }}"
-  with_items:
-    - pip install mock==1.1.1
-    - pip install jinja2
-    - pip install subprocess32
-
-
-####################
-# DISCOS ENVIRONMENT
-####################
-
-
-- name: Create the branches file
-  become: true
-  become_user: "{{ user }}"
-  file: path=/discos/config/discos/branches state=touch
-
-
-- name: Copy the load_branch template
-  become: true
-  become_user: "{{ user }}"
-  template:
-    src: load_branch
-    dest: "/discos/config/discos/"
-    owner: "{{ user }}"
-    group: acs
-    mode: 0644
-    force: yes
-
-
-- name: Create the /bin directory for user {{ user }}
-  file:
-    path: "/discos/{{ user }}/bin"
-    state: directory
-    owner: "{{ user }}"
-    group: acs
-    mode: 0755
-
-
-- name: Render the discos-get template
-  become: True
-  become_user: "{{ user }}"
-  template:
-    src: discos-get
-    dest: "/discos/{{ user }}/bin/"
-    owner: "{{ user }}"
-    group: acs
-    mode: 0544
-    force: yes
-
-
-- name: Render the discos-set template
-  become: True
-  become_user: "{{ user }}"
-  template:
-    src: discos-set
-    dest: "/discos/{{ user }}/bin/"
-    owner: "{{ user }}"
-    group: acs
-    mode: 0544
-    force: yes
-
-
-- name: Render the _discos-check-branch template
-  become: True
-  become_user: "{{ user }}"
-  template:
-    src: _discos-check-branch
-    dest: "/discos/{{ user }}/bin/"
-    owner: "{{ user }}"
-    group: acs
-    mode: 0544
-    force: yes
-
-
-- name: Remove the temporary directory used for libraries compilation
-  become: True
-  file: path={{ remote_build_path }} state=absent
 
 
 #########################
@@ -706,7 +678,6 @@
 #########################
 
 - name: Increment the maximum number of user processes in order to run the AS
-  become: true
   pam_limits:
     domain: "{{ user }}"
     limit_type: '-'

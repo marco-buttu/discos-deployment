@@ -1,8 +1,0 @@
----
-
-observer: observer
-
-vnc_starting_port: 15000
-user_vnc_port: 1
-observer_vnc_port: 2
-vnc_resolution: 1920x1080

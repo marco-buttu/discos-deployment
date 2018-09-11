@@ -2,6 +2,7 @@
 
 ansible_user: root
 user: discos
+observer: observer
 
 local_repository_path: "{{ lookup('env','HOME') }}/repository"
 remote_build_path: /tmp/builds

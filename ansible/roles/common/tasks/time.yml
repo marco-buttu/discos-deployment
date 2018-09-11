@@ -10,7 +10,6 @@
     src: ntp.conf
     dest: /etc/ntp.conf
     backup: yes
-  become: true
   when: ntp_server_ip is defined
 
 
@@ -19,5 +18,11 @@
     name: ntpd
     state: restarted
     enabled: yes
-  become: true
   when: ntp_server_ip is defined
+
+
+- name: Copy the plot_loopstats script
+  template:
+    src: plot_loopstats
+    dest: /usr/local/bin/plot_loopstats
+    mode: 0755
