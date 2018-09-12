@@ -1,0 +1,15 @@
+---
+
+- include: discos_environment.yml
+- include: git.yml
+- include: acs.yml
+- include: discos_dependencies.yml
+- include: utilities.yml
+- include: vnc.yml
+- include: nfs.yml
+
+- include: discos_deployment.yml
+  when:
+    - branch is defined
+    - station is defined
+    - cdb is defined

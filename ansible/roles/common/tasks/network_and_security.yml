@@ -1,16 +1,28 @@
 ---
 
-- name: Copy the hosts file template
-  become: True
-  template:
-    src: hosts
-    dest: /etc/hosts
-    mode: 0644
+- name: Disable SELINUX
+  selinux:
+    conf: /etc/sysconfig/selinux
+    state: disabled
+
+
+- name: Mask firewalld service
+  systemd:
+    name: firewalld
+    masked: yes
+  when: inventory_hostname in groups['storage']
 
 
 - name: Update hostname
   hostname:
     name: "{{ inventory_hostname }}"
+
+
+- name: Copy the hosts file template
+  template:
+    src: hosts
+    dest: /etc/hosts
+    mode: 0644
 
 
 - name: Copy the firewall-reset template
@@ -19,12 +31,11 @@
     dest: "/usr/bin/"
     mode: 755
     force: yes
-  become: true
 
 
 - name: Launch the firewall-reset script
   command: firewall-reset
-  become: true
+  when: firewall_state == "started"
 
 
 - name: Configure the firewall
@@ -39,17 +50,9 @@
     dest: /etc/ssh/sshd_config
     regexp: '^AcceptEnv'
     replace: '# AcceptEnv'
-  become: true
 
 
 - name: Restart ssh service of the remote machine
   service:
     name: sshd
     state: restarted
-  become: true
-
-
-- name: Disable SELINUX
-  selinux:
-    conf: /etc/sysconfig/selinux
-    state: disabled

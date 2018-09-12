@@ -15,7 +15,6 @@
     - { path: "events", group: "acs", mode: "0750" }
     - { path: "logs", group: "observers", mode: "0750" }
     - { path: "schedules", group: "observers", mode: "0710" }
-  become: true
 
 
 - name: Set ACLs for the /archive directory tree
@@ -26,7 +25,6 @@
   with_nested:
     - [ "data", "extraData", "schedules" ]
     - [ "user::rwx", "group::---" ]
-  become: true
 
 
 - name: Create the DISCOS misc directory
@@ -36,11 +34,9 @@
     owner: "{{ user }}"
     group: acs
     recurse: yes
-  become: true
 
 
 - name: Render the discos-logrotate template
-  become_user: "{{ user }}"
   template:
     src: discos-logrotate
     dest: "/discos/{{ user }}/misc/"
@@ -48,7 +44,6 @@
     group: acs
     mode: 0644
     force: yes
-  become: true
 
 
 - name: Activate the crontab job for log rotation

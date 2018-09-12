@@ -1,0 +1,40 @@
+---
+
+- set_fact:
+    sources_path: "/discos/{{ user }}/{{ branch }}-{{ station }}"
+    introot_path: "/discos/introots/{{ branch }}-{{ station }}"
+
+
+- name: Remove the repository directory and introot (if present)
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - "{{ sources_path }}"
+    - "{{ introot_path }}"
+
+
+- name: Clone the selected DISCOS branch repository
+  command: "discos-get {{ branch }} -s {{ station }}"
+  become: true
+  become_user: "{{ user }}"
+  become_flags: "-i"
+
+
+- name: Set the correct CDB
+  command: "discos-set --cdb {{ cdb }} {{ branch }}-{{ station }}"
+  become: true
+  become_user: "{{ user }}"
+  become_flags: "-i"
+
+
+- name: Install DISCOS
+  shell: "source ~/.bashrc && {{ item }}"
+  args:
+    chdir: "{{ sources_path }}/SystemMake"
+  with_items:
+    - make
+    - make install
+  become: true
+  become_user: "{{ user }}"
+  become_flags: "-i"

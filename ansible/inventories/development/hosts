@@ -1,9 +1,16 @@
+[storage]
+storage-dev ansible_host=192.168.10.200
+
 [manager]
-discos-manager ansible_host=192.168.10.200
+manager-dev ansible_host=192.168.10.201
 
 [console]
-discos-console ansible_host=192.168.10.201
+console-dev ansible_host=192.168.10.202
 
-[discos:children]
+[acs:children]
 manager
 console
+
+[discos:children]
+storage
+acs

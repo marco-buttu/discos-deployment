@@ -1,7 +1,6 @@
 ---
 
 - name: Create a temporary directory for the build
-  become: True
   file:
     path: "{{ remote_build_path }}"
     state: directory
@@ -12,19 +11,26 @@
 
 
 - name: Check if ACS is already installed
-  find: paths=/alma file_type=directory patterns="ACS*"
+  find:
+    paths: /alma
+    file_type: directory
+    patterns: "ACS*"
   register: target_dir
 
 
 - name: Check if ACS binaries exist in the local repository
-  stat: path={{ local_repository_path }}/{{ acs_dest.file }}
+  stat:
+    path: "{{ local_repository_path }}/{{ acs_dest.file }}"
   delegate_to: 127.0.0.1
+  run_once: true
   register: acs_bin
 
 
 - name: Check if ACS extprod exists in the local repository
-  stat: path={{ local_repository_path }}/{{ extprod_dest.file }}
+  stat:
+    path: "{{ local_repository_path }}/{{ extprod_dest.file }}"
   delegate_to: 127.0.0.1
+  run_once: true
   register: extprod_bin
 
 
@@ -36,6 +42,7 @@
     - acs_bin.stat.exists == False
     - target_dir.matched|int == 0
   delegate_to: 127.0.0.1
+  run_once: true
 
 
 - name: Download {{ extprod_orig.file }}
@@ -46,10 +53,10 @@
     - extprod_bin.stat.exists == False
     - target_dir.matched|int == 0
   delegate_to: 127.0.0.1
+  run_once: true
 
 
 - name: Copy {{ acs_dest.file }} to the remote
-  become: True
   copy:
     src: "{{ local_repository_path }}/{{ acs_dest.file }}"
     dest: "{{ remote_build_path }}"
@@ -59,7 +66,6 @@
 
 
 - name: Copy {{ extprod_dest.file }} to the remote
-  become: True
   copy:
     src: "{{ local_repository_path }}/{{ extprod_dest.file }}"
     dest: "{{ remote_build_path }}"
@@ -69,24 +75,24 @@
 
 
 - name: Extract the ACS archives
-  become: True
-  become_user: "{{ user }}"
-  command: chdir={{ remote_build_path }} {{ item }}
+  command: "chdir={{ remote_build_path }} {{ item }}"
   with_items:
-    - tar jxvf {{ acs_dest.file }}
-    - tar jxvf {{ extprod_dest.file }}
+    - "tar jxvf {{ acs_dest.file }}"
+    - "tar jxvf {{ extprod_dest.file }}"
+  become: true
+  become_user: "{{ user }}"
   when: target_dir.matched|int == 0
 
 
 - name: Copy the ACS files to /
-  become: True
-  command: chdir={{ remote_build_path }} mv alma /
+  command: "chdir={{ remote_build_path }} mv alma /"
   when: target_dir.matched|int == 0
 
 
 - name: Remove the directory used for the build
-  become: True
-  file: path={{ item }} state=absent
+  file:
+    path: "{{ item }}"
+    state: absent
   with_items:
     - "{{ remote_build_path }}"
 
@@ -95,13 +101,12 @@
 # Set the ACS user's environment
 ################################
 
-
 - name: Copy the .acs dir from /alma to /discos/config
-  become: True
-  become_user: "{{ user }}"
   command: chdir={{ acssw }}/config {{ item }}
   with_items:
-    - cp -r .acs /discos/config/acs
+    - "cp -r .acs /discos/config/acs"
+  become: true
+  become_user: "{{ user }}"
 
 
 - name: Create the acstmp directory
@@ -115,38 +120,35 @@
 
 
 - name: Copy the acsStartContainer with debugger
-  become: True
-  become_user: "{{ user }}"
   template:
     src: acsStartContainerGdb
-    dest: /alma/{{ acs_tag }}/ACSSW/bin/
+    dest: "/alma/{{ acs_tag }}/ACSSW/bin/"
     owner: "{{ user }}"
     group: acs
     mode: 0755
+  become: true
+  become_user: "{{ user }}"
 
 
 - name: Copy the Python bz2.so from system to ACS
-  become: True
-  become_user: "{{ user }}"
-  command: chdir=/usr/lib64/python2.6/lib-dynload/ {{ item }}
+  command: "chdir=/usr/lib64/python2.6/lib-dynload/ {{ item }}"
   with_items:
-    - cp bz2.so /alma/ACS-FEB2017/Python/lib/python2.7/site-packages/
+    - "cp bz2.so /alma/ACS-FEB2017/Python/lib/python2.7/site-packages/"
+  become: true
+  become_user: "{{ user }}"
 
 
 - name: Create a symlink to the correct Java home path, needed by ACS
-  shell: readlink -f $(which java)
-  register: java_home
-
-
-- file:
-    path: /usr/java
-    state: directory
-
-
-- file:
-    src: "{{ java_home.stdout | regex_replace('/jre/bin/java') }}"
-    dest: /usr/java/default
-    state: link
+  block:
+    - shell: "readlink -f $(which java)"
+      register: java_home
+    - file:
+        path: "/usr/java"
+        state: directory
+    - file:
+        src: "{{ java_home.stdout | regex_replace('/jre/bin/java') }}"
+        dest: "/usr/java/default"
+        state: link
 
 
 #########################
@@ -155,12 +157,11 @@
 
 
 - name: Read the ContainerServices.py file
-  shell: cat {{ container_services }}
+  shell: "cat {{ container_services }}"
   register: container_services_content
 
 
 - name: Replace ContainerServices.py
-  become: True
   template:
     src: ContainerServices.py
     dest: "{{ container_services }}"
@@ -172,12 +173,11 @@
 
 
 - name: Read the BaciHelper.py file
-  shell: cat {{ baci_helper }}
+  shell: "cat {{ baci_helper }}"
   register: baci_helper_content
 
 
 - name: Replace BaciHelper.py
-  become: True
   template:
     src: BaciHelper.py
     dest: "{{ baci_helper }}"
@@ -189,7 +189,6 @@
 
 
 - name: Replace ExecuteContainer.java
-  become: True
   template:
     src: ExecuteContainer.java
     dest: "{{ execute_container }}"
@@ -200,7 +199,6 @@
 
 
 - name: Replace Executor.java
-  become: True
   template:
     src: Executor.java
     dest: "{{ executor }}"
@@ -220,30 +218,31 @@
 
 
 - name: Copy interfaces to acscommandcenter
-  become: True
   command: "cp {{ acssw }}/idl/{{ item }} {{ acs_command_center }}/idl/"
   with_items:
     - AcsCommandCenterEntities.xml
     - AcsCommandCenterProject.xsd
     - AcsCommandCenterTools.xsd
+  become: true
+  become_user: "{{ user }}"
 
 
 - name: Build acscommandcenter
-  become: True
-  become_user: "{{ user }}"
-  become_flags: "-i"
   shell: source ~/.bashrc && chdir={{ acs_command_center }}/src {{ item }}
   with_items:
       - make clean
       - make
+  become: true
+  become_user: "{{ user }}"
 
 
 - name: Copy Acs Command Center .jar files
-  become: True
   shell: "cp -b {{ acs_command_center }}/lib/{{ item }} {{ acssw }}/lib/"
   with_items:
       - acscommandcenter.jar
       - AcsCommandCenterEntities.jar
+  become: true
+  become_user: "{{ user }}"
 
 
 ############################
@@ -251,9 +250,11 @@
 ############################
 
 - name: Remove the ACS boost directory
-  become: True
+  file:
+    path: "/alma/{{ acs_tag }}/boost"
+    state: absent
+  become: true
   become_user: "{{ user }}"
-  file: path=/alma/{{ acs_tag }}/boost state=absent
 
 
 # ACS source files from:

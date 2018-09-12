@@ -1,92 +1,54 @@
 ---
 
-###############
-# ACS Variables
-###############
-
-acs_tag: 'ACS-FEB2017'
-
-acssw: /alma/{{ acs_tag }}/ACSSW
-
-cdb_versions: ['SRT', 'Medicina', 'Noto']
-
-acs_orig: {
-  base: 'http://webdav.sco.alma.cl/public/Releases/ACS-FEB2017/CentOS6',
-  file: 'ACS-COMMON-FEB2017-TEMP-2-CentOS-6.8-x86_64.tar.bz2'
-}
-
-acs_dest: { file: 'acs-2017-02-binaries-64bit.tar.bz2' }
-
-extprod_orig: {
-  base: "{{ acs_orig.base }}",
-  file: 'ExtProd-COMMON-FEB2017-TEMP-2-CentOS-6.8-x86_64.tar.bz2'
-}
-
-extprod_dest: { file: 'extprod-2017-02-binaries-64bit.tar.bz2' }
-
-baci_helper: "{{ acssw }}/lib/python/site-packages/Acspy/Util/BaciHelper.py"
-
-container_services: "{{ acssw }}/lib/python/site-packages/Acspy/Servants/ContainerServices.py"
-
-acs_command_center: "{{ acssw }}/Sources/acscommandcenter/"
-
-execute_container: "{{ acs_command_center }}/src/alma/acs/commandcenter/engine/ExecuteContainer.java"
-
-executor: "{{ acs_command_center }}/src/alma/acs/commandcenter/engine/Executor.java"
+whamcloud_url: "https://downloads.whamcloud.com/public"
 
 
-###############################
-# DISCOS Dependencies Variables
-###############################
+#####################
+# e2fsprogs variables
+#####################
 
-git_orig: {
-    base: "https://github.com/git/git/archive/",
-    version: "2.18.0",
-    extension: ".tar.gz"
-}
-
-git_dest: { file: 'git-v{{ git_orig.version }}{{ git_orig.extension }}' }
-
-cfitsio: { file: 'cfitsio3370.tar.gz', build_dir: 'cfitsio' }
-ccfits: { file: 'CCfits-2.4.tar.gz', build_dir: 'CCfits' }
-fv_file: "fv5.4_pc_linux64.tar.gz"
-
-modbus: { file: 'libmodbus-3.0.6.tar.gz', build_dir: 'libmodbus-3.0.6' }
-
-googletest_repo: "447d58b4ee8ea96b4757a5bb5f0b3be75af6c2a1"
-googletest_build_dir: "googletest-{{ googletest_repo }}"
-googletest_file: "{{ googletest_build_dir }}.zip"
-gmock_build: "{{ remote_build_path }}/{{ googletest_build_dir }}/googlemock"
-gtest_build: "{{ remote_build_path }}/{{ googletest_build_dir }}/googletest"
-
-qt_base_path: http://download.qt.io/archive/qt/4.5
-qt_version: qt-4.5.2
-qt_lib: /usr/local/{{ qt_version }}
-qt_build_dir: qt-x11-opensource-src-4.5.2
-qt_file: "{{ qt_build_dir}}.tar.gz"
-qt_url: "{{ qt_base_path }}/{{ qt_file }}"
-
-sip_base_path: https://sourceforge.net/projects/pyqt/files/sip
-sip_version: sip-4.19.2
-sip_build_dir: "{{ sip_version }}"
-sip_file: "{{ sip_version }}.tar.gz"
-sip_url: "{{ sip_base_path }}/{{ sip_version }}/{{ sip_file }}"
-
-pyqt_base_path: https://sourceforge.net/projects/pyqt/files/PyQt4
-pyqt_version: PyQt-4.12
-pyqt_build_dir: PyQt4_gpl_x11-4.12
-pyqt_file: "{{ pyqt_build_dir }}.tar.gz"
-pyqt_url: "{{ pyqt_base_path }}/{{ pyqt_version }}/{{ pyqt_file }}"
-
-pyqwt_base_path: https://sourceforge.net/projects/pyqwt/files/pyqwt5
-pyqwt_version: PyQwt-5.2.0
-pyqwt_build_dir: "{{ pyqwt_version }}"
-pyqwt_file: "{{ pyqwt_build_dir }}.tar.gz"
-pyqwt_url: "{{ pyqwt_base_path }}/{{ pyqwt_version }}/{{ pyqwt_file }}"
+e2fsprogs_version: { major: "1.42.13.wc6", minor: "7" }
+e2fsprogs_url: { header: "{{ whamcloud_url }}/e2fsprogs/{{ e2fsprogs_version.major }}/el7/RPMS/x86_64", tail: "{{ e2fsprogs_version.major }}-{{ e2fsprogs_version.minor }}.el7.x86_64.rpm" }
+e2fsprogs_files:
+  - "e2fsprogs"
+  - "e2fsprogs-libs"
+  - "libcom_err"
+  - "libss"
 
 
-##################
-# DISCOS Variables
-##################
+#########################
+# Lustre Server variables
+#########################
 
-ghtoken: 47aabb9fb8a55376eb43ede8e375a774e8e50b3b
+lustre_server_version: { major: "2.10.3", minor: "1" }
+lustre_server_url: { header: "{{ whamcloud_url }}/lustre/lustre-{{ lustre_server_version.major }}/el7/server/RPMS/x86_64", tail: "{{ lustre_server_version.major }}-{{ lustre_server_version.minor }}.el7.x86_64.rpm" }
+
+lustre_server_kernel_version: { major: "3.10.0", minor: "693.11.6" }
+lustre_server_kernel_url: { header: "{{ whamcloud_url }}/lustre/lustre-{{ lustre_server_version.major }}/el7/server/RPMS/x86_64", tail: "{{ lustre_server_kernel_version.major }}-{{ lustre_server_kernel_version.minor }}.el7_lustre.x86_64.rpm" }
+
+lustre_server_kernel_files:
+  - "kernel"
+  - "kernel-devel"
+  - "kernel-headers"
+  - "kernel-tools"
+  - "kernel-tools-libs"
+  - "kernel-tools-libs-devel"
+
+lustre_server_files:
+  - "kmod-lustre"
+  - "kmod-lustre-osd-ldiskfs"
+  - "lustre-osd-ldiskfs-mount"
+  - "lustre"
+  - "lustre-resource-agents"
+
+
+#########################
+# Lustre Client Variables
+#########################
+
+lustre_client_version: { major: "2.10.3", minor: "1" }
+lustre_client_url: { header: "{{ whamcloud_url }}/lustre/lustre-{{ lustre_client_version.major }}/el6/client/RPMS/x86_64", tail: "{{ lustre_client_version.major }}-{{ lustre_client_version.minor }}.el6.x86_64.rpm" }
+
+lustre_client_files:
+  - "kmod-lustre-client"
+  - "lustre-client"
