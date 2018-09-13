@@ -14,19 +14,22 @@
 - name: Apply common configurations to all nodes
   hosts: all
   remote_user: root
-  roles: common
+  roles:
+    - common
 
 
 - name: Apply ACS configuration to ACS nodes
   hosts: acs
   remote_user: root
-  roles: acs
+  roles:
+    - acs
 
 
 - name: Configure the manager
   hosts: manager
   remote_user: root
-  roles: manager
+  roles:
+    - manager
 
 
 - name: Remove the provisioning machine public key from provisioned hosts
