@@ -83,8 +83,6 @@
     - gettext-devel
     - bzip2-devel
     - ypbind
-    - nfs-utils
-    - nfs4-acl-tools
     - tigervnc-server
   when: inventory_hostname in groups['acs']
 

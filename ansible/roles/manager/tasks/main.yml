@@ -1,4 +1,3 @@
 ---
 
 - include: archive_tree.yml
-- include: observers.yml

@@ -6,7 +6,6 @@
 - include: discos_dependencies.yml
 - include: utilities.yml
 - include: vnc.yml
-- include: nfs.yml
 
 - include: discos_deployment.yml
   when:
