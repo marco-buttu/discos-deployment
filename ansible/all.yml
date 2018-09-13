@@ -32,6 +32,13 @@
     - manager
 
 
+- name: Configure the console
+  hosts: console
+  remote_user: root
+  roles:
+    - console
+
+
 - name: Remove the provisioning machine public key from provisioned hosts
   hosts: all
   remote_user: root

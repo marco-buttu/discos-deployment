@@ -52,9 +52,9 @@
   when: inventory_hostname in groups['acs']
 
 
-- name: Enable home directory automatic generation on manager machine
+- name: Enable home directory automatic generation on console machine
   command: "authconfig --enablemkhomedir --update"
-  when: inventory_hostname in groups['manager']
+  when: inventory_hostname in groups['console']
 
 
 - name: Start NIS services on ACS machines
