@@ -6,9 +6,3 @@
 - include: discos_dependencies.yml
 - include: utilities.yml
 - include: vnc.yml
-
-- include: discos_deployment.yml
-  when:
-    - branch is defined
-    - station is defined
-    - cdb is defined

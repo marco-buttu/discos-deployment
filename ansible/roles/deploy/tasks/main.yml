@@ -1,0 +1,7 @@
+---
+
+- include: deploy.yml
+  when:
+    - branch is defined
+    - station is defined
+    - cdb is defined
