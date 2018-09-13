@@ -4,9 +4,14 @@ import os, shutil
 
 BRANCH_ROOT = os.environ['HOME']
 BRANCH_LIST = os.path.join(BRANCH_ROOT, '/discos/config/discos/branches')
+load_branch = os.path.join(BRANCH_ROOT, '/discos/config/discos/load_branch')
 
+discos_branch = ''
 
-discos_branch = os.environ['DISCOS_BRANCH']
+for line in open(load_branch):
+    if 'export DISCOS_BRANCH=' in line:
+        discos_branch = line.rsplit('=', 1)[1].strip()
+        break
 
 # Remove unavailable branches from the list and remove their introots
 branches = []
@@ -27,7 +32,6 @@ if discos_branch:
     if not os.path.exists(active_branch):
         # Clear the the DISCOS_BRANCH environment variable
         lines = []
-        load_branch = os.path.join(BRANCH_ROOT, '/discos/config/discos/load_branch')
         for line in open(load_branch):
             if 'export DISCOS_BRANCH=' in line:
                 lines.append('export DISCOS_BRANCH=\n')
