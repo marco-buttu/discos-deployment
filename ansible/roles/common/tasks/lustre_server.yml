@@ -51,23 +51,6 @@
 # Lustre configuration
 ######################
 
-#- name: Check if {{ lustre_server_kernel_file.name }}-{{ lustre_server_kernel_file.version }}.rpm package exists in the local repository
-#  stat:
-#    path: "{{ local_repository_path }}/{{ lustre_server_kernel_file.name }}-{{ lustre_server_kernel_file.version }}.rpm"
-#  delegate_to: 127.0.0.1
-#  run_once: true
-#  register: lustre_server_kernel_file_exists
-
-
-#- name: Download {{ lustre_server_kernel_file.name }}-{{ lustre_server_kernel_file.version }}.rpm package
-#  get_url:
-#    validate_certs: no
-#    url: "{{ lustre_server_url.header }}/{{ lustre_server_kernel_file.name }}-{{ lustre_server_kernel_file.version }}.rpm"
-#    dest: "{{ local_repository_path }}/{{ lustre_server_kernel_file.name }}-{{ lustre_server_kernel_file.version }}.rpm"
-#  when: lustre_server_kernel_file_exists.stat.exists == False
-#  delegate_to: 127.0.0.1
-#  run_once: true
-
 
 - name: Check if lustre kernel packages exist in the local repository
   stat:
@@ -109,53 +92,6 @@
   no_log: true
   delegate_to: 127.0.0.1
   run_once: true
-
-
-#- name: Copy {{ lustre_server_kernel_file.name }}-{{ lustre_server_kernel_file.version }}.rpm to the remote
-#  copy:
-#    src: "{{ local_repository_path }}/{{ lustre_server_kernel_file.name }}-{{ lustre_server_kernel_file.version }}.rpm"
-#    dest: "/tmp/"
-
-
-#- name: Install {{ lustre_server_kernel_file.name }}-{{ lustre_server_kernel_file.version }}.rpm yum package
-#  yum:
-#    name: "/tmp/{{ lustre_server_kernel_file.name }}-{{ lustre_server_kernel_file.version }}.rpm"
-#    state: present
-#    validate_certs: no
-
-
-#- name: Delete {{ lustre_server_kernel_file.name }}-{{ lustre_server_kernel_file.version }}.rpm from the remote
-#  file:
-#    path: "/tmp/{{ lustre_server_kernel_file.name }}-{{ lustre_server_kernel_file.version }}.rpm"
-#    state: absent
-
-
-#- name: Update the kernel with lustre kernel package
-#  shell: "new-kernel-pkg --package kernel --mkinitrd --dracut --depmod --install {{ lustre_server_kernel_file.version }}"
-
-
-#- name: Check if a reboot is needed
-#  shell: "if [ $(rpm -q kernel|tail -n 1) != kernel-$(uname -r) ]; then echo 'reboot'; else echo 'no'; fi"
-#  ignore_errors: true
-#  register: reboot_needed
-
-
-#- name: Reboot the machine if needed
-#  shell: 'sleep 5 && shutdown -r now "Kernel update with lustre modules."'
-#  async: 1
-#  poll: 0
-#  ignore_errors: true
-#  when: reboot_needed.stdout.find("reboot") != -1
-#  register: rebooting
-
-
-#- name: Wait for machine to come back online
-#  wait_for_connection:
-#    connect_timeout: 20
-#    sleep: 5
-#    delay: 5
-#    timeout: 300
-#  when: rebooting is changed
 
 
 - name: Copy lustre server kernel yum packages to the remote
