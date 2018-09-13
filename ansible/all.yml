@@ -39,6 +39,13 @@
     - console
 
 
+- name: Deploy DISCOS
+  hosts: acs
+  remote_user: root
+  roles:
+    - deploy
+
+
 - name: Remove the provisioning machine public key from provisioned hosts
   hosts: all
   remote_user: root
