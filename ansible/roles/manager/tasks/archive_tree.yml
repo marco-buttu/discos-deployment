@@ -10,11 +10,11 @@
     recurse: yes
     follow: yes
   with_items:
-    - { path: "data", group: "observers", mode: "0710" }
-    - { path: "extraData", group: "observers", mode: "0710" }
+    - { path: "data", group: "projects", mode: "0710" }
+    - { path: "extraData", group: "projects", mode: "0710" }
     - { path: "events", group: "acs", mode: "0750" }
-    - { path: "logs", group: "observers", mode: "0750" }
-    - { path: "schedules", group: "observers", mode: "0710" }
+    - { path: "logs", group: "projects", mode: "0750" }
+    - { path: "schedules", group: "projects", mode: "0710" }
 
 
 - name: Set ACLs for the /archive directory tree

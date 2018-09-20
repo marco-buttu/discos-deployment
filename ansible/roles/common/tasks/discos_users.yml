@@ -63,17 +63,17 @@
     line: '{{ user }}    ALL=(ALL)       ALL'
 
 
-- name: Configure the observers group
+- name: Configure the projects group
   block:
-    - name: Add the observers group
+    - name: Add the projects group
       group:
-        name: observers
+        name: projects
         gid: 336
         state: present
-    - name: Append group observers to {{ user }} secondary groups
+    - name: Append group projects to {{ user }} secondary groups
       user:
         name: "{{ user }}"
-        groups: observers
+        groups: projects
 
 
 - name: Create the DISCOS archive directory
@@ -81,7 +81,7 @@
     path: /archive
     state: directory
     owner: "{{ user }}"
-    group: observers
+    group: projects
     mode: 0755  
 
 
