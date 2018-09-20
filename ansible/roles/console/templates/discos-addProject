@@ -19,7 +19,7 @@
 #   This script creates a user for the discos observing system. It could be executed only by the system manager 
 #   on the system management machine. It targets the server providing authentication for the users (nis server)
 #   The manager must have sudoers grants for bash commands useradd and usermod in the server. 
-#   The group observers must exist on nis server. 
+#   The group projects must exist on nis server.
 #       
 #   FILES
 #
@@ -139,7 +139,7 @@ fi
 
 if [ "$REMOTESERVER" == "YES" ]; then
     echo "**** adding new user remotely......"
-    sshpass -p $PASSWORD ssh -t $SERVERUSER@$SERVER "echo $PASSWORD | sudo -S /usr/sbin/useradd -g observers -G observers,users -M -n -s /bin/bash $CL_USER"
+    sshpass -p $PASSWORD ssh -t $SERVERUSER@$SERVER "echo $PASSWORD | sudo -S /usr/sbin/useradd -g projects -G projects,users -M -n -s /bin/bash $CL_USER"
     sshpass -p $PASSWORD ssh -t $SERVERUSER@$SERVER "echo $PASSWORD | sudo -S /usr/sbin/usermod -U $CL_USER"
     sshpass -p $PASSWORD ssh -t $SERVERUSER@$SERVER "echo $PASSWORD > temppwd ; echo $USERPASSWORD >> temppwd"
     sshpass -p $PASSWORD ssh -t $SERVERUSER@$SERVER "cat temppwd | sudo -S passwd $CL_USER --stdin"
@@ -159,7 +159,7 @@ if [ "$REMOTESERVER" == "YES" ]; then
     fi
 else
     echo "**** adding new user locally......"
-    echo $PASSWORD | sudo -S /usr/sbin/useradd -g observers -G observers,users -M -n -s /bin/bash $CL_USER
+    echo $PASSWORD | sudo -S /usr/sbin/useradd -g projects -G projects,users -M -n -s /bin/bash $CL_USER
     echo $PASSWORD | sudo -S /usr/sbin/usermod -U $CL_USER
     echo $PASSWORD > temppwd ; echo $USERPASSWORD >> temppwd
     cat temppwd | sudo -S passwd $CL_USER --stdin

@@ -261,5 +261,5 @@
     path: /archive
     state: directory
     owner: "{{ user }}"
-    group: observers
+    group: projects
     mode: 0755
