@@ -22,7 +22,7 @@ start()
             echo "done."
 {% if inventory_hostname in groups['console'] %}
 
-            if [[ -f /etc/rc.d/rc.init/quicklook ]]; then
+            if [[ -f /etc/rc.d/init.d/quicklook ]]; then
                 echo -n "Starting quicklook service..."
                 service quicklook start
                 echo "done."
@@ -40,7 +40,7 @@ stop()
 {
     if [[ $(mount | grep '{{ lustre_server_ip }}@tcp0:/discos' | wc -l) -eq 1 ]]; then
 {% if inventory_hostname in groups['console'] %}
-        if [[ -f /etc/rc.d/rc.init/quicklook ]]; then
+        if [[ -f /etc/rc.d/init.d/quicklook ]]; then
             echo -n "Stopping quicklook service..."
             service quicklook stop
             echo "done."
