@@ -1,0 +1,98 @@
+#!/usr/bin/env python
+import subprocess
+import os
+import sys
+
+def become_discos():
+    def set_ids():
+        os.setgid({{ acs_gid }})
+        os.setuid({{ user_uid }})
+    return set_ids
+
+if os.environ.get('PYTHONPATH'):
+    del os.environ['PYTHONPATH']
+
+if os.geteuid() != 0:
+    os.execvp('sudo', ['sudo', 'python3.6'] + sys.argv)
+
+current_dir = os.path.dirname(os.path.realpath(__file__))
+sdtools_repo = 'srt-single-dish-tools'
+sdtools_bin_dir = os.path.join(current_dir, 'bin')
+sdtools_repo_dir = os.path.join(current_dir, sdtools_repo)
+sdtools_repo_url = 'https://github.com/matteobachetti/%s.git' % sdtools_repo
+
+subprocess.call(['rm', '-rf', sdtools_repo_dir])
+subprocess.call(
+    ['/usr/local/git/bin/git', 'clone', sdtools_repo_url],
+    cwd=current_dir,
+    preexec_fn=become_discos()
+)
+
+monitor_file = os.path.join(sdtools_repo_dir, 'srttools', 'monitor.py')
+lines = []
+for line in open(monitor_file):
+    if 'from watchdog.observers import Observer' in line:
+        line = line.replace(
+            ' import Observer',
+            '.polling import PollingObserver as Observer'
+        )
+    elif '"--debug {} -c {}"' in line:
+        line = line.replace(
+            '"--debug {} -c {}"',
+            '"--debug {} --nosave -c {}"'
+        )
+    elif "'cp {} {}'" in line:
+        line = line.replace(
+            "'cp {} {}'",
+            "'mv {} {}'"
+        )
+    lines.append(line)
+open(monitor_file, 'w').writelines(lines)
+
+subprocess.call(
+    ['python3.6',
+    'setup.py',
+    'build'],
+    cwd=sdtools_repo_dir,
+    preexec_fn=become_discos()
+)
+
+subprocess.call(
+    ['python3.6',
+    'setup.py',
+    'install',
+    '--install-scripts=%s' % sdtools_bin_dir],
+    cwd=sdtools_repo_dir
+)
+
+correction = \
+"""#!/usr/bin/env python
+import sys
+if sys.version_info[0] != 3 or sys.version_info[1] != 6:
+    import os
+    if os.environ.get('PYTHONPATH'):
+        del os.environ['PYTHONPATH']
+    if os.environ.get('PATH'):
+        del os.environ['PATH']
+    os.execvp('/usr/bin/python3.6', ['python3.6'] + sys.argv)
+
+"""
+
+for filename in os.listdir(sdtools_bin_dir):
+    og_lines = []
+    for l in open(os.path.join(sdtools_bin_dir, filename)):
+        if not l.startswith('#!') and not 'import sys' in l:
+            og_lines.append(l)
+    with open(os.path.join(sdtools_bin_dir, filename), 'w') as f:
+        f.write(correction)
+        for l in og_lines:
+            f.write(l)
+
+for filename in os.listdir(sdtools_bin_dir):
+    subprocess.call(
+        ['cp',
+        os.path.join(sdtools_bin_dir, filename),
+        os.path.join('/usr/bin/', filename)]
+    )
+
+subprocess.call(['rm', '-rf', sdtools_bin_dir])

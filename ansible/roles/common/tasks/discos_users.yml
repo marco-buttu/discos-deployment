@@ -21,16 +21,16 @@
 - name: Define the list of users to be inserted in the machines
   block:
     - set_fact:
-        users: [{ name: "{{ user }}", uid: "3060", password: "{{ user_pwd }}" }]
+        users: [{ name: "{{ user }}", uid: "{{ user_uid }}", password: "{{ user_pwd }}" }]
     - set_fact:
-        users: "{{ users + [{ 'name': 'observer', 'uid': '3061', 'password': observer_pwd }] }}"
+        users: "{{ users + [{ 'name': 'observer', 'uid': '{{ observer_uid }}', 'password': observer_pwd }] }}"
       when: inventory_hostname in groups['console']
 
 
 - name: Add the acs group
   group:
     name: acs
-    gid: 335
+    gid: "{{ acs_gid }}"
     state: present
 
 
@@ -68,7 +68,7 @@
     - name: Add the projects group
       group:
         name: projects
-        gid: 336
+        gid: "{{ projects_gid }}"
         state: present
     - name: Append group projects to {{ user }} secondary groups
       user:

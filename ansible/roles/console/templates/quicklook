@@ -1,0 +1,46 @@
+#!/bin/sh
+#. /etc/rc.d/init.d/functions
+#. /etc/sysconfig/network
+
+APP_PATH=/discos/sdtools/quicklook
+
+start() {
+    if [ -d /archive/data ]; then
+        cd $APP_PATH
+        zdaemon -C service.conf start
+    else
+        echo "Data directory missing."
+        RETVAL=1
+    fi
+}
+
+stop() {
+    cd $APP_PATH
+    zdaemon -C service.conf stop
+}
+
+check_status() {
+    cd $APP_PATH
+    zdaemon -C service.conf status
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    status)
+        check_status
+        ;;
+    restart)
+        stop
+        start
+        ;;
+    *)
+        echo $"Usage: $0 {start|stop|status|restart}"
+        RETVAL=2
+
+esac
+exit $RETVAL
