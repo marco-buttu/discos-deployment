@@ -69,19 +69,20 @@
     - { line: 'modprobe -v lnet', before: "" }
 
 
-- name: Copy the lustre-startup script
+- name: Copy the lustre-client-service template
   template:
-    src: lustre-startup
-    dest: /usr/bin
+    src: lustre-client-service
+    dest: /etc/rc.d/init.d/lustre
     mode: 0755
     force: yes
 
 
-- name: Execute the lustre-startup script
-  command: lustre-startup
-
-
-- name: Add lustre-startup to boot executed scripts
-  lineinfile:
-    path: /etc/rc.d/rc.local
-    line: lustre-startup
+- name: Configure the clients lustre service
+  file:
+    src: /etc/rc.d/init.d/lustre
+    dest: "/etc/rc.d/{{ item }}"
+    state: link
+    force: true
+  with_items:
+    - "rc0.d/K05lustre"
+    - "rc3.d/S95lustre"

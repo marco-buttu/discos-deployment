@@ -1,0 +1,55 @@
+#!/bin/sh
+#
+# chkconfig: 3 95 5
+#
+# description: This service handles the mount/umount of the lustre remote partitions
+
+start()
+{
+    touch /var/lock/subsys/lustre
+
+    if [[ $(lnetctl net show --net tcp0 | wc -l) -eq 0 ]]; then
+        echo -n "Configuring {{ lustre_network_interface }} network interface for lustre..."
+        lnetctl lnet configure
+        lnetctl net add --net tcp0 --if {{ lustre_network_interface }}
+        echo "done."
+    fi
+
+    if [[ $(mount | grep '{{ lustre_server_ip }}@tcp0:/discos' | wc -l) -eq 0 ]]; then
+        if $(ping -I {{ lustre_network_interface }} -c 1 -w 1 {{ lustre_server_ip }} > /dev/null); then
+            echo -n "Mounting remote lustre partition..."
+            mount -t lustre {{ lustre_server_ip }}@tcp0:/discos /archive
+            echo "done."
+        else
+            echo "Remote lustre server unreachable."
+        fi
+    else
+        echo "Lustre remote partition already mounted, nothing to do."
+    fi
+}
+
+stop()
+{
+    if [[ $(mount | grep '{{ lustre_server_ip }}@tcp0:/discos' | wc -l) -eq 1 ]]; then
+        echo -n "Unmounting remote lustre partition..."
+        umount /archive
+        echo "done."
+    else
+        echo "Lustre remote partition not mounted, nothing to do."
+    fi
+
+    rm -f /var/lock/subsys/lustre
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    *)
+        echo $"Usage: $0 {start|stop}"
+        RETVAL=2
+esac
+exit $RETVAL

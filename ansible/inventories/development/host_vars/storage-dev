@@ -3,5 +3,6 @@
 lustre_network_interface: enp0s8
 
 lustre_device: /dev/sdb
-lustre_mgs_mdt_partition: { device: "{{ lustre_device }}", number: "1", start: "0%", end: "2GiB" }
-lustre_ost_partition: { device: "{{ lustre_device }}", number: 2, start: "{{ lustre_mgs_mdt_partition.end }}", end: "100%" }
+lustre_mgs_partition: { device: "{{ lustre_device }}", number: 1, start: "0%", end: "2GiB" }
+lustre_mdt_partition: { device: "{{ lustre_device }}", number: 2, start: "{{ lustre_mgs_partition.end }}", end: "4GiB" }
+lustre_ost_partition: { device: "{{ lustre_device }}", number: 3, start: "{{ lustre_mdt_partition.end }}", end: "100%" }
