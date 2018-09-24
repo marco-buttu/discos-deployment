@@ -1,0 +1,39 @@
+#!/bin/bash
+
+start()
+{
+    sleep 5
+    mount -t lustre 0@lo:/discos /archive
+{% for hostname in groups['discos'] %}
+{% if inventory_hostname != hostvars[hostname].inventory_hostname %}
+{% if hostvars[hostname].lustre_network_interface is defined  %}
+    ssh root@{{ hostvars[hostname].ansible_host }} "service lustre start"
+{% endif %}
+{% endif %}
+{% endfor %}
+}
+
+stop()
+{
+{% for hostname in groups['discos'] %}
+{% if inventory_hostname != hostvars[hostname].inventory_hostname %}
+{% if hostvars[hostname].lustre_network_interface is defined  %}
+    ssh root@{{ hostvars[hostname].ansible_host }} "service lustre stop"
+{% endif %}
+{% endif %}
+{% endfor %}
+    umount /archive
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    *)
+        echo $"Usage: $0 {start|stop}"
+        RETVAL=2
+esac
+exit $RETVAL

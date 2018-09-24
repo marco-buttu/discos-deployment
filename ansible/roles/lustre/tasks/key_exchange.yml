@@ -1,0 +1,49 @@
+---
+
+- name: Perform RSA key exchange between deployed machines
+  block:
+    - name: Make sure the ssh files exists
+      file:
+        path: "/root/.ssh/{{ item }}"
+        state: touch
+        owner: root
+        mode: 0600
+      with_items:
+        - "authorized_keys"
+        - "known_hosts"
+    - name: Create the RSA key for root
+      user:
+        name: root
+        generate_ssh_key: yes
+    - name: Removing old machine RSA fingerprints from known_hosts file
+      lineinfile:
+        path: /root/.ssh/known_hosts
+        state: absent
+        regexp: "^{{ hostvars[item].inventory_hostname }},{{ hostvars[item].inventory_hostname_short}}    ,{{ hostvars[item].ansible_host }}(.*)$"
+      with_items: "{{ play_hosts }}"
+    - name: Fetch the machine RSA fingerprints
+      command: cat /etc/ssh/ssh_host_rsa_key.pub
+      register: machine_public_key
+    - name: Add machine RSA fingerprints to known_hosts file
+      lineinfile:
+        path: /root/.ssh/known_hosts
+        state: present
+        line: "{{ hostvars[item].inventory_hostname }},{{ hostvars[item].inventory_hostname_short}},{{     hostvars[item].ansible_host }} {{ hostvars[item].machine_public_key.stdout }}"
+      with_items:
+        - "{{ play_hosts }}"
+    - name: Fetch the root user RSA public key
+      command: cat /root/.ssh/id_rsa.pub
+      register: root_public_key
+    - name: Remove old public keys from authorized_keys file
+      lineinfile:
+        path: /root/.ssh/authorized_keys
+        state: absent
+        regexp: "^(.*)ansible-generated on {{ hostvars[item].inventory_hostname_short }}$"
+      with_items: "{{ play_hosts }}"
+    - name: Share public key with all machines in current deployment session
+      lineinfile:
+        path: /root/.ssh/authorized_keys
+        state: present
+        line: "{{ hostvars[item].root_public_key.stdout }}"
+      with_items:
+        - "{{ play_hosts }}"

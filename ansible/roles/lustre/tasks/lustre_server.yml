@@ -116,18 +116,18 @@
   with_items: "{{ lustre_server_kernel_files }}"
 
 
-- name: Check if a reboot is needed
+- name: Check if a reboot is required
   shell: "if [ $(rpm -q kernel|tail -n 1) != kernel-$(uname -r) ]; then echo 'reboot'; else echo 'no'; fi"
   ignore_errors: true
-  register: reboot_needed
+  register: reboot_required
 
 
-- name: Reboot the machine if needed
+- name: Reboot the machine if required
   shell: 'sleep 5 && shutdown -r now "Kernel update with lustre modules."'
   async: 1
   poll: 0
   ignore_errors: true
-  when: reboot_needed.stdout.find("reboot") != -1
+  when: reboot_required.stdout.find("reboot") != -1
   register: rebooting
 
 
@@ -198,29 +198,33 @@
     label: msdos
 
 
-- name: Create the lustre mgs/mdt partition
+- name: Create the lustre mount points
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - "/lustre"
+    - "/lustre/mgs"
+    - "/lustre/mdt"
+    - "/lustre/ost"
+
+
+- name: Create the lustre mgs partition
   parted:
-    device: "{{ lustre_mgs_mdt_partition.device }}"
-    number: "{{ lustre_mgs_mdt_partition.number }}"
+    device: "{{ lustre_mgs_partition.device }}"
+    number: "{{ lustre_mgs_partition.number }}"
     state: present
-    part_start: "{{ lustre_mgs_mdt_partition.start }}"
-    part_end: "{{ lustre_mgs_mdt_partition.end }}"
+    part_start: "{{ lustre_mgs_partition.start }}"
+    part_end: "{{ lustre_mgs_partition.end }}"
 
 
-- name: Format the lustre mgs/mdt partition
-  command: "mkfs.lustre --mgs --mdt --fsname=discos --index=0 {{ lustre_mgs_mdt_partition.device}}{{ lustre_mgs_mdt_partition.number }}"
-  register: command_result
-  failed_when:
-    - command_result.rc != 0
-    - command_result.rc != 17 # The return code when the partition is already formatted
-
-
-- name: Mount the lustre mgs/mdt partition
-  mount:
-    path: /lustre/mgs_mdt
-    src: "{{ lustre_mgs_mdt_partition.device }}{{ lustre_mgs_mdt_partition.number }}"
-    fstype: lustre
-    state: mounted
+- name: Create the lustre mdt partition
+  parted:
+    device: "{{ lustre_mdt_partition.device }}"
+    number: "{{ lustre_mdt_partition.number }}"
+    state: present
+    part_start: "{{ lustre_mdt_partition.start }}"
+    part_end: "{{ lustre_mdt_partition.end }}"
 
 
 - name: Create the lustre data partition
@@ -232,12 +236,49 @@
     part_end: "{{ lustre_ost_partition.end }}"
 
 
+- name: Format the lustre mgs partition
+  command: "mkfs.lustre --mgs {{ lustre_mgs_partition.device}}{{ lustre_mgs_partition.number }}"
+  register: command_result
+  failed_when:
+    - command_result.rc != 0
+    - command_result.rc != 1
+    - command_result.rc != 17
+
+
+- name: Format the lustre mdt partition
+  command: "mkfs.lustre --mdt --fsname=discos --mgsnode={{ lustre_server_ip }}@tcp --index=0 {{ lustre_mdt_partition.device}}{{ lustre_mdt_partition.number }}"
+  register: command_result
+  failed_when:
+    - command_result.rc != 0
+    - command_result.rc != 1
+    - command_result.rc != 17
+
+
+- name: Mount the lustre mgs partition
+  mount:
+    path: /lustre/mgs
+    src: "{{ lustre_mgs_partition.device }}{{ lustre_mgs_partition.number }}"
+    fstype: lustre
+    state: mounted
+    opts: defaults
+
+
+- name: Mount the lustre mdt partition
+  mount:
+    path: /lustre/mdt
+    src: "{{ lustre_mdt_partition.device }}{{ lustre_mdt_partition.number }}"
+    fstype: lustre
+    state: mounted
+    opts: defaults,abort_recovery
+
+
 - name: Format the lustre data partition
   command: "mkfs.lustre --ost --fsname=discos --mgsnode={{ lustre_server_ip }}@tcp --index=0 {{ lustre_ost_partition.device }}{{ lustre_ost_partition.number }}"
   register: command_result
   failed_when:
     - command_result.rc != 0
-    - command_result.rc != 17 # The return code when the partition is already formatted
+    - command_result.rc != 1
+    - command_result.rc != 17
 
 
 - name: Mount the lustre data partition
@@ -246,17 +287,35 @@
     src: "{{ lustre_ost_partition.device }}{{ lustre_ost_partition.number }}"
     fstype: lustre
     state: mounted
+    opts: defaults,abort_recovery
 
 
-- name: Mount the DISCOS data directory onto lustre data partition
-  mount:
-    path: /archive
-    src: "{{ lustre_server_ip }}@tcp0:/discos"
-    fstype: lustre
-    state: mounted
+- name: Copy the lustre-server-service template
+  template:
+    src: lustre-server-service
+    dest: /usr/bin/lustre
+    mode: 0755
+    force: yes
 
 
-- name: Tune the /archive directory permissions
+- name: Copy the lustre-server-unit template
+  template:
+    src: lustre-server-unit
+    dest: /usr/lib/systemd/system/lustre.service
+    mode: 0644
+    force: yes
+
+
+- name: Configure the server lustre service
+  systemd:
+    name: lustre
+    state: restarted
+    enabled: true
+    daemon_reload: true
+    force: true
+
+
+- name: Tune the /archive directory permissions after mount
   file:
     path: /archive
     state: directory

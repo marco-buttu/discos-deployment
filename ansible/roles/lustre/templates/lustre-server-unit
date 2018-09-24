@@ -1,0 +1,14 @@
+[Unit]
+Description = Manages the lustre remote clients
+Requires=local-fs.target network.target
+After=local-fs.target network.target
+
+[Service]
+Type = oneshot
+ExecStart = /usr/bin/lustre start
+ExecStop = /usr/bin/lustre stop
+RemainAfterExit=true
+TimeoutStartSec=600
+
+[Install]
+WantedBy = multi-user.target

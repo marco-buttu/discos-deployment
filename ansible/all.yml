@@ -18,6 +18,13 @@
     - common
 
 
+- name: Configure lustre
+  hosts: all
+  remote_user: root
+  roles:
+    - lustre
+
+
 - name: Apply ACS configuration to ACS nodes
   hosts: acs
   remote_user: root
@@ -25,14 +32,14 @@
     - acs
 
 
-- name: Configure the manager
+- name: Configure the manager machine
   hosts: manager
   remote_user: root
   roles:
     - manager
 
 
-- name: Configure the console
+- name: Configure the console machine
   hosts: console
   remote_user: root
   roles:

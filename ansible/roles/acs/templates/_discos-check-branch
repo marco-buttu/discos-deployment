@@ -33,7 +33,9 @@ if discos_branch:
         # Clear the the DISCOS_BRANCH environment variable
         lines = []
         for line in open(load_branch):
-            if 'export DISCOS_BRANCH=' in line:
+            if 'export INTROOT=' in line:
+                lines.append('export INTROOT=\n')
+            elif 'export DISCOS_BRANCH=' in line:
                 lines.append('export DISCOS_BRANCH=\n')
             elif 'export CDB=' in line:
                 lines.append('export CDB=\n')
