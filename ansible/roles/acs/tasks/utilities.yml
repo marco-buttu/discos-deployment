@@ -36,6 +36,7 @@
     path: /usr/share/applications/mimeapps.list
     line: "{{ item }}"
     state: present
+    create: true
   with_items:
     - "[Default Applications]"
     - "text/html=firefox.desktop"
