@@ -7,7 +7,7 @@ start()
 {% for hostname in groups['discos'] %}
 {% if inventory_hostname != hostvars[hostname].inventory_hostname %}
 {% if hostvars[hostname].lustre_network_interface is defined  %}
-    ssh root@{{ hostvars[hostname].ansible_host }} "service lustre start"
+    (ssh root@{{ hostvars[hostname].ansible_host }} "service lustre start" || true)
 {% endif %}
 {% endif %}
 {% endfor %}
@@ -18,7 +18,7 @@ stop()
 {% for hostname in groups['discos'] %}
 {% if inventory_hostname != hostvars[hostname].inventory_hostname %}
 {% if hostvars[hostname].lustre_network_interface is defined  %}
-    ssh root@{{ hostvars[hostname].ansible_host }} "service lustre stop"
+    (ssh root@{{ hostvars[hostname].ansible_host }} "service lustre stop" || true)
 {% endif %}
 {% endif %}
 {% endfor %}
