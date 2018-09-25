@@ -1,7 +1,7 @@
 [Unit]
 Description = Manages the lustre remote clients
-Requires=local-fs.target network.target
-After=local-fs.target network.target
+Requires = lustre-mgs.mount lustre-mdt.mount lustre-ost.mount sshd.service
+After = lustre-mgs.mount lustre-mdt.mount lustre-ost.mount sshd.service
 
 [Service]
 Type = oneshot
