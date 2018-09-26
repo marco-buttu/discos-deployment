@@ -47,8 +47,15 @@
   when: inventory_hostname in groups['storage']
 
 
-- name: Configure NIS on ACS machines
-  command: "authconfig --enablenis --nisdomain={{ network_domain_name }} --nisserver={{ nis_server_ip }} --update"
+- block:
+    - name: Configure NIS on ACS machines
+      command: "authconfig --enablenis --nisdomain={{ network_domain_name }} --nisserver={{ nis_server_ip }} --update"
+    - name: Set NISTIMEOUT to 10 seconds
+      lineinfile:
+        path: /etc/sysconfig/ypbind
+        line: NISTIMEOUT=10
+        state: present
+        create: true
   when: inventory_hostname in groups['acs']
 
 
