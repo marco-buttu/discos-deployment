@@ -1,0 +1,85 @@
+---
+
+- name: Install SDTools dependencies
+  command: "pip3.6 install {{ item }}"
+  with_items:
+    - astropy
+    - numpy
+    - scipy
+    - matplotlib
+    - pyyaml
+    - h5py
+    - statsmodels
+    - numba
+    - watchdog
+    - Zdaemon
+
+
+- name: Create the sdtools directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ user }}"
+    group: acs
+    mode: 0755
+  with_items:
+    - /discos/sdtools
+    - /discos/sdtools/quicklook
+
+
+- name: Copy the sdtools-get template
+  template:
+    src: sdtools-get
+    dest: /discos/sdtools/
+    owner: "{{ user }}"
+    group: acs
+    mode: 0700
+    force: true
+
+
+- name: Execute the sdtools-get script
+  command: ./sdtools-get
+  args:
+    chdir: /discos/sdtools/
+
+
+- name: Copy the quicklook service template
+  template:
+    src: quicklook
+    dest: /etc/rc.d/init.d/quicklook
+    mode: 0755
+    force: true
+
+
+- name: Copy the quicklook configuration files
+  template:
+    src: "{{ item.src }}"
+    dest: /discos/sdtools/quicklook/
+    owner: "{{ user }}"
+    group: acs
+    mode: "{{ item.mode }}"
+    force: true
+  with_items:
+    - { src: "monitor_config.ini", mode: "0644" }
+    - { src: "service.sh", mode: "0744" }
+    - { src: "service.conf", mode: "0644" }
+
+
+- name: Make sure the Desktop directory exists for {{ observer }}
+  file:
+    path: "/discos/{{ observer }}/Desktop"
+    state: directory
+    owner: "{{ observer }}"
+    group: acs
+    mode: 0755
+
+
+- name: Create a link to the quicklook index.html page
+  file:
+    src: /discos/sdtools/quicklook/index.html
+    dest: "/discos/{{ observer }}/Desktop/quicklook.html"
+    state: link
+    force: true
+    owner: "{{ user }}"
+    group: acs
+    mode: 0644

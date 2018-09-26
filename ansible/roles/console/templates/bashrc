@@ -2,22 +2,28 @@
 
 # Source global definitions
 if [ -f /etc/bashrc ]; then
-	. /etc/bashrc
+    . /etc/bashrc
 fi
 
 # User specific aliases and functions
 if [ ! -L $HOME/schedules ]; then
+    if [ -d /archive/schedules/$USER ]; then
         ln -sfn /archive/schedules/$USER schedules
+    fi
 fi
 
 if [ ! -L $HOME/data ]; then
+    if [ -d /archive/data/$USER ]; then
         ln -sfn /archive/data/$USER data
+    fi
 fi
 
 if [ ! -L $HOME/extraData ]; then
+    if [ -d /archive/extraData/$USER ]; then
         ln -sfn /archive/extraData/$USER extraData
+    fi
 fi
 
 if [ ! -L $HOME/logs ]; then
-        ln -sfn /archive/logs logs
+    ln -sfn /archive/logs logs
 fi

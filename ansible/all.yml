@@ -53,8 +53,8 @@
     - deploy
 
 
-- name: Remove the provisioning machine public key from provisioned hosts
+- name: Finalize the installation
   hosts: all
   remote_user: root
   roles:
-    - cleanup
+    - finalize

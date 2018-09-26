@@ -1,8 +1,15 @@
 ---
 
 ansible_user: root
+
+acs_gid: 335
+projects_gid: 336
+
 user: discos
+user_uid: 3060
+
 observer: observer
+observer_uid: 3061
 
 local_repository_path: "{{ lookup('env','HOME') }}/repository"
 remote_build_path: /tmp/builds

@@ -29,3 +29,14 @@
     mode: 0644
   with_items: "{{ users }}"
   no_log: true
+
+
+- name: Set the default application for html files
+  lineinfile:
+    path: /usr/share/applications/mimeapps.list
+    line: "{{ item }}"
+    state: present
+    create: true
+  with_items:
+    - "[Default Applications]"
+    - "text/html=firefox.desktop"

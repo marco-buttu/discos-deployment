@@ -20,6 +20,14 @@ start()
             echo -n "Mounting remote lustre partition..."
             mount -t lustre {{ lustre_server_ip }}@tcp0:/discos /archive
             echo "done."
+{% if inventory_hostname in groups['console'] %}
+
+            if [[ -f /etc/rc.d/init.d/quicklook ]]; then
+                echo -n "Starting quicklook service..."
+                service quicklook start
+                echo "done."
+            fi
+{% endif %}
         else
             echo "Remote lustre server unreachable."
         fi
@@ -31,6 +39,14 @@ start()
 stop()
 {
     if [[ $(mount | grep '{{ lustre_server_ip }}@tcp0:/discos' | wc -l) -eq 1 ]]; then
+{% if inventory_hostname in groups['console'] %}
+        if [[ -f /etc/rc.d/init.d/quicklook ]]; then
+            echo -n "Stopping quicklook service..."
+            service quicklook stop
+            echo "done."
+        fi
+
+{% endif %}
         echo -n "Unmounting remote lustre partition..."
         umount /archive
         echo "done."

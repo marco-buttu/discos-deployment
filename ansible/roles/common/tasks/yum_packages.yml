@@ -22,8 +22,6 @@
     - subversion
     - unzip
     - openssl
-    - gedit
-    - bluefish
     - screen
     - gnuplot
     - xterm
@@ -84,17 +82,26 @@
     - bzip2-devel
     - ypbind
     - tigervnc-server
+    - firefox
+    - gedit
+    - bluefish
   when: inventory_hostname in groups['acs']
 
 
-- name: Install manager required yum packages
-  become: true
-  yum:
-    name: "{{ item }}"
-    state: present
-  with_items:
-    - sshpass
-  when: inventory_hostname in groups['manager']
+- name: Install console required yum packages
+  block:
+    - yum:
+        name: "{{ ius_release }}"
+        state: present
+    - yum:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - sshpass
+        - python36u-pip
+        - python36u-devel
+        - python36u-tkinter
+  when: inventory_hostname in groups['console']
 
 
 - name: Install a GUI environment for ACS machines

@@ -14,7 +14,7 @@
   block:
     - replace:
         path: /etc/sysconfig/vncservers
-        regexp: '^VNCSERVERS="1:{{ user }}$"'
+        regexp: '^VNCSERVERS="1:{{ user }}"$'
         replace: 'VNCSERVERS="1:{{ user }} 2:{{ observer }}"'
     - lineinfile:
         path: /etc/sysconfig/vncservers

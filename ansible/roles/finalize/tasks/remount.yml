@@ -1,0 +1,7 @@
+---
+
+- name: Force lustre remount to correctly start services
+  systemd:
+    name: lustre
+    state: restarted
+  when: inventory_hostname in groups['storage']
