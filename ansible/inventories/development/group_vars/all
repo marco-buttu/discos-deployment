@@ -4,5 +4,5 @@ firewall_rules:
   - '-A INPUT -p icmp -j ACCEPT'
   - '-A OUTPUT -p icmp -j ACCEPT'
 
-network_domain_name: discos.development.inaf.it
+network_domain_name: development.inaf.it
 network_ip_address: 192.168.10.0/24

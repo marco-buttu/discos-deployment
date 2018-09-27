@@ -1,11 +1,11 @@
 [storage]
-storage.discos.development.inaf.it ansible_host=192.168.10.200
+storage.development.inaf.it ansible_host=192.168.10.200
 
 [manager]
-manager.discos.development.inaf.it ansible_host=192.168.10.201
+manager.development.inaf.it ansible_host=192.168.10.201
 
 [console]
-console.discos.development.inaf.it ansible_host=192.168.10.202
+console.development.inaf.it ansible_host=192.168.10.202
 
 [acs:children]
 manager
