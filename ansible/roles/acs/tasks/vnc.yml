@@ -7,7 +7,7 @@
     state: present
   with_items:
     - 'VNCSERVERS="1:{{ user }}"'
-    - 'VNCSERVERARGS[1]="-name {{ inventory_hostname }}-{{ user }} -localhost -SecurityTypes None -geometry {{ vnc_resolution }} -depth 32 -AlwaysShared -nolisten tcp -rfbport {{ vnc_starting_port+user_vnc_port|int }}"'
+    - 'VNCSERVERARGS[1]="-name {{ inventory_hostname_short }}-{{ user }} -localhost -SecurityTypes None -geometry {{ vnc_resolution }} -depth 32 -AlwaysShared -nolisten tcp -rfbport {{ vnc_starting_port+user_vnc_port|int }}"'
 
 
 - name: Configure tigervnc-server for the console machine
@@ -18,7 +18,7 @@
         replace: 'VNCSERVERS="1:{{ user }} 2:{{ observer }}"'
     - lineinfile:
         path: /etc/sysconfig/vncservers
-        line: 'VNCSERVERARGS[2]="-name {{ inventory_hostname }}-{{ observer }} -localhost -SecurityTypes None -geometry {{ vnc_resolution }} -depth 32 -AlwaysShared -nolisten tcp -rfbport {{ vnc_starting_port+observer_vnc_port|int }}"'
+        line: 'VNCSERVERARGS[2]="-name {{ inventory_hostname_short }}-{{ observer }} -localhost -SecurityTypes None -geometry {{ vnc_resolution }} -depth 32 -AlwaysShared -nolisten tcp -rfbport {{ vnc_starting_port+observer_vnc_port|int }}"'
         state: present
     - blockinfile:
         path: "/etc/ssh/sshd_config"
