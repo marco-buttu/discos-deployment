@@ -85,6 +85,7 @@
     - firefox
     - gedit
     - bluefish
+    - dejavu-sans-mono-fonts
   when: inventory_hostname in groups['acs']
 
 
