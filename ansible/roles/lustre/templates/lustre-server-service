@@ -3,26 +3,20 @@
 start()
 {
     sleep 5
-    mount -t lustre 0@lo:/discos /archive
-{% for hostname in groups['discos'] %}
-{% if inventory_hostname != hostvars[hostname].inventory_hostname %}
-{% if hostvars[hostname].lustre_network_interface is defined  %}
-    (ssh root@{{ hostvars[hostname].ansible_host }} "service lustre start" || true)
-{% endif %}
-{% endif %}
-{% endfor %}
+    mount -t lustre {{ lustre_server_ip }}@tcp0:/discos /archive || true
+
+    for machine in {{ lustre_clients_list | trim }}; do
+        ssh -o ConnectTimeout=5 root@$machine "service lustre start" || true
+    done
 }
 
 stop()
 {
-{% for hostname in groups['discos'] %}
-{% if inventory_hostname != hostvars[hostname].inventory_hostname %}
-{% if hostvars[hostname].lustre_network_interface is defined  %}
-    (ssh root@{{ hostvars[hostname].ansible_host }} "service lustre stop" || true)
-{% endif %}
-{% endif %}
-{% endfor %}
-    umount /archive
+    for machine in {{ lustre_clients_list | trim }}; do
+        ssh -o ConnectTimeout=5 root@$machine "service lustre stop" || true
+    done
+
+    umount /archive || true
 }
 
 case "$1" in

@@ -1,14 +1,13 @@
 [Unit]
 Description = Manages the lustre remote clients
-Requires = lustre-mgs.mount lustre-mdt.mount lustre-ost.mount sshd.service
-After = lustre-mgs.mount lustre-mdt.mount lustre-ost.mount sshd.service
+Requires = multi-user.target
+After = multi-user.target
 
 [Service]
 Type = oneshot
 ExecStart = /usr/bin/lustre start
 ExecStop = /usr/bin/lustre stop
 RemainAfterExit=true
-TimeoutStartSec=600
 
 [Install]
 WantedBy = multi-user.target

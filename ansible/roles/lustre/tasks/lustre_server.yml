@@ -290,6 +290,18 @@
     opts: defaults,abort_recovery
 
 
+- name: Create the lustre clients list
+  set_fact:
+    lustre_clients_list: ""
+
+
+- name: Update the lustre clients list
+  set_fact:
+    lustre_clients_list: "{{ lustre_clients_list }} {{ hostvars[item].inventory_hostname_short }}"
+  with_items: "{{ groups['acs'] }}"
+  when: hostvars[item].lustre_network_interface is defined
+
+
 - name: Copy the lustre-server-service template
   template:
     src: lustre-server-service
