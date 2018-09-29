@@ -13,6 +13,13 @@
   when: inventory_hostname in groups['storage']
 
 
+- name: Disable NetworkManager service
+  service:
+    name: NetworkManager
+    state: stopped
+    enabled: no
+
+
 - name: Update hostname
   hostname:
     name: "{{ inventory_hostname }}"
