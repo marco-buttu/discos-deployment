@@ -1,32 +1,39 @@
 ---
 
-- name: Apply a common configuration to tigervnc-server
+- name: Configure the VNCSERVERS
   lineinfile:
     path: /etc/sysconfig/vncservers
-    line: "{{ item }}"
+    line: 'VNCSERVERS="1:{{ user }}"'
+    regexp: '^VNCSERVERS=(.*)$'
     state: present
-  with_items:
-    - 'VNCSERVERS="1:{{ user }}"'
-    - 'VNCSERVERARGS[1]="-name {{ inventory_hostname_short }}-{{ user }} -localhost -SecurityTypes None -geometry {{ vnc_resolution }} -depth 32 -AlwaysShared -nolisten tcp -rfbport {{ vnc_starting_port+user_vnc_port|int }}"'
 
 
-- name: Configure tigervnc-server for the console machine
-  block:
-    - replace:
-        path: /etc/sysconfig/vncservers
-        regexp: '^VNCSERVERS="1:{{ user }}"$'
-        replace: 'VNCSERVERS="1:{{ user }} 2:{{ observer }}"'
-    - lineinfile:
-        path: /etc/sysconfig/vncservers
-        line: 'VNCSERVERARGS[2]="-name {{ inventory_hostname_short }}-{{ observer }} -localhost -SecurityTypes None -geometry {{ vnc_resolution }} -depth 32 -AlwaysShared -nolisten tcp -rfbport {{ vnc_starting_port+observer_vnc_port|int }}"'
-        state: present
-    - blockinfile:
-        path: "/etc/ssh/sshd_config"
-        state: present
-        marker: "##### {{ observer }} port forwarding configuration {mark} #####"
-        block: |
-            Match User {{ observer }}
-                PermitOpen localhost:{{ vnc_starting_port+observer_vnc_port|int }}
+- name: Configure VNCSERVERARGS
+  lineinfile:
+    path: /etc/sysconfig/vncservers
+    line: 'VNCSERVERARGS[1]="-name {{ inventory_hostname_short }}-{{ user }} -localhost -SecurityTypes None -geometry {{ vnc_resolution }} -depth 32 -AlwaysShared -nolisten tcp -rfbport {{ vnc_starting_port+user_vnc_port|int }}"'
+    state: present
+
+
+- block:
+  - name: Add the {{ observer }} VNCSERVER
+    lineinfile:
+      path: /etc/sysconfig/vncservers
+      regexp: '^VNCSERVERS=(.*)$'
+      line: 'VNCSERVERS="1:{{ user }} 2:{{ observer }}"'
+  - name: Configure the {{ observer }} VNCSERVERARGS
+    lineinfile:
+      path: /etc/sysconfig/vncservers
+      line: 'VNCSERVERARGS[2]="-name {{ inventory_hostname_short }}-{{ observer }} -localhost -SecurityTypes None -geometry {{ vnc_resolution }} -depth 32 -AlwaysShared -nolisten tcp -rfbport {{ vnc_starting_port+observer_vnc_port|int }}"'
+      state: present
+  - name: Enable ssh tunneling for user {{ observer }} only for the VNCSERVER port
+    blockinfile:
+      path: "/etc/ssh/sshd_config"
+      state: present
+      marker: "##### {{ observer }} port forwarding configuration {mark} #####"
+      block: |
+          Match User {{ observer }}
+              PermitOpen localhost:{{ vnc_starting_port+observer_vnc_port|int }}
   when: inventory_hostname in groups['console']
 
 
