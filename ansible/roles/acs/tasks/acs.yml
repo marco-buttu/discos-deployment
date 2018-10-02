@@ -101,6 +101,22 @@
 # Set the ACS user's environment
 ################################
 
+
+- name: Add ACS libraries to ld.so configuration
+  lineinfile:
+    path: "/etc/ld.so.conf.d/acs.conf"
+    line: "{{ item }}"
+    state: present
+    create: true
+  with_items:
+    - "/alma/{{ acs_tag }}/ACSSW/lib"
+    - "/alma/{{ acs_tag }}/TAO/ACE_wrappers/build/linux/lib"
+
+
+- name: Load the ACS libraries to the system
+  command: ldconfig
+
+
 - name: Copy the .acs dir from /alma to /discos/config
   command: chdir={{ acssw }}/config {{ item }}
   with_items:

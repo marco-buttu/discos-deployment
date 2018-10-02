@@ -76,7 +76,7 @@ try:
         '--branch',
         args.branch,
         '--single-branch'],
-        timeout=60)
+        timeout=120)
 except subprocess.TimeoutExpired:
     if os.path.exists(BRANCH_PATH):
         shutil.rmtree(BRANCH_PATH)
@@ -107,6 +107,12 @@ code = subprocess.call(
 if code:
     sys.exit(code)
 else:
+    os.makedirs(os.path.join(introot, 'user/bin'))
+    subprocess.call(['chmod', '-R', 'go-rwx', introot])
+    subprocess.call(['chmod', 'go+x', introot])
+    subprocess.call(['chmod', '-R', 'go+rx', os.path.join(introot, 'lib')])
+    subprocess.call(['chmod', '-R', 'g+rx', os.path.join(introot, 'bin')])
+    subprocess.call(['chmod', '-R', 'o+rx', os.path.join(introot, 'user')])
     print('Introot created into %s' % introot)
 
 # Create the .station file
