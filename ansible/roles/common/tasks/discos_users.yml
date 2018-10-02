@@ -56,6 +56,17 @@
   when: item.password != ""
 
 
+- name: Add the user {{ observer }} in the storage machine in order to prevent UIDs conflicts
+  user:
+    name: "{{ observer }}"
+    group: acs
+    uid: "{{ observer_uid }}"
+    shell: "/sbin/nologin"
+    createhome: false
+    state: present
+  when: inventory_hostname in groups['storage']
+
+
 - name: Add the user {{ user }} to sudoers
   lineinfile:
     dest: /etc/sudoers
