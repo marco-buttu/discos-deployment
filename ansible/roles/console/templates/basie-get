@@ -1,0 +1,46 @@
+#!/usr/bin/env python
+import subprocess
+import os
+import sys
+
+if os.geteuid() != 0:
+    os.execvp('sudo', ['sudo', 'python2.7'] + sys.argv)
+
+env_path = '{{ git_dir }}/bin'
+if os.environ.get('PATH'):
+    env_path += ':%s' % os.environ.get('PATH')
+os.environ['PATH'] = env_path
+
+def become_discos():
+    def set_ids():
+        os.setgid({{ acs_gid }})
+        os.setuid({{ user_uid }})
+    return set_ids
+
+current_dir = os.path.dirname(os.path.realpath(__file__))
+basie_repo = 'basie'
+basie_bin_dir = os.path.join(current_dir, 'bin')
+basie_repo_dir = os.path.join(current_dir, basie_repo)
+basie_repo_url = 'https://github.com/discos/%s.git' % basie_repo
+
+subprocess.call(['rm', '-rf', basie_repo_dir])
+subprocess.call(
+    ['git', 'clone', basie_repo_url],
+    cwd=current_dir,
+    preexec_fn=become_discos()
+)
+
+subprocess.call(
+    ['pip2.7',
+    'install',
+    '-r',
+    'requirements.txt'],
+    cwd=basie_repo_dir,
+)
+
+subprocess.call(
+    ['python2.7',
+    'setup.py',
+    'install'],
+    cwd=basie_repo_dir
+)
