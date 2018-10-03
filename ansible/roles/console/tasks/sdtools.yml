@@ -17,14 +17,14 @@
 
 - name: Create the sdtools directories
   file:
-    path: "{{ item }}"
+    path: "{{ item.path }}"
     state: directory
     owner: "{{ user }}"
     group: acs
-    mode: 0755
+    mode: "{{ item.mode }}"
   with_items:
-    - /discos/sdtools
-    - /discos/sdtools/quicklook
+    - { path: "/discos/sdtools", mode: "0710" }
+    - { path: "/discos/sdtools/quicklook", mode: "0750" }
 
 
 - name: Copy the sdtools-get template

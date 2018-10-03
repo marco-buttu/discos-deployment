@@ -47,3 +47,6 @@ for line in open(load_branch):
     else:
         lines.append(line)
 open(load_branch, 'w').writelines(lines)
+
+os.symlink('/discos/introots/%s' % args.branch, '/discos/introots/tmp')
+os.rename('/discos/introots/tmp', '/discos/introots/default')
