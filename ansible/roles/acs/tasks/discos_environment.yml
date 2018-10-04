@@ -1,8 +1,8 @@
 ---
 
-- name: Populate the /discos/ directory tree
+- name: Populate the {{ discos_sw_dir }} directory tree
   file:
-    path: "/discos/{{ item.path }}"
+    path: "/{{ discos_sw_dir }}/{{ item.path }}"
     state: directory
     owner: "{{ user }}"
     group: acs
@@ -11,14 +11,14 @@
     follow: yes
   with_items:
     - { path: "config", mode: "0750" }
-    - { path: "config/discos", mode: "0750" }
+    - { path: "config/misc", mode: "0750" }
     - { path: "introots", mode: "0711" }
 
 
 - name: Copy the bashrc template
   template:
     src: bashrc
-    dest: "/discos/config/discos/"
+    dest: "/{{ discos_sw_dir }}/config/misc/"
     owner: "{{ user }}"
     group: acs
     mode: 0640
@@ -28,7 +28,7 @@
 - name: Copy prompt_command.sh
   template:
     src: prompt_command.sh
-    dest: "/discos/config/discos/"
+    dest: "/{{ discos_sw_dir }}/config/misc/"
     owner: "{{ user }}"
     group: acs
     mode: 0640
@@ -37,16 +37,17 @@
 
 - name: Create the branches file
   file:
-    path: "/discos/config/discos/branches"
+    path: "/{{ discos_sw_dir }}/config/misc/branches"
     state: touch
     owner: "{{ user }}"
     group: acs
+    mode: 0640
  
  
 - name: Copy the load_branch template
   template:
     src: load_branch
-    dest: "/discos/config/discos/"
+    dest: "/{{ discos_sw_dir }}/config/misc/"
     owner: "{{ user }}"
     group: acs
     mode: 0640
@@ -55,7 +56,7 @@
  
 - name: Create the /bin directory for user {{ user }}
   file:
-    path: "/discos/{{ user }}/bin"
+    path: "/{{ discos_sw_dir }}/{{ user }}/bin"
     state: directory
     owner: "{{ user }}"
     group: acs
@@ -65,7 +66,7 @@
 - name: Render the discos-get template
   template:
     src: discos-get
-    dest: "/discos/{{ user }}/bin/"
+    dest: "/{{ discos_sw_dir }}/{{ user }}/bin/"
     owner: "{{ user }}"
     group: acs
     mode: 0500
@@ -75,7 +76,7 @@
 - name: Render the discos-set template
   template:
     src: discos-set
-    dest: "/discos/{{ user }}/bin/"
+    dest: "/{{ discos_sw_dir }}/{{ user }}/bin/"
     owner: "{{ user }}"
     group: acs
     mode: 0500
@@ -85,7 +86,7 @@
 - name: Render the _discos-check-branch template
   template:
     src: _discos-check-branch
-    dest: "/discos/{{ user }}/bin/"
+    dest: "/{{ discos_sw_dir }}/{{ user }}/bin/"
     owner: "{{ user }}"
     group: acs
     mode: 0500
@@ -95,7 +96,7 @@
 - name: Copy the pyrc template
   template:
     src: pyrc
-    dest: "/discos/{{ item.name }}/.pyrc"
+    dest: "/{{ discos_sw_dir }}/{{ item.name }}/.pyrc"
     owner: "{{ item.name }}"
     group: acs
     mode: 0600
@@ -106,7 +107,7 @@
 - name: Copy vimrc
   template:
     src: vimrc
-    dest: "/discos/{{ item.name }}/.vimrc"
+    dest: "/{{ discos_sw_dir }}/{{ item.name }}/.vimrc"
     owner: "{{ item.name }}"
     group: acs
     mode: 0600
@@ -116,12 +117,12 @@
 
 - name: Add the custom bashrc sourcing to the default one
   blockinfile:
-    path: "/discos/{{ item.name }}/.bashrc"
+    path: "/{{ discos_sw_dir }}/{{ item.name }}/.bashrc"
     state: present
     marker: "######## DISCOS configuration {mark} ########"
     block: |
-        if [ -f /discos/config/discos/bashrc ]; then
-            source /discos/config/discos/bashrc
+        if [ -f /{{ discos_sw_dir }}/config/misc/bashrc ]; then
+            source /{{ discos_sw_dir }}/config/misc/bashrc
         fi
   no_log: true
   with_items: "{{ users }}"

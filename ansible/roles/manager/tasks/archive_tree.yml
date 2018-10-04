@@ -27,19 +27,10 @@
     - [ "user::rwx", "group::---" ]
 
 
-- name: Create the DISCOS misc directory
-  file:
-    path: "/discos/{{ user }}/misc"
-    state: directory
-    owner: "{{ user }}"
-    group: acs
-    recurse: yes
-
-
 - name: Render the discos-logrotate template
   template:
     src: discos-logrotate
-    dest: "/discos/{{ user }}/misc/"
+    dest: "/{{ discos_sw_dir }}/config/misc/"
     owner: "{{ user }}"
     group: acs
     mode: 0644
@@ -52,4 +43,4 @@
     hour: "23"
     minute: "59"
     user: "{{ user }}"
-    job: "/usr/sbin/logrotate -f /discos/{{ user }}/misc/discos-logrotate"
+    job: "/usr/sbin/logrotate -f /{{ discos_sw_dir }}/config/misc/discos-logrotate"

@@ -2,7 +2,7 @@
 #. /etc/rc.d/init.d/functions
 #. /etc/sysconfig/network
 
-APP_PATH=/discos/sdtools/quicklook
+APP_PATH=/{{ discos_sw_dir }}/sdtools/quicklook
 
 start() {
     if [ -d /archive/data ]; then

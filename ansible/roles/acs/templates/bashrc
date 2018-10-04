@@ -12,16 +12,16 @@ alias lt='ls -lt | more'
 
 # Load ACS definitions
 # ====================
-if [ -f /discos/config/acs/.bash_profile.acs ]; then
-    source /discos/config/acs/.bash_profile.acs
+if [ -f /{{ discos_sw_dir }}/config/acs/.bash_profile.acs ]; then
+    source /{{ discos_sw_dir }}/config/acs/.bash_profile.acs
 fi
-export ACS_TMP=/data/acstmp/{{ inventory_hostname_short }}
+export ACS_TMP=/service/acstmp/{{ inventory_hostname_short }}
 
 
 # Load DISCOS environment
 # =======================
-if [ -f /discos/config/discos/load_branch ]; then
-    source /discos/config/discos/load_branch
+if [ -f /{{ discos_sw_dir }}/config/misc/load_branch ]; then
+    source /{{ discos_sw_dir }}/config/misc/load_branch
 fi
 
 
@@ -42,7 +42,7 @@ fi
 
 # Update the environment at every prompt
 # ======================================
-PROMPT_COMMAND='source /discos/config/discos/prompt_command.sh'
+PROMPT_COMMAND='source /{{ discos_sw_dir }}/config/misc/prompt_command.sh'
 
 
 # Variables to export
@@ -53,7 +53,7 @@ export QTINC=$QTDIR/include
 export qt_prefix=$QTLIB
 export PATH=$PATH:$QTDIR/bin:$HOME/bin
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib:/usr/lib64:$QTLIB
-export PYTHONSTARTUP=/discos/config/discos/.pyrc
+export PYTHONSTARTUP=/{{ discos_sw_dir }}/config/misc/.pyrc
 export EDITOR=vi
 {% if inventory_hostname not in groups['manager'] %}
 

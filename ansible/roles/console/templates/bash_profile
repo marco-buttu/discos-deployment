@@ -7,8 +7,8 @@ fi
 
 # User specific environment and startup programs
 
-PATH=$HOME/bin:/usr/local/bin:/discos/introots/default/user/bin:$PATH
+PATH=$HOME/bin:/usr/local/bin:/{{ discos_sw_dir }}/introots/default/user/bin:$PATH
 export PATH
 
-LD_LIBRARY_PATH=/discos/introots/default/lib
+LD_LIBRARY_PATH=/{{ discos_sw_dir }}/introots/default/lib
 export LD_LIBRARY_PATH

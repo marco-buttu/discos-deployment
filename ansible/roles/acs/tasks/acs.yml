@@ -102,17 +102,17 @@
 ################################
 
 
-- name: Copy the .acs dir from /alma to /discos/config
+- name: Copy the .acs dir from /alma to /{{ discos_sw_dir }}/config
   command: chdir={{ acssw }}/config {{ item }}
   with_items:
-    - "cp -r .acs /discos/config/acs"
+    - "cp -r .acs /{{ discos_sw_dir }}/config/acs"
   become: true
   become_user: "{{ user }}"
 
 
 - name: Create the acstmp directory
   file:
-    path: "/data/acstmp/{{ inventory_hostname_short }}"
+    path: "/service/acstmp/{{ inventory_hostname_short }}"
     state: directory
     owner: "{{ user }}"
     group: acs
