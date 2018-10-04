@@ -37,6 +37,15 @@
     force: yes
 
 
+- name: Create the /service/events directory
+  file:
+    path: "/service/events"
+    state: directory
+    owner: "{{ user }}"
+    group: acs
+    mode: 0755
+
+
 - name: Activate the crontab job for log rotation
   cron:
     name: discos-logrotate

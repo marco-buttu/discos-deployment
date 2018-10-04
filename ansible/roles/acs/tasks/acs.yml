@@ -116,7 +116,7 @@
     state: directory
     owner: "{{ user }}"
     group: acs
-    mode: 0775
+    mode: 0755
     recurse: yes
 
 
