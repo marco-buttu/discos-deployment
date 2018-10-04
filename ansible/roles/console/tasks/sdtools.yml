@@ -43,6 +43,13 @@
     chdir: "/{{ discos_sw_dir }}/sdtools/"
 
 
+- name: Allow acs group users to start the quicklook service without sudo password
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    line: "%acs    ALL=    NOPASSWD: /etc/rc.d/init.d/quicklook"
+
+
 - name: Copy the quicklook service template
   template:
     src: quicklook
@@ -60,9 +67,9 @@
     mode: "{{ item.mode }}"
     force: true
   with_items:
-    - { src: "monitor_config.ini", mode: "0644" }
-    - { src: "service.sh", mode: "0744" }
-    - { src: "service.conf", mode: "0644" }
+    - { src: "monitor_config.ini", mode: "0640" }
+    - { src: "service.sh", mode: "0740" }
+    - { src: "service.conf", mode: "0640" }
 
 
 - name: Make sure the Desktop directory exists for {{ observer }}
