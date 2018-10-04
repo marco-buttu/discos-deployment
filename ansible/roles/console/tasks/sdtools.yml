@@ -23,14 +23,14 @@
     group: acs
     mode: "{{ item.mode }}"
   with_items:
-    - { path: "/discos/sdtools", mode: "0710" }
-    - { path: "/discos/sdtools/quicklook", mode: "0750" }
+    - { path: "/{{ discos_sw_dir }}/sdtools", mode: "0710" }
+    - { path: "/{{ discos_sw_dir }}/sdtools/quicklook", mode: "0750" }
 
 
 - name: Copy the sdtools-get template
   template:
     src: sdtools-get
-    dest: /discos/sdtools/
+    dest: "/{{ discos_sw_dir }}/sdtools/"
     owner: "{{ user }}"
     group: acs
     mode: 0700
@@ -40,7 +40,7 @@
 - name: Execute the sdtools-get script
   command: ./sdtools-get
   args:
-    chdir: /discos/sdtools/
+    chdir: "/{{ discos_sw_dir }}/sdtools/"
 
 
 - name: Copy the quicklook service template
@@ -54,7 +54,7 @@
 - name: Copy the quicklook configuration files
   template:
     src: "{{ item.src }}"
-    dest: /discos/sdtools/quicklook/
+    dest: "/{{ discos_sw_dir }}/sdtools/quicklook/"
     owner: "{{ user }}"
     group: acs
     mode: "{{ item.mode }}"
@@ -67,7 +67,7 @@
 
 - name: Make sure the Desktop directory exists for {{ observer }}
   file:
-    path: "/discos/{{ observer }}/Desktop"
+    path: "/{{ discos_sw_dir }}/{{ observer }}/Desktop"
     state: directory
     owner: "{{ observer }}"
     group: acs
@@ -76,8 +76,8 @@
 
 - name: Create a link to the quicklook index.html page
   file:
-    src: /discos/sdtools/quicklook/index.html
-    dest: "/discos/{{ observer }}/Desktop/quicklook.html"
+    src: "/{{ discos_sw_dir }}/sdtools/quicklook/index.html"
+    dest: "/{{ discos_sw_dir }}/{{ observer }}/Desktop/quicklook.html"
     state: link
     force: true
     owner: "{{ user }}"

@@ -1,8 +1,8 @@
 ---
 
 - set_fact:
-    sources_path: "/discos/{{ user }}/{{ branch }}-{{ station }}"
-    introot_path: "/discos/introots/{{ branch }}-{{ station }}"
+    sources_path: "/{{ discos_sw_dir }}/{{ user }}/{{ branch }}-{{ station }}"
+    introot_path: "/{{ discos_sw_dir }}/introots/{{ branch }}-{{ station }}"
 
 
 - name: Remove the repository directory and introot (if present)

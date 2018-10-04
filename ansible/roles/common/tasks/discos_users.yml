@@ -23,7 +23,7 @@
     - set_fact:
         users: [{ name: "{{ user }}", uid: "{{ user_uid }}", password: "{{ user_pwd }}" }]
     - set_fact:
-        users: "{{ users + [{ 'name': 'observer', 'uid': '{{ observer_uid }}', 'password': observer_pwd }] }}"
+        users: "{{ users }} + [{ 'name': observer, 'uid': observer_uid, 'password': observer_pwd }]"
       when: inventory_hostname in groups['console']
 
 
@@ -34,9 +34,9 @@
     state: present
 
 
-- name: Create the /discos directory
+- name: Create the /{{ discos_sw_dir }} directory
   file:
-    path: /discos
+    path: "/{{ discos_sw_dir }}"
     state: directory
     mode: 0755
 
@@ -47,7 +47,7 @@
     password: "{{ item.password }}"
     group: acs
     uid: "{{ item.uid }}"
-    home: "/discos/{{ item.name }}"
+    home: "/{{ discos_sw_dir }}/{{ item.name }}"
     state: present
     generate_ssh_key: yes
     ssh_key_file: .ssh/id_rsa
@@ -56,9 +56,9 @@
   when: item.password != ""
 
 
-- name: Tune the /discos directory ownership
+- name: Tune the /{{ discos_sw_dir }} directory ownership
   file:
-    path: /discos
+    path: "/{{ discos_sw_dir }}"
     state: directory
     owner: "{{ user }}"
     group: acs
@@ -108,7 +108,7 @@
   block:
     - name: Make sure the ssh files exists
       file:
-        path: "/discos/{{ user }}/.ssh/{{ item }}"
+        path: "/{{ discos_sw_dir }}/{{ user }}/.ssh/{{ item }}"
         state: touch
         owner: "{{ user }}"
         group: acs
@@ -118,7 +118,7 @@
         - "known_hosts"
     - name: Removing old machine RSA fingerprints from known_hosts file
       lineinfile:
-        path: /discos/{{ user }}/.ssh/known_hosts
+        path: /{{ discos_sw_dir }}/{{ user }}/.ssh/known_hosts
         state: absent
         regexp: "^{{ hostvars[item].inventory_hostname }},{{ hostvars[item].inventory_hostname_short}},{{ hostvars[item].ansible_host }}(.*)$"
       with_items: "{{ play_hosts }}"
@@ -127,23 +127,23 @@
       register: machine_public_key
     - name: Add machine RSA fingerprints to known_hosts file
       lineinfile:
-        path: /discos/{{ user }}/.ssh/known_hosts
+        path: /{{ discos_sw_dir }}/{{ user }}/.ssh/known_hosts
         state: present
         line: "{{ hostvars[item].inventory_hostname }},{{ hostvars[item].inventory_hostname_short}},{{ hostvars[item].ansible_host }} {{ hostvars[item].machine_public_key.stdout }}"
       with_items:
         - "{{ play_hosts }}"
     - name: Fetch the {{ user }} user RSA public key
-      command: cat /discos/{{ user }}/.ssh/id_rsa.pub
+      command: cat /{{ discos_sw_dir }}/{{ user }}/.ssh/id_rsa.pub
       register: user_public_key
     - name: Remove old public keys from authorized_keys file
       lineinfile:
-        path: /discos/{{ user }}/.ssh/authorized_keys
+        path: /{{ discos_sw_dir }}/{{ user }}/.ssh/authorized_keys
         state: absent
         regexp: "^(.*)ansible-generated on {{ hostvars[item].inventory_hostname_short }}$"
       with_items: "{{ play_hosts }}"
     - name: Share public key with all machines in current deployment session
       lineinfile:
-        path: /discos/{{ user }}/.ssh/authorized_keys
+        path: /{{ discos_sw_dir }}/{{ user }}/.ssh/authorized_keys
         state: present
         line: "{{ hostvars[item].user_public_key.stdout }}" 
       with_items:

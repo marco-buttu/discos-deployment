@@ -23,7 +23,7 @@
 - name: Copy the ipython startup files
   template:
     src: ipython_startup_01.py
-    dest: "/discos/{{ item.name }}/.ipython/profile_default/startup/01.py"
+    dest: "/{{ discos_sw_dir }}/{{ item.name }}/.ipython/profile_default/startup/01.py"
     owner: "{{ item.name }}"
     group: acs
     mode: 0644

@@ -11,6 +11,8 @@ user_uid: 3060
 observer: observer
 observer_uid: 3061
 
+discos_sw_dir: discos-sw
+
 local_repository_path: "{{ lookup('env','HOME') }}/repository"
 remote_build_path: /tmp/builds
 

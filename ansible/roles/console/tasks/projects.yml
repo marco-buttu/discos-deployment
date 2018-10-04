@@ -3,7 +3,7 @@
 - name: Render the discos-addProject template
   template:
     src: discos-addProject
-    dest: "/discos/{{ user }}/bin/"
+    dest: "/{{ discos_sw_dir }}/{{ user }}/bin/"
     owner: "{{ user }}"
     group: acs
     mode: 0544
@@ -15,7 +15,7 @@
 - name: Render the discos-removeProject template
   template:
     src: discos-removeProject
-    dest: "/discos/{{ user }}/bin/"
+    dest: "/{{ discos_sw_dir }}/{{ user }}/bin/"
     owner: "{{ user }}"
     group: acs
     mode: 0544

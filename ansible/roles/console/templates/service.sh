@@ -1,4 +1,4 @@
 #!/bin/bash
 
-cd /discos/sdtools/quicklook
+cd /{{ discos_sw_dir }}/sdtools/quicklook
 SDTmonitor -c monitor_config.ini --polling --nosave /archive/data/

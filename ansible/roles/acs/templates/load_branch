@@ -9,8 +9,8 @@ export CDB=
 # =======================
 if [ -n "${DISCOS_BRANCH}" ]; then
     if [ $CDB = "test" ]; then
-        export ACS_CDB=/discos/{{ user }}/$DISCOS_BRANCH/$STATION
+        export ACS_CDB=/{{ discos_sw_dir }}/{{ user }}/$DISCOS_BRANCH/$STATION
     else
-        export ACS_CDB=/discos/{{ user }}/$DISCOS_BRANCH/$STATION/Configuration
+        export ACS_CDB=/{{ discos_sw_dir }}/{{ user }}/$DISCOS_BRANCH/$STATION/Configuration
     fi
 fi

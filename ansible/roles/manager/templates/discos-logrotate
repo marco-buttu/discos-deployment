@@ -11,9 +11,9 @@
     extension .xml
     missingok
     compress
-    delaycompress
-#   postrotate
-#   endscript
+    postrotate
+        rsync /archive/events/*.gz /service/events/
+    endscript
 }
 
 #==========================================

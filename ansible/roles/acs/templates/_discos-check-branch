@@ -3,8 +3,8 @@ from __future__ import print_function
 import os, shutil
 
 BRANCH_ROOT = os.environ['HOME']
-BRANCH_LIST = os.path.join(BRANCH_ROOT, '/discos/config/discos/branches')
-load_branch = os.path.join(BRANCH_ROOT, '/discos/config/discos/load_branch')
+BRANCH_LIST = os.path.join(BRANCH_ROOT, '/{{ discos_sw_dir }}/config/misc/branches')
+load_branch = os.path.join(BRANCH_ROOT, '/{{ discos_sw_dir }}/config/misc/load_branch')
 
 discos_branch = ''
 
@@ -21,7 +21,7 @@ for line in open(BRANCH_LIST, 'r'):
         branches.append(branch)
     else:
         try:
-            shutil.rmtree('/discos/introots/%s' % branch)
+            shutil.rmtree('/{{ discos_sw_dir }}/introots/%s' % branch)
         except:
             pass
     lines = [b + '\n' for b in branches]

@@ -99,8 +99,8 @@ subprocess.call([
     'origin',
     'https://github.com/discos/discos.git'])
 
-# Create the introot inside /discos/introots/
-introot = os.path.join('/discos/introots', branch_name)
+# Create the introot inside /{{ discos_sw_dir }}/introots/
+introot = os.path.join('/{{ discos_sw_dir }}/introots', branch_name)
 code = subprocess.call(
     ['getTemplateForDirectory', 'INTROOT', introot],
     stdout=open(os.devnull, 'w'))
@@ -120,7 +120,7 @@ with open(os.path.join(introot, '.station'), 'w') as f:
     f.write(cargs.station)
 
 # Add the branch to the list of available branches
-with open('/discos/config/discos/branches', 'a+') as f:
+with open('/{{ discos_sw_dir }}/config/misc/branches', 'a+') as f:
     content = f.read()
     if not branch_name in content:
         f.write(branch_name + '\n')

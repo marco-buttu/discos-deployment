@@ -1,17 +1,8 @@
 ---
 
-- name: Install basie dependencies
-  yum:
-    name: "{{ item }}"
-    state: present
-  with_items:
-    - python27
-    - python27-pip
-
-
 - name: Create the basie directories
   file:
-    path: /discos/basie
+    path: /{{ discos_sw_dir }}/basie
     state: directory
     owner: "{{ user }}"
     group: acs
@@ -21,7 +12,7 @@
 - name: Copy the basie-get template
   template:
     src: basie-get
-    dest: /discos/basie/
+    dest: /{{ discos_sw_dir }}/basie/
     owner: "{{ user }}"
     group: acs
     mode: 0700
@@ -31,4 +22,4 @@
 - name: Execute the basie-get script
   command: ./basie-get
   args:
-    chdir: /discos/basie/
+    chdir: /{{ discos_sw_dir }}/basie/
