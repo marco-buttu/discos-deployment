@@ -1,5 +1,12 @@
 ---
 
+- name: Make sure the quicklook service is not running
+  service:
+    name: quicklook
+    status: stopped
+  failed_when: false
+
+
 - name: Install SDTools dependencies
   command: "pip3.6 install {{ item }}"
   with_items:
@@ -41,13 +48,6 @@
   command: ./sdtools-get
   args:
     chdir: "/{{ discos_sw_dir }}/sdtools/"
-
-
-- name: Allow acs group users to start the quicklook service without sudo password
-  lineinfile:
-    dest: /etc/sudoers
-    state: present
-    line: "%acs    ALL=    NOPASSWD: /etc/rc.d/init.d/quicklook"
 
 
 - name: Copy the quicklook service template
