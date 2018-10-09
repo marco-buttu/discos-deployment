@@ -15,6 +15,16 @@
     state: present
 
 
+- name: Enable ssh tunneling for {{ user }} only for the VNCSERVER port
+  blockinfile:
+    path: "/etc/ssh/sshd_config"
+    state: present
+    marker: "##### {{ user }} port forwarding configuration {mark} #####"
+    block: |
+        Match User {{ user }}
+            PermitOpen localhost:{{ vnc_starting_port+user_vnc_port|int }}
+
+
 - block:
   - name: Add the {{ observer }} VNCSERVER
     lineinfile:
@@ -37,18 +47,18 @@
   when: inventory_hostname in groups['console']
 
 
-- name: Apply a patch to GNOME in order to avoid an annoying VNC popup
-  lineinfile:
-    path: /etc/xdg/autostart/gpk-update-icon.desktop
-    line: X-GNOME-Autostart-enabled=false
-    state: present
-
-
 - name: Restart ssh service
   service:
     name: sshd
     state: restarted
     enabled: yes
+
+
+- name: Apply a patch to GNOME in order to avoid an annoying VNC popup
+  lineinfile:
+    path: /etc/xdg/autostart/gpk-update-icon.desktop
+    line: X-GNOME-Autostart-enabled=false
+    state: present
 
 
 - name: Start vncserver service
