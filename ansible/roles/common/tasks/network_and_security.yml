@@ -2,8 +2,26 @@
 
 - name: Disable SELINUX
   selinux:
-    conf: /etc/sysconfig/selinux
     state: disabled
+  register: selinux_state
+
+
+- name: Reboot the machine if required
+  shell: 'sleep 5 && shutdown -r now "SELINUX disabled."'
+  async: 1
+  poll: 0
+  ignore_errors: true
+  when: selinux_state.reboot_required
+  register: rebooting
+
+
+- name: Wait for machine to come back online
+  wait_for_connection:
+    connect_timeout: 20
+    sleep: 5
+    delay: 5
+    timeout: 300
+  when: rebooting is changed
 
 
 - name: Mask firewalld service
