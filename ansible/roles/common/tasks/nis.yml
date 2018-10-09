@@ -76,6 +76,5 @@
         name: ypbind
         state: started
         enabled: yes
-      no_log: true
-      ignore_errors: true  # This becomes necessary when the NIS server is not online
+      failed_when: false
   when: inventory_hostname in groups['acs']
