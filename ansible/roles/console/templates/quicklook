@@ -2,11 +2,6 @@
 #. /etc/rc.d/init.d/functions
 #. /etc/sysconfig/network
 
-# Recall the script if the user is not root
-if [ "$EUID" -ne 0 ]; then
-    exec sudo $0 "$@"
-fi
-
 APP_PATH=/{{ discos_sw_dir }}/sdtools/quicklook
 
 start() {
@@ -44,7 +39,7 @@ case "$1" in
         start
         ;;
     *)
-        echo $"Usage: $0 {start|stop|status|restart}"
+        echo "Usage: $0 {start|stop|status|restart}"
         RETVAL=2
 
 esac
