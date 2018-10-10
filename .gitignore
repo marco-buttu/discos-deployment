@@ -3,6 +3,4 @@ ansible/site.retry
 TODO*
 repository
 ansible/all.retry
-dist/
-discos_deployment.egg-info/
-build/
+*.pyc
