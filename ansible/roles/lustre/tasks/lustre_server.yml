@@ -196,35 +196,63 @@
   parted:
     device: "{{ lustre_device }}"
     label: msdos
+  when: initialize_lustre_disk
+
+
+- set_fact:
+    lustre_mount_points:
+      - "/lustre"
+      - "/lustre/mgs-mdt"
+      - "/lustre/ost"
+  when: merge_mgs_mdt
+
+
+- set_fact:
+    lustre_mount_points:
+      - "/lustre"
+      - "/lustre/mgs"
+      - "/lustre/mdt"
+      - "/lustre/ost"
+  when: not merge_mgs_mdt
 
 
 - name: Create the lustre mount points
   file:
     path: "{{ item }}"
     state: directory
-  with_items:
-    - "/lustre"
-    - "/lustre/mgs"
-    - "/lustre/mdt"
-    - "/lustre/ost"
+  with_items: lustre_mount_points
 
 
-- name: Create the lustre mgs partition
+- name: Create the lustre mgs-mdt partition
   parted:
-    device: "{{ lustre_mgs_partition.device }}"
-    number: "{{ lustre_mgs_partition.number }}"
+    device: "{{ lustre_mgs_mdt_partition.device }}"
+    number: "{{ lustre_mgs_mdt_partition.number }}"
     state: present
-    part_start: "{{ lustre_mgs_partition.start }}"
-    part_end: "{{ lustre_mgs_partition.end }}"
+    part_start: "{{ lustre_mgs_mdt_partition.start }}"
+    part_end: "{{ lustre_mgs_mdt_partition.end }}"
+  when:
+    - initialize_lustre_disk
+    - merge_mgs_mdt
 
 
-- name: Create the lustre mdt partition
-  parted:
-    device: "{{ lustre_mdt_partition.device }}"
-    number: "{{ lustre_mdt_partition.number }}"
-    state: present
-    part_start: "{{ lustre_mdt_partition.start }}"
-    part_end: "{{ lustre_mdt_partition.end }}"
+- block:
+  - name: Create the lustre mgs partition
+    parted:
+      device: "{{ lustre_mgs_partition.device }}"
+      number: "{{ lustre_mgs_partition.number }}"
+      state: present
+      part_start: "{{ lustre_mgs_partition.start }}"
+      part_end: "{{ lustre_mgs_partition.end }}"
+  - name: Create the lustre mdt partition
+    parted:
+      device: "{{ lustre_mdt_partition.device }}"
+      number: "{{ lustre_mdt_partition.number }}"
+      state: present
+      part_start: "{{ lustre_mdt_partition.start }}"
+      part_end: "{{ lustre_mdt_partition.end }}"
+  when:
+    - initialize_lustre_disk
+    - not merge_mgs_mdt
 
 
 - name: Create the lustre data partition
@@ -234,42 +262,63 @@
     state: present
     part_start: "{{ lustre_ost_partition.start }}"
     part_end: "{{ lustre_ost_partition.end }}"
+  when: initialize_lustre_disk
 
 
-- name: Format the lustre mgs partition
-  command: "mkfs.lustre --mgs {{ lustre_mgs_partition.device}}{{ lustre_mgs_partition.number }}"
+- name: Format the lustre mgs-mdt partition
+  command: "mkfs.lustre --fsname=discos --mgs --mdt {{ lustre_mgs_mdt_partition.device}}{{ lustre_mgs_mdt_partition.number }}"
   register: command_result
   failed_when:
     - command_result.rc != 0
     - command_result.rc != 1
     - command_result.rc != 17
+  when: merge_mgs_mdt
 
 
-- name: Format the lustre mdt partition
-  command: "mkfs.lustre --mdt --fsname=discos --mgsnode={{ lustre_server_ip }}@tcp --index=0 {{ lustre_mdt_partition.device}}{{ lustre_mdt_partition.number }}"
-  register: command_result
-  failed_when:
-    - command_result.rc != 0
-    - command_result.rc != 1
-    - command_result.rc != 17
+- block:
+  - name: Format the lustre mgs partition
+    command: "mkfs.lustre --mgs {{ lustre_mgs_partition.device}}{{ lustre_mgs_partition.number }}"
+    register: command_result
+    failed_when:
+      - command_result.rc != 0
+      - command_result.rc != 1
+      - command_result.rc != 17
+  - name: Format the lustre mdt partition
+    command: "mkfs.lustre --mdt --fsname=discos --mgsnode={{ lustre_server_ip }}@tcp --index=0 {{ lustre_mdt_partition.device}}{{ lustre_mdt_partition.number }}"
+    register: command_result
+    failed_when:
+      - command_result.rc != 0
+      - command_result.rc != 1
+      - command_result.rc != 17
+  when: not merge_mgs_mdt
 
 
-- name: Mount the lustre mgs partition
+- name: Mount the lustre mgs-mdt partition
   mount:
-    path: /lustre/mgs
-    src: "{{ lustre_mgs_partition.device }}{{ lustre_mgs_partition.number }}"
-    fstype: lustre
-    state: mounted
-    opts: defaults
-
-
-- name: Mount the lustre mdt partition
-  mount:
-    path: /lustre/mdt
-    src: "{{ lustre_mdt_partition.device }}{{ lustre_mdt_partition.number }}"
+    path: /lustre/mgs-mdt
+    src: "{{ lustre_mgs_mdt_partition.device }}{{ lustre_mgs_mdt_partition.number }}"
     fstype: lustre
     state: mounted
     opts: defaults,abort_recovery
+  when: merge_mgs_mdt
+
+
+- block:
+  - name: Mount the lustre mgs partition
+    mount:
+      path: /lustre/mgs
+      src: "{{ lustre_mgs_partition.device }}{{ lustre_mgs_partition.number }}"
+      fstype: lustre
+      state: mounted
+      opts: defaults
+  - name: Mount the lustre mdt partition
+    mount:
+      path: /lustre/mdt
+      src: "{{ lustre_mdt_partition.device }}{{ lustre_mdt_partition.number }}"
+      fstype: lustre
+      state: mounted
+      opts: defaults,abort_recovery
+  when: not merge_mgs_mdt
 
 
 - name: Format the lustre data partition
