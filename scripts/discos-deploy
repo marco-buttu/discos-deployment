@@ -1,4 +1,4 @@
-#!/usr/bin/python2.7
+#!/usr/bin/env python
 """Some command line examples:
 
   $ discos-deploy discos:development
@@ -9,71 +9,36 @@
 """
 
 from __future__ import print_function
-import os
 import sys
-import time
-import argparse
 import subprocess
+import os
+import argparse
 import getpass
-import socket
-from pexpect import pxssh
+import utils
 
-ROOT_DIR = os.path.dirname(os.path.realpath(__file__)).rsplit('/', 1)[0]
+utils.checkPython()
+
 STATIONS = ('srt', 'medicina', 'noto')
-ANSIBLE_DIR = os.path.join(ROOT_DIR, 'ansible')
-INVENTORIES_DIR = os.path.join(ANSIBLE_DIR, 'inventories')
+ENVIRONMENTS = utils.getInventories()
 
-ENVIRONMENTS = []
-
-for item in os.listdir(INVENTORIES_DIR):
-    if not os.path.isfile(os.path.join(INVENTORIES_DIR, item)):
-        ENVIRONMENTS.append(item)
-
-groups = {}
-hosts = {}
-clusters = {}
+inventories = {}
 systems = []
 for env in ENVIRONMENTS:
-    hosts[env] = {}
-    groups[env] = {}
-    clusters[env] = []
-    inventory = '%s/%s' % (INVENTORIES_DIR, env)
-    hosts_file = os.path.join(inventory, 'hosts')
-    with open(hosts_file) as f:
-        for line in f:
-            if line[0] == '#':
-                continue
-            if '[' in line and ']' in line:
-                if ':' not in line:
-                    current_group = line[line.find('[')+1:line.find(']')]
-                else:
-                    current_group = line[line.find('[')+1:line.find(':')]
-                    groups[env][current_group] = []
-            elif 'ansible_host' in line:
-                hostname, ansible_host = line.split()
-                _ ,ansible_host = ansible_host.split('=')
-                host = {}
-                host['hostname'] = hostname
-                host['ansible_host'] = ansible_host            
-                hosts[env][current_group] = host
-            elif line != '\n' and current_group:
-                host = line.strip()
-                if host in hosts[env].keys():
-                    groups[env][current_group].append(line.strip())
-                elif host in groups[env].keys():
-                    for machine in groups[env][host]:
-                        if machine not in groups[env][current_group]:
-                            groups[env][current_group].append(machine)
-    clusters[env] = hosts[env].keys() + groups[env].keys()
-    for cluster in clusters[env]:
-        systems.append('%s:%s' % (cluster, env))
+    h, g, c = utils.parseInventory(env)
+    inventories[env] = {}
+    inventories[env]['hosts'] = h
+    inventories[env]['groups'] = g
+    inventories[env]['clusters'] = c
+
+    for cluster in c:
+        systems.append('{}:{}'.format(cluster, env))
 
 parser = argparse.ArgumentParser(
-    description='Make a DISCOS environment. %s' % __doc__,
+    description='Make a DISCOS environment. {}'.format(__doc__),
     formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument(
     'system',
-    help='%s, %s, ...' % (systems[-1], systems[-2])
+    help='{0}, {1}, ...'.format(*systems)
 )
 parser.add_argument(
     '-s',
@@ -98,227 +63,159 @@ parser.add_argument(
     action='store_true',
     help='simulation mode'
 )
-
-def error(msg, choices=(), name=''):
-    if choices:
-        choices_msg = 'Allowed values of %s:\n' % name
-    else:
-        choices_msg = ''
-    print('\nERROR: %s%s' % (msg, choices_msg), file=sys.stderr)
-    if choices:
-        for choice in choices:
-            print(' '*2, choice, file=sys.stderr)
-    print('\n%s' %  __doc__, file=sys.stderr)
-    sys.exit(1)
-
-def ssh_login(ip, password=None):
-    try:
-        ssh = pxssh.pxssh()
-        if not password:
-            ssh.login(ip, 'root')
-        else:
-            ssh.login(ip, 'root', password)
-        return ssh
-    except pxssh.ExceptionPxssh:
-        return None
-
-def ssh_command(ssh, command):
-    ssh.sendline(command)
-    ssh.prompt()
-    output = [string.strip() for string in ssh.before.split('\n')][1:-1]
-    ssh.sendline('echo $?')
-    ssh.prompt()
-    retval = not bool(int(ssh.before.split('\n')[1:-1][0].strip()))
-    return {'returncode': retval, 'stdout': output}
-
-
-# Script beginning
 args = parser.parse_args()
 
 # Check if the system cluster:environment exists
 if args.system.count(':') != 1:
     e = ENVIRONMENTS[-1]  # A random environment
-    c = clusters[e][-1]  # A random cluster
-    msg = ('You must specify an available system.\n'
-           'e.g. if the cluster is "%s" '
-           'and the environment is "%s",\n'
-           'the system is "%s:%s", and the command will be:'
-           '\n\n  $ discos-deploy %s:%s.\n\n' % (c, e, c, e, c, e))
-    error(msg, choices=systems, name='system')
+    c = inventories[e]['clusters'][-1]  # A random cluster
+    msg = (
+        'You must specify an available system.\n'
+        + 'e.g. if the cluster is "{0}" '
+        + 'and the environment is "{1}",\n'
+        + 'the system is "{0}:{1}", and the command will be:'
+        + '\n\n  $ discos-deploy {0}:{1}.\n\n'
+    )
+    utils.error(
+        msg.format(*[c, e]),
+        choices=systems,
+        name='system'
+    )
 else:
     cluster_arg, env_arg = args.system.split(':')
     if env_arg in ENVIRONMENTS:
-        allowed_clusters = clusters[env_arg]
+        allowed_clusters = inventories[env_arg]['clusters']
         c = allowed_clusters[-1]  # A random cluster
         # wrong_cluster:right_env
         if cluster_arg not in allowed_clusters:
-            msg = ('Cluster "%s" not found in the "%s" '
-                   'environment.\n' % (cluster_arg, env_arg))
-            error(msg,
-                  allowed_clusters,
-                  name='cluster (in %s)' % env_arg)
+            msg = (
+                'Cluster "{}" not found in the "{}" environment.\n'
+            ).format(cluster_arg, env_arg)
+            utils.error(
+                msg,
+                allowed_clusters,
+                name='cluster (in {})'.format(env_arg)
+            )
     else:
         all_clusters = []
         for env in ENVIRONMENTS:
-            for cluster in clusters[env]:
+            for cluster in inventories[env]['clusters']:
                 if cluster not in all_clusters:
                     all_clusters.append(cluster)
         # right_cluster:wrong_env
         if cluster_arg in all_clusters:
-            msg = ('Environment "%s" not found in %s.\n'
-                   'Please use a right cluster:environment combination, like:\n'
-                   '%s, %s, %s, ...'
-                   % (env_arg, ENVIRONMENTS, systems[0], systems[-1], systems[-2]))
-            error(msg)
+            msg = (
+                'Environment "{}" not found in {}.\nPlease use a right '
+                + 'cluster:environment combination, like:\n{}, {}, {}, ...'
+            )
+            utils.error(
+                msg.format(
+                    env_arg, ENVIRONMENTS, systems[0], systems[-1], systems[-2]
+                )
+            )
         # wrong_cluster:wrong_env
         if cluster_arg not in all_clusters:
-            error('System "%s:%s" not recognized.\n' % (cluster_arg, env_arg),
-                  systems,
-                  name='system')
+            utils.error(
+                'System "{}:{}" not recognized.\n'.format(cluster_arg, env_arg),
+                systems,
+                name='system'
+            )
 
-inventory = '%s/inventories/%s' % (ANSIBLE_DIR, env_arg)
-playbook = '%s/all.yml'  % ANSIBLE_DIR
-os.chdir(ANSIBLE_DIR)
+inventory = os.path.join(utils.ANSIBLE_DIR, 'inventories', env_arg)
+playbook = os.path.join(utils.ANSIBLE_DIR, 'all.yml')
+os.chdir(utils.ANSIBLE_DIR)
 
 # Machines to provision in the current process
 current_machines = []
-if cluster_arg in groups[env_arg]:
-    current_machines = groups[env_arg][cluster_arg]
+if cluster_arg in inventories[env_arg]['groups']:
+    current_machines = inventories[env_arg]['groups'][cluster_arg]
 else:
     current_machines.append(cluster_arg)
 
 extra_vars = ''
 if env_arg == 'development':
     if bool(args.deploy) ^ bool(args.station):
-        error('With `development` environment, both or no '
-            + '`--deploy` and `--station` arguments have to be specified.')
+        utils.error(
+            "With 'development' environment, both or no "
+            + "'--deploy' and '--station' arguments have to be specified."
+        )
     elif args.deploy and args.station:
         if args.station not in STATIONS:
-            error('Unknown station `%s`.' % args.station)
+            utils.error(
+                'Unknown station `{}`.'.format(args.station)
+            )
         else:
-            extra_vars += ' branch=%s station=%s cdb=test' % (args.deploy, args.station)
+            extra_vars += ' branch={} station={} cdb=test'.format(args.deploy, args.station)
 else:
     if args.station:
         if args.station != env_arg:
-            error('With `%s` environment, `--station` argument defaults to `%s`, ' % (env_arg, env_arg)
-                + 'you cannot specify a different station.')
+            utils.error(
+                "With '{}' environment, '--station'".format(env_arg)
+                + "argument defaults to '{}', ".format(env_arg)
+                + 'you cannot specify a different station.'
+            )
     if args.deploy:
-        extra_vars += ' branch=%s station=%s cdb=telescope' % (args.deploy, env_arg)
-
+        extra_vars += ' branch={} station={} cdb=telescope'.format(args.deploy, env_arg)
 
 root_pwds = {}
 ips = {}
 for machine in current_machines:
     # Initialize a root password for each machine
     root_pwds[machine] = ''
-    # Get the ip of each machine
-    ips[machine] = hosts[env_arg][machine]['ansible_host']
+    if env_arg == 'development' and not args.no_vagrant:
+        root_pwds[machine] = 'vagrant'
+    # Get the ip of each current machine
+    ips[machine] = inventories[env_arg]['hosts'][machine]['ip']
 
-
-if env_arg == 'development' and not args.no_vagrant:
-    # Bring virtual machines up with Vagrant
-    print('Calling Vagrant...\n')
-    if args.sim:
-        print('vagrant up %s' % ' '.join(current_machines))
-    else:
-        for machine in current_machines:
-            sys.stdout.write('Starting machine %s' % machine)
-            sys.stdout.flush()
-            proc = subprocess.Popen(
-                ['vagrant', 'up', machine],
-                shell=False,
-                stdout=subprocess.PIPE
-            )
-            while True:
-                code = proc.poll()
-                if code is not None:
-                    if code != 0:
-                        print(
-                            '\nERROR: some problems starting machine %s'
-                            % machine
-                        )
-                        sys.exit(code)
-                    else:
-                        print('done.')
-                        root_pwds[machine] = 'vagrant'
-                        break
-                else:
-                    sys.stdout.write('.')
-                    sys.stdout.flush()
-                    time.sleep(1)
-else:
-    # Check if machines are actually reachable
-    for machine in current_machines:
-        sys.stdout.write(
-            'Checking if machine %s is reachable on IP: %s...'
-            % (machine, ips[machine])
-        )
-        sys.stdout.flush()
-        unreachable = subprocess.call(
-            ['ping', '-c', '1', '-i', '0.2', ips[machine]],
-            shell=False,
-            stdout=subprocess.PIPE
-        )
-        if unreachable:
-            print(
-                '\n\nERROR: machine %s not reachable.' % machine
+# Check machine availability
+for machine in current_machines:
+    reachable = utils.ping(ips[machine])
+    if not reachable:
+        if env_arg == 'development' and not args.no_vagrant:
+            if args.sim:
+                print('vagrant up {}'.format(machine))
+            else:
+                # Create/bring up virtual machines
+                code = utils.createVm(machine)
+                if code:
+                    utils.error(
+                        'Some problems starting '
+                        + 'machine {}.'.format(machine),
+                        code=code
+                    )
+        else:
+            utils.error(
+                'Machine {} not reachable.'.format(machine)
                 + ' Check your configuration and retry.'
             )
-            sys.exit(unreachable)
-        else:
-            print('ok.')
 
-
-# Create the .ssh directory if it does not exists
-ssh_dir = os.path.join(os.environ['HOME'], '.ssh')
-if not os.path.exists(ssh_dir):
-    os.mkdir(ssh_dir, 0700)
-
-# Generate the public/private key pair (if not present)
-key_file = os.path.join(ssh_dir, 'id_rsa')
-if not os.path.exists(key_file):
-    subprocess.call("ssh-keygen -f %s -t rsa -N '' -q" % key_file, shell=True)
-public_key = open(key_file + '.pub').read().strip()
-
+# Get or generate the RSA public key
+public_key = utils.getRSAKey()
 # Add the IPs to known_hosts
 if not args.sim:
-    known_hosts = os.path.join(ssh_dir, 'known_hosts')
-    for machine in current_machines:
-        subprocess.call(
-            ['ssh-keygen', '-R', ips[machine]],
-            shell=False,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
-        subprocess.call(
-            ['ssh-keyscan', '-H', ips[machine]],
-            shell=False,
-            stderr=subprocess.PIPE,
-            stdout=open(known_hosts, 'a')
-        )
+    utils.updateKnownHosts(ips.values())
 
-
-ansible_env = os.environ.copy()
+# Ask for root password
 manager_sessions = []
 console_sessions = []
 storage_sessions = []
 if not args.sim:
     for machine in current_machines:
         root_pwd = root_pwds[machine]
-        ip = hosts[env_arg][machine]['ansible_host']
-        ssh = ssh_login(ip)
+        ip = inventories[env_arg]['hosts'][machine]['ip']
+        ssh = utils.sshLogin(ip)
         if not ssh:
-            ssh = ssh_login(ip, root_pwds[machine])
+            ssh = utils.sshLogin(ip, root_pwds[machine])
         if not ssh:
             # Cannot authenticate, it means we have to ask for password
             root_pwd = getpass.getpass(
-                '\nType the root password for machine %s: ' % machine
+                '\nType the root password for machine {}: '.format(machine)
             )
-            ssh = ssh_login(ip, root_pwd)
+            ssh = utils.sshLogin(ip, root_pwd)
         if not ssh:
-            error(
-                'Cannot authenticate to machine %s, probable wrong password.'
-                % machine
+            utils.error(
+                'Cannot authenticate to machine {}'.format(machine)
+                + ', probable wrong password.'
             )
         else:
             root_pwds[machine] = root_pwd
@@ -329,64 +226,63 @@ if not args.sim:
             elif 'storage' in machine:
                 storage_sessions.append(ssh)
 
-
 # Insert the local public key into target machines
 # in order to enable public key ssh access
 for ssh in manager_sessions + console_sessions + storage_sessions:
-    ssh_command(ssh, 'usermod -m -d /vagrant vagrant')
-    ssh_command(ssh, 'mkdir .ssh')
-    ssh_command(ssh, 'chmod 0700 .ssh')
-    auth_file = ssh_command(ssh, 'cat .ssh/authorized_keys')
-    found = False
-    if auth_file['returncode']:
-        for line in auth_file['stdout']:
-            if public_key in line:
-                found = True
-    if not auth_file['returncode'] or not found:
-        ssh_command(ssh, 'echo "%s" >> .ssh/authorized_keys' % public_key)
-        ssh_command(ssh, 'chmod 0600 .ssh/authorized_keys')
+    utils.authorizeKey(ssh, public_key)
 
+# Disable network manager in virtual machines
+if env_arg == 'development' and not args.no_vagrant:
+    for ssh in manager_sessions + console_sessions:
+        utils.detachFromNM(ssh, 'eth0')
 
+ansible_env = os.environ.copy()
+# Check if user discos is present in the machines,
+# otherwise ask for its password
 discos_pwd = ''
 for ssh in manager_sessions + console_sessions + storage_sessions:
     if discos_pwd:
         break
-    result = ssh_command(ssh, 'getent passwd discos')
+    result = utils.sshCommand(ssh, 'getent passwd discos')
 
-    if not result['stdout']:
-        # User discos not present in the target machine, asking password
+    if not result.stdout:
         discos_pwd = getpass.getpass('\nType the `discos` user desired password: ')
         if not discos_pwd:
-            error('A password is required for user `discos`.')
+            utils.error(
+                'A password is required for user `discos`.'
+            )
         if discos_pwd != getpass.getpass('Confirm password: '):
-            error('Typed password and confirm does not match. Retry.')
+            utils.error(
+                'Typed password and confirm does not match. Retry.'
+            )
         ansible_env['DISCOS_PWD'] = discos_pwd
 
-
+# Check if user observer is present in the console machine,
+# otherwise ask for its password
 observer_pwd = ''
 for ssh in console_sessions:
     if observer_pwd:
         break
-    result = ssh_command(ssh, 'getent passwd observer')
+    result = utils.sshCommand(ssh, 'getent passwd observer')
 
-    if not result['stdout']:
-        # User observer not present in the target machine, asking password
+    if not result.stdout:
         observer_pwd = getpass.getpass('\nType the `observer` user desired password: ')
         if not observer_pwd:
-            error('A password is required for user `observer`.')
+            utils.error(
+                'A password is required for user `observer`.'
+            )
         if observer_pwd != getpass.getpass('Confirm password: '):
-            error('Typed password and confirm does not match. Retry.')
+            utils.error(
+                'Typed password and confirm does not match. Retry.'
+            )
         ansible_env['OBSERVER_PWD'] = observer_pwd
-
 
 # Close the ssh sessions
 for ssh in manager_sessions + console_sessions + storage_sessions:
     ssh.logout()
-
 del manager_sessions
 del console_sessions
 del storage_sessions
-
 
 # Call ansible
 ansible_cmd = [

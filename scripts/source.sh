@@ -2,20 +2,20 @@
 
 function discos-deploy()
 {
-    python $(dirname $BASH_SOURCE)/discos-deploy $@
+    $(dirname $BASH_SOURCE)/discos-deploy $@
 }
 
 function discos-login()
 {
-    bash $(dirname $BASH_SOURCE)/discos-login $@
+    $(dirname $BASH_SOURCE)/discos-login $@
 }
 
 function discos-vms()
 {
-    python $(dirname $BASH_SOURCE)/discos-vms $@
+    $(dirname $BASH_SOURCE)/discos-vms $@
 }
 
 function discos-vnc()
 {
-    python $(dirname $BASH_SOURCE)/discos-vnc $@
+    $(dirname $BASH_SOURCE)/discos-vnc $@
 }

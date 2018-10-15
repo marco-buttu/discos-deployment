@@ -1,24 +1,33 @@
-#!/bin/bash
+#!/usr/bin/env python
+"""Some command line examples:
 
-machine=""
-for line in `VBoxManage list vms | awk '{print substr($1, 2, length($1) - 2)}'`
-do
-    if [[ $line = *"deployment_$1_"* ]]; then
-        machine=$line
-    fi
-done
-unset line
-if [ "$machine" = "" ]; then
-    echo "Machine $1 unrecognized."
-    exit 1
-fi
-state=`VBoxManage showvminfo "$machine" | grep State`
-if [[ $state != *"running"* ]]; then
-    echo "Machine $1 not running. Please start it by typing 'discos-vms -m $1 start'"
-else
-    ip=`VBoxManage guestproperty get "$machine" /VirtualBox/GuestInfo/Net/1/V4/IP | awk '{split($0, a); print a[2]}'`
-    ssh -X discos@$ip
-    unset ip
-fi
-unset machine
-unset state
+  $ discos-login manager
+  $ discos-login -u root manager
+  $ discos-login -u observer console
+"""
+from __future__ import print_function
+import utils
+import subprocess
+from argparse import ArgumentParser
+
+utils.checkPython()
+
+parser = ArgumentParser()
+parser.add_argument(
+    '-u', '--user',
+    required=False,
+    default='discos'
+)
+parser.add_argument('machine', choices=utils.machineList())
+args = parser.parse_args()
+
+if utils.machineState(args.machine) == 'powered off':
+    print('Machine {} is not running.'.format(args.machine))
+else:
+    subprocess.call([
+        'ssh',
+        '-X',
+        '-l',
+        args.user,
+        utils.getIp(args.machine)
+    ])
