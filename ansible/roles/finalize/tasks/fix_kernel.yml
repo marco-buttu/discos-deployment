@@ -1,0 +1,6 @@
+---
+
+- name: Disable future kernel updates
+  lineinfile:
+    dest: /etc/yum.conf
+    line: "exclude=kernel*"
