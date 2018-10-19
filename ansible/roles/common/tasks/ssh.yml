@@ -1,0 +1,27 @@
+---
+
+- name: Prevent ssh to accept different localizations
+  replace:
+    dest: /etc/ssh/sshd_config
+    regexp: '^AcceptEnv'
+    replace: '# AcceptEnv'
+
+
+- name: Disable DNS for ssh
+  replace:
+    dest: /etc/ssh/sshd_config
+    regexp: '^#UseDNS yes$'
+    replace: 'UseDNS no'
+
+
+- name: Disable GSSAPIAuthentication for ssh
+  replace:
+    dest: /etc/ssh/sshd_config
+    regexp: '^GSSAPIAuthentication yes$'
+    replace: 'GSSAPIAuthentication no'
+
+
+- name: Restart ssh service of the remote machine
+  service:
+    name: sshd
+    state: restarted

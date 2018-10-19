@@ -1,0 +1,34 @@
+---
+
+- name: Disable NetworkManager service
+  service:
+    name: NetworkManager
+    state: stopped
+    enabled: no
+
+
+- name: Update hostname
+  hostname:
+    name: "{{ inventory_hostname }}"
+
+
+- name: Copy the hosts file template
+  template:
+    src: hosts
+    dest: /etc/hosts
+    mode: 0644
+
+
+- name: Tune the host searching order
+  lineinfile:
+    dest: /etc/host.conf
+    state: present
+    line: "order hosts,bind"
+
+
+- name: Copy the resolv.conf template
+  template:
+    src: resolv.conf
+    dest: /etc/resolv.conf
+    mode: 0644
+    force: yes
