@@ -1,12 +1,15 @@
 ---
 
-- include: yum_packages.yml
-- include: network_and_security.yml
-- include: discos_users.yml
+- include: selinux.yml
+- include: yum.yml
+- include: network.yml
+- include: firewall.yml
+- include: ssh.yml
 - include: time.yml
+- include: discos_users.yml
 
 - include: nis.yml
   when:
-    - network_domain_name is defined
+    - nis_domain_name is defined
     - network_ip_address is defined
     - nis_server_ip is defined

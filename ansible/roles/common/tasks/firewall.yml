@@ -1,0 +1,27 @@
+---
+
+- name: Mask firewalld service
+  systemd:
+    name: firewalld
+    masked: yes
+  failed_when: false
+
+
+- name: Copy the firewall-reset template
+  template:
+    src: firewall-reset
+    dest: "/usr/bin/"
+    mode: 0755
+    force: yes
+
+
+- name: Launch the firewall-reset script
+  command: firewall-reset
+  when: firewall_state == "started"
+
+
+- name: Configure the firewall
+  service:
+    name: iptables
+    state: "{{ firewall_state }}"
+    enabled: "{{ firewall_enabled }}"
