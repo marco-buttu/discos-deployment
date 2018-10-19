@@ -26,7 +26,7 @@ if utils.machineState(args.machine) == 'powered off':
 else:
     subprocess.call([
         'ssh',
-        '-X',
+        '-CX',
         '-l',
         args.user,
         utils.getIp(args.machine)

@@ -13,11 +13,7 @@ from argparse import ArgumentParser
 utils.checkPython()
 
 remote_starting_port = 15000
-local_starting_port = 5900
-machine_starting_port = {
-    'manager': 5900,
-    'console': 5910
-}
+local_starting_port = 15000
 users = {
     'discos': 1,
     'observer': 2
@@ -29,13 +25,21 @@ parser = ArgumentParser()
 parser.add_argument(
     '-u',
     '--user',
-    required=False,
     choices=users.keys(),
-    default='discos'
+    default='discos',
+    help='the username you wish to login with'
 )
 parser.add_argument(
     'machine',
-    choices=machines
+    choices=machines,
+    help='the machine you wish to login to'
+)
+parser.add_argument(
+    '-f',
+    '--fullscreen',
+    action='store_true',
+    default=False,
+    help='starts the vncviewer in fullscreen mode'
 )
 args = parser.parse_args()
 
@@ -43,7 +47,24 @@ if utils.machineState(args.machine) == 'powered off':
     print('Machine {} is not running.'.format(args.machine))
 else:
     remote_port = remote_starting_port + users[args.user]
-    local_port = machine_starting_port[args.machine] + users[args.user]
+    local_port = local_starting_port
+    found_open_port = False
+    for _ in range(50):
+        rc = subprocess.call(
+            'nc localhost {}'.format(local_port),
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        if not rc:
+            local_port += 1
+        else:
+            found_open_port = True
+            break
+
+    if not found_open_port:
+        utils.error('could not find an available port in range 15000-15050!')
+
     ip = utils.getIp(args.machine)
 
     ssh_command = [
@@ -52,14 +73,17 @@ else:
         '{}:localhost:{}'.format(local_port, remote_port),
         '-N',
         '-f',
+        '-C',
         '-l',
         args.user,
         ip
     ]
     subprocess.call(ssh_command)
 
-    vnc_index = local_port - local_starting_port
-    vnc_command = ['vncviewer', 'localhost:{}'.format(vnc_index), '-fullscreen']
+    vnc_command = ['vncviewer', 'localhost:{}'.format(local_port)]
+    if args.fullscreen:
+        vnc_command.append('-fullscreen')
+
     subprocess.call(
         vnc_command,
         stdout=subprocess.PIPE,

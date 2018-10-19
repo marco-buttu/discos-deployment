@@ -4,6 +4,7 @@ import sys
 import time
 import subprocess
 import inspect
+import pexpect
 from threading import Thread
 from pexpect import pxssh
 from argparse import Namespace
