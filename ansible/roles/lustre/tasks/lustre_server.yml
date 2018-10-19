@@ -220,7 +220,7 @@
   file:
     path: "{{ item }}"
     state: directory
-  with_items: lustre_mount_points
+  with_items: "{{ lustre_mount_points }}"
 
 
 - name: Create the lustre mgs-mdt partition
