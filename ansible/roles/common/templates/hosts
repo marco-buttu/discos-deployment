@@ -1,7 +1,11 @@
 127.0.0.1 localhost localhost.localdomain localhost4 localhost4.localdomain4
 
 {% for hostname in groups['discos'] %}
-{% if inventory_hostname != hostvars[hostname].inventory_hostname %}
 {{ hostvars[hostname].ansible_host }} {{ hostvars[hostname].inventory_hostname }} {{ hostvars[hostname].inventory_hostname_short }}
-{% endif %}
 {% endfor %}
+
+{% if host_list is defined %}
+{% for machine in host_list %}
+{{ machine.ip_address }} {{ machine.hostname }}{{ network_domain_name }} {{ machine.hostname }}
+{% endfor %}
+{% endif %}
