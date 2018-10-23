@@ -195,7 +195,7 @@
 - name: Initialize lustre disk
   parted:
     device: "{{ lustre_device }}"
-    label: msdos
+    label: gpt
   when: initialize_lustre_disk
 
 
