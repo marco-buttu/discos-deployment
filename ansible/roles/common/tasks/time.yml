@@ -5,6 +5,12 @@
     name: Etc/UTC
 
 
+- name: Set the NTP server IP address
+  set_fact:
+    ntp_server_ip: "{{ ansible_facts.env.SSH_CLIENT.split()[0] }}"
+  when: ntp_server_ip is not defined
+
+
 - name: Copy the ntp.conf template
   template:
     src: ntp.conf
