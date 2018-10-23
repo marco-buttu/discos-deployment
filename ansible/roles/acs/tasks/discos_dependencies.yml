@@ -240,6 +240,7 @@
   file:
     path: "{{ gmock_build }}/build"
     state: directory
+  when: gmock_lib.stat.exists == False
 
 
 - name: Compile gmock
@@ -277,12 +278,20 @@
   register: gtest_lib
 
 
+- name: Create the gtest build directory
+  file:
+    path: "{{ gtest_build }}/build"
+    state: directory
+  when: gtest_lib.stat.exists == False
+
+
 - name: Compile gtest
-  command: "chdir={{ gtest_build }}/{{ item.subdir }} {{ item.cmd }}"
+  command: "{{ item }}"
+  args:
+    chdir: "{{ gtest_build }}/build"
   with_items:
-    - { cmd: 'mkdir -p build', subdir: '' }
-    - { cmd: 'cmake ..', subdir: 'build' }
-    - { cmd: 'make', subdir: 'build' }
+    - 'cmake ..'
+    - 'make'
   when: gtest_lib.stat.exists == False
 
 

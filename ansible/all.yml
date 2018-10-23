@@ -7,7 +7,7 @@
       file:
         path: "{{ local_repository_path }}"
         state: directory
-      delegate_to: 127.0.0.1
+      delegate_to: localhost
       run_once: true
 
 
