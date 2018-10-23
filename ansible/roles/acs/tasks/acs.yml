@@ -75,10 +75,13 @@
 
 
 - name: Extract the ACS archives
-  command: "chdir={{ remote_build_path }} {{ item }}"
+  unarchive:
+    src: "{{ remote_build_path }}/{{ item }}"
+    dest: "{{ remote_build_path }}"
+    remote_src: yes
   with_items:
-    - "tar jxvf {{ acs_dest.file }}"
-    - "tar jxvf {{ extprod_dest.file }}"
+    - "{{ acs_dest.file }}"
+    - "{{ extprod_dest.file }}"
   become: true
   become_user: "{{ user }}"
   when: target_dir.matched|int == 0
