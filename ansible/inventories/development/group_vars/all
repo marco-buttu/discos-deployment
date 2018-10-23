@@ -11,18 +11,3 @@ network_ip_address: 192.168.10.0/24
 nis_server_ip: 192.168.10.200
 
 lustre_server_ip: 192.168.10.200
-
-OAC_nameservers:
-  - '192.167.8.208'
-
-SRT_nameservers:
-  - '192.168.203.1'
-
-IRA_nameservers:
-  - '192.167.165.11'
-
-GARR_nameservers:
-  - '193.206.141.38'
-  - '193.206.141.42'
-
-resolv_nameservers: "{{ OAC_nameservers }} + {{ SRT_nameservers }} + {{ IRA_nameservers }} + {{ GARR_nameservers }}"
