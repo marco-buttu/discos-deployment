@@ -1,0 +1,9 @@
+---
+
+lustre_network_interface: p1p1
+
+initialize_lustre_disk: true
+merge_mgs_mdt: true
+
+lustre_mgs_mdt_partition: { device: "/dev/sda", number: 4, start: "307202048s", end: "478246911s" }
+lustre_ost_partition: { device: "/dev/sdb", number: 1, start: "0%", end: "100%" }
