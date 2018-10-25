@@ -3,7 +3,7 @@
 - name: Fetch the local user's public key
   command: cat ~/.ssh/id_rsa.pub
   register: local_public_key
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   run_once: true
 
 

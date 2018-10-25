@@ -4,7 +4,7 @@
   stat:
     path: "{{ local_repository_path }}/{{ item }}-{{ lustre_client_url.tail }}"
   with_items: "{{ lustre_client_files }}"
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   run_once: true
   register: lustre_client_files_exists
 
@@ -16,7 +16,7 @@
     dest: "{{ local_repository_path }}/{{ item.item }}-{{ lustre_client_url.tail }}"
   with_items: "{{ lustre_client_files_exists.results }}"
   when: item.stat.exists == False
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   run_once: true
 
 
