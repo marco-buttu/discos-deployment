@@ -41,6 +41,33 @@ subprocess.call(
 subprocess.call(
     ['python2.7',
     'setup.py',
-    'install'],
+    'install',
+    '--install-scripts=%s' % basie_bin_dir],
     cwd=basie_repo_dir
 )
+
+correction = \
+"""import os
+import sys
+
+if os.environ.get('LD_LIBRARY_PATH'):
+    del os.environ['LD_LIBRARY_PATH']
+    os.execvp('/usr/bin/python2.7', ['python2.7'] + sys.argv)
+"""
+
+lines = []
+for line in open(os.path.join(basie_bin_dir, 'basie')):
+    lines.append(line)
+    if '#coding=utf-8' in line:
+        lines.append(correction)
+
+with open(os.path.join(basie_bin_dir, 'basie'), 'w') as f:
+    f.writelines(lines)
+
+subprocess.call([
+    'cp',
+    os.path.join(basie_bin_dir, 'basie'),
+    os.path.join('/usr/bin/', 'basie')
+])
+
+subprocess.call(['rm', '-rf', basie_bin_dir])

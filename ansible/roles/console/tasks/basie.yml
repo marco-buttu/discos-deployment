@@ -9,6 +9,25 @@
     mode: 0700
 
 
+- name: Install the basie dependencies
+  command: "pip2.7 install {{ item }}"
+  with_items:
+    - BTrees==4.5.1
+    - argparse>=1.2.1
+    - numpy==1.15.2
+    - astropy==2.0.8
+    - persistent==4.4.2
+    - pickleshare==0.7.5
+    - transaction==2.2.1
+    - zc.lockfile==1.3.0
+    - zdaemon==4.2.0
+    - ZConfig==3.3.0
+    - ZODB==5.5.0
+    - zodbpickle==1.0.2
+    - zope.interface==4.5.0
+    - future
+
+
 - name: Copy the basie-get template
   template:
     src: basie-get
