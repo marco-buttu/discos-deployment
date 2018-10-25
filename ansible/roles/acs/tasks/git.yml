@@ -17,7 +17,7 @@
     url: "{{ git_orig.base }}v{{ git_orig.version }}{{ git_orig.extension }}"
     dest: "{{ local_repository_path }}/{{ git_dest.file }}"
   when: git_exists.stat.exists == False
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   run_once: true
 
 

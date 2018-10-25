@@ -31,7 +31,7 @@
 - name: Check if the cfitsio sources exist in the local repository
   stat:
     path: "{{ local_repository_path }}/{{ cfitsio.file }}"
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   run_once: true
   register: cfitsio_sources
 
@@ -39,7 +39,7 @@
 - name: Check if the ccfits sources exist in the local repository
   stat:
     path: "{{ local_repository_path }}/{{ ccfits.file }}"
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   run_once: true
   register: ccfits_sources
 
@@ -47,7 +47,7 @@
 - name: Check if the fitsviewer binary exist in the local repository
   stat:
     path: "{{ local_repository_path }}/{{ fv_file }}"
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   run_once: true
   register: fv_archive
 
@@ -60,7 +60,7 @@
   when:
     - cfitsio_include.stat.exists == False
     - cfitsio_sources.stat.exists == False
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   run_once: true
 
 
@@ -72,7 +72,7 @@
   when:
     - ccfits_include.stat.exists == False
     - ccfits_sources.stat.exists == False
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   run_once: true
 
 
@@ -84,7 +84,7 @@
   when:
     - fv_binary.stat.exists == False
     - fv_archive.stat.exists == False
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   run_once: true
 
 
@@ -158,7 +158,7 @@
 - name: "Check if the modbus sources exist in the local repository"
   stat:
     path: "{{ local_repository_path }}/{{ modbus.file }}"
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   run_once: true
   register: modbus_sources
 
@@ -171,7 +171,7 @@
   when:
     - modbus_sources.stat.exists == False
     - modbus_lib.stat.exists == False
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   run_once: true
 
 
@@ -212,7 +212,7 @@
 - name: Check if the {{ googletest_file }}  exists in the local repository
   stat:
     path: "{{ local_repository_path }}/{{ googletest_file }}"
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   run_once: true
   register: gmock_sources
 
@@ -225,7 +225,7 @@
   when:
     - gmock_lib.stat.exists == False
     - gmock_sources.stat.exists == False
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   run_once: true
 
 
@@ -336,7 +336,7 @@
 - name: Check if the f2c sources exist in the local repository
   stat:
     path: "{{ local_repository_path }}/f2c.zip"
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   run_once: true
   register: f2c_sources
 
@@ -349,7 +349,7 @@
   when:
     - f2c_header.stat.exists == False
     - f2c_sources.stat.exists == False
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   run_once: true
 
 
@@ -412,7 +412,7 @@
 - name: Check if the {{ qt_file }}  exists in the local repository
   stat:
     path: "{{ local_repository_path }}/{{ qt_file }}"
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   run_once: true
   register: qt_sources
 
@@ -425,7 +425,7 @@
   when:
     - qt_library.stat.exists == False
     - qt_sources.stat.exists == False
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   run_once: true
 
 
@@ -469,7 +469,7 @@
 - name: Check if the {{ sip_file }}  exists in the local repository
   stat:
     path: "{{ local_repository_path }}/{{ sip_file }}"
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   run_once: true
   register: sip_sources
 
@@ -482,7 +482,7 @@
   when:
     - sip_library.stat.exists == False
     - sip_sources.stat.exists == False
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   run_once: true
 
 
@@ -530,7 +530,7 @@
 - name: Check if the {{ pyqt_file }}  exists in the local repository
   stat:
     path: "{{ local_repository_path }}/{{ pyqt_file }}"
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   run_once: true
   register: pyqt_sources
 
@@ -543,7 +543,7 @@
   when:
     - pyqt_library.stat.exists == False
     - pyqt_sources.stat.exists == False
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   run_once: true
 
 
@@ -607,7 +607,7 @@
 - name: Check if the {{ pyqwt_file }}  exists in the local repository
   stat:
     path: "{{ local_repository_path }}/{{ pyqwt_file }}"
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   run_once: true
   register: pyqwt_sources
 
@@ -620,7 +620,7 @@
   when:
     - pyqwt_library.stat.exists == False
     - pyqwt_sources.stat.exists == False
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   run_once: true
 
 

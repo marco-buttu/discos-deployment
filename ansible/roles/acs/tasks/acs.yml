@@ -21,7 +21,7 @@
 - name: Check if ACS binaries exist in the local repository
   stat:
     path: "{{ local_repository_path }}/{{ acs_dest.file }}"
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   run_once: true
   register: acs_bin
 
@@ -29,7 +29,7 @@
 - name: Check if ACS extprod exists in the local repository
   stat:
     path: "{{ local_repository_path }}/{{ extprod_dest.file }}"
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   run_once: true
   register: extprod_bin
 
@@ -41,7 +41,7 @@
   when:
     - acs_bin.stat.exists == False
     - target_dir.matched|int == 0
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   run_once: true
 
 
@@ -52,7 +52,7 @@
   when:
     - extprod_bin.stat.exists == False
     - target_dir.matched|int == 0
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   run_once: true
 
 
