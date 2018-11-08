@@ -24,3 +24,6 @@ GARR_nameservers:
   - '193.206.141.42   # GARR'
 
 resolv_nameservers: "{{ OAC_nameservers }} + {{ SRT_nameservers }} + {{ IRA_nameservers }} + {{ GARR_nameservers }}"
+
+host_list:
+  - { hostname: "dorian", ip_address: "192.168.200.216" }
