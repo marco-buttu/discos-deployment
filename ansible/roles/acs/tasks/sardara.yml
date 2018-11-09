@@ -1,0 +1,19 @@
+---
+
+- name: Create the mount point for Sardara backend disk
+  file:
+    path: "{{ sardara_mount_point }}"
+    state: directory
+    recurse: yes
+    mode: "0755"
+
+
+- name: Add Sardara backend data directory mount to rc.local
+  lineinfile:
+    dest: /etc/rc.local
+    line: "/bin/mount -t nfs4 {{ sardara_ip_address }}:{{ sardara_remote_directory }} {{ sardara_mount_point }}"
+
+
+- name: Try to mount Sardara backend data directory
+  command: "timeout 10 /bin/mount -t nfs4 {{ sardara_ip_address }}:{{ sardara_remote_directory }} {{ sardara_mount_point }}"
+  failed_when: false

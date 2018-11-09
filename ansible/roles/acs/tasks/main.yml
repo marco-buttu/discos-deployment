@@ -1,5 +1,10 @@
 ---
 
+- include: sardara.yml
+  when:
+    - sardara_mount_point is defined
+    - sardara_ip_address is defined
+    - sardara_remote_directory is defined
 - include: discos_environment.yml
 - include: git.yml
 - include: acs.yml

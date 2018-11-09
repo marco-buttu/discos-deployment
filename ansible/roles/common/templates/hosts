@@ -6,6 +6,6 @@
 
 {% if host_list is defined %}
 {% for machine in host_list %}
-{{ machine.ip_address }} {{ machine.hostname }}{{ network_domain_name }} {{ machine.hostname }}
+{{ machine.ip_address }} {{ machine.hostname }}.{{ network_domain_name }} {{ machine.hostname }}
 {% endfor %}
 {% endif %}
