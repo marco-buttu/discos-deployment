@@ -1,3 +1,7 @@
 ---
 
 lustre_network_interface: p1p1
+
+quicklook_directories:
+  - "/archive/data"
+  - "{{ sardara_mount_point }}"

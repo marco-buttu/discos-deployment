@@ -1,12 +1,5 @@
 ---
 
-- name: Make sure the quicklook service is not running
-  service:
-    name: quicklook
-    status: stopped
-  failed_when: false
-
-
 - name: Install SDTools dependencies
   command: "pip3.6 install {{ item }}"
   with_items:
@@ -22,16 +15,13 @@
     - Zdaemon
 
 
-- name: Create the sdtools directories
+- name: Create the sdtools directory
   file:
-    path: "{{ item.path }}"
+    path: "/{{ discos_sw_dir }}/sdtools"
     state: directory
     owner: "{{ user }}"
     group: acs
-    mode: "{{ item.mode }}"
-  with_items:
-    - { path: "/{{ discos_sw_dir }}/sdtools", mode: "0710" }
-    - { path: "/{{ discos_sw_dir }}/sdtools/quicklook", mode: "0750" }
+    mode: 0710
 
 
 - name: Copy the sdtools-get template
@@ -48,44 +38,3 @@
   command: ./sdtools-get
   args:
     chdir: "/{{ discos_sw_dir }}/sdtools/"
-
-
-- name: Copy the quicklook service template
-  template:
-    src: quicklook
-    dest: /etc/rc.d/init.d/quicklook
-    mode: 0755
-    force: true
-
-
-- name: Copy the quicklook configuration files
-  template:
-    src: "{{ item.src }}"
-    dest: "/{{ discos_sw_dir }}/sdtools/quicklook/"
-    owner: "{{ user }}"
-    group: acs
-    mode: "{{ item.mode }}"
-    force: true
-  with_items:
-    - { src: "monitor_config.ini", mode: "0640" }
-    - { src: "service.conf", mode: "0640" }
-
-
-- name: Make sure the Desktop directory exists for {{ observer }}
-  file:
-    path: "/{{ discos_sw_dir }}/{{ observer }}/Desktop"
-    state: directory
-    owner: "{{ observer }}"
-    group: acs
-    mode: 0755
-
-
-- name: Create a link to the quicklook index.html page
-  file:
-    src: "/{{ discos_sw_dir }}/sdtools/quicklook/index.html"
-    dest: "/{{ discos_sw_dir }}/{{ observer }}/Desktop/quicklook.html"
-    state: link
-    force: true
-    owner: "{{ user }}"
-    group: acs
-    mode: 0644

@@ -1,5 +1,7 @@
 ---
 
 - include: sdtools.yml
+- include: quicklook.yml
+  when: quicklook_directories is defined
 - include: basie.yml
 - include: projects.yml
