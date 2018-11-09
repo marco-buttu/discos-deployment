@@ -1,3 +1,6 @@
 ---
 
 lustre_network_interface: eth1
+
+quicklook_directories:
+  - "/archive/data"
