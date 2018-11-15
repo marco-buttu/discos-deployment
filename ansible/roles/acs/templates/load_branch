@@ -1,13 +1,22 @@
 #! /usr/bin/env bash
 
 export INTROOT=
-export STATION=
 export DISCOS_BRANCH=
 export CDB=
 
 # Load DISCOS definitions
 # =======================
 if [ -n "${DISCOS_BRANCH}" ]; then
+    if [ -z "${STATION}" ]; then
+        if [ -f $INTROOT/.station ]; then
+            source $INTROOT/.station
+        else
+            echo -e "${pur}WARNING:${txtrst} STATION is unset, cannot set the ACS_CDB!"
+            unset ACS_CDB
+            return
+        fi
+    fi
+
     if [ $CDB = "test" ]; then
         export ACS_CDB=/{{ discos_sw_dir }}/{{ user }}/$DISCOS_BRANCH/$STATION
     else

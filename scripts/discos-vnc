@@ -6,8 +6,8 @@
   $ discos-vnc -u observer console
 """
 from __future__ import print_function
-import subprocess
 import utils
+import subprocess
 from argparse import ArgumentParser
 
 utils.checkPython()
@@ -43,15 +43,13 @@ parser.add_argument(
 )
 args = parser.parse_args()
 
-if utils.machineState(args.machine) == 'powered off':
-    print('Machine {} is not running.'.format(args.machine))
-else:
+if utils.isRunning(args.machine):
     remote_port = remote_starting_port + users[args.user]
     local_port = local_starting_port
     found_open_port = False
     for _ in range(50):
         rc = subprocess.call(
-            'nc localhost {}'.format(local_port),
+            'netstat -an | grep 127.0.0.1:{}'.format(local_port),
             shell=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
@@ -95,3 +93,5 @@ else:
         pkill_command,
         shell=True
     )
+else:
+    print('Machine {} is not running.'.format(args.machine))

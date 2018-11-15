@@ -1,25 +1,7 @@
 from __future__ import print_function
 import os
 import sys
-import time
-import subprocess
 import inspect
-import pexpect
-from threading import Thread
-from pexpect import pxssh
-from argparse import Namespace
-try:
-    from subprocess import DEVNULL
-except ImportError:
-    DEVNULL = open(os.devnull, 'wb')
-
-ROOT_DIR = os.path.dirname(os.path.realpath(__file__)).rsplit('/', 1)[0]
-ANSIBLE_DIR = os.path.join(ROOT_DIR, 'ansible')
-INVENTORIES_DIR = os.path.join(ANSIBLE_DIR, 'inventories')
-
-def checkPython():
-    if sys.version_info[0] != 2 or sys.version_info[1] != 7:
-        error('Python 2.7 is required!')
 
 def error(msg, choices=(), name='', code=1):
     if choices:
@@ -41,6 +23,24 @@ def error(msg, choices=(), name='', code=1):
     if doc:
         print('\n{}'.format(doc), file=sys.stderr)
     sys.exit(code)
+
+if sys.version_info[0] != 2 or sys.version_info[1] != 7:
+    error('Python 2.7 is required!')
+
+import time
+import subprocess
+import pexpect
+from threading import Thread
+from pexpect import pxssh
+from argparse import Namespace
+try:
+    from subprocess import DEVNULL
+except ImportError:
+    DEVNULL = open(os.devnull, 'wb')
+
+ROOT_DIR = os.path.dirname(os.path.realpath(__file__)).rsplit('/', 1)[0]
+ANSIBLE_DIR = os.path.join(ROOT_DIR, 'ansible')
+INVENTORIES_DIR = os.path.join(ANSIBLE_DIR, 'inventories')
 
 def getInventories():
     inventories = []
@@ -116,7 +116,7 @@ def sshLogin(ip, password=None):
 
 def ping(ip):
     rc = subprocess.call(
-        ['timeout', '0.5', 'ping', '-c', '1', '-i', '0.2', ip],
+        ['timeout', '1s', 'ping', '-c', '1', '-i', '0.2', ip],
         shell=False,
         stdout=DEVNULL
     )
@@ -153,7 +153,7 @@ def _startVm(machine):
     return
 
 def startVm(machine):
-    if machineState(machine) == 'running':
+    if isRunning(machine):
         print('Machine {} is already running.'.format(machine))
         return
     sys.stdout.write('Starting machine {}'.format(machine))
@@ -181,13 +181,13 @@ def _stopVm(machine):
                 ssh.logout()
                 state = 2
         elif state == 2:
-            if machineState(machine) == 'powered off':
+            if not isRunning(machine):
                 state = -1
         time.sleep(0.5)
     return
 
 def stopVm(machine):
-    if machineState(machine) == 'powered off':
+    if not isRunning(machine):
         print('Machine {} is not running.'.format(machine))
         return
     sys.stdout.write('Powering off machine {}'.format(machine))
@@ -229,7 +229,7 @@ def _restartVm(machine):
     return
 
 def restartVm(machine):
-    if machineState(machine) == 'powered off':
+    if not isRunning(machine):
         startVm(machine)
         return
     sys.stdout.write('Restarting machine {}'.format(machine))
@@ -245,7 +245,7 @@ def restartVm(machine):
 
 def createVm(machine):
     if machine in machineList():
-        if machineState(machine) == 'powered off':
+        if not isRunning(machine):
             startVm(machine)
     else:
         sys.stdout.write('Creating machine {}'.format(machine))
@@ -275,32 +275,14 @@ def vagrantList():
             machines.append(line.split()[1].strip('"'))
     return machines
 
-def machineList():
-    cmd = subprocess.Popen(
-        'VBoxManage list vms'.split(),
-        stdout=subprocess.PIPE
-    )
-    machines = []
-    for line in cmd.stdout:
-        m_name = line.split()[0].strip('"').replace('discos_', '')
-        machines.append(m_name)
-    return machines
+def machineList(inventory='development'):
+    h, _, _ = parseInventory(inventory)
+    return h.keys()
 
-def machineState(name):
+def isRunning(name, inventory='development'):
     if name not in machineList():
         error('Machine {} unknown!'.format(name))
-    m_id = 'discos_{}'.format(name)
-    cmd = subprocess.Popen(
-        ['VBoxManage', 'showvminfo', m_id],
-        stdout=subprocess.PIPE,
-        stderr=DEVNULL
-    )
-    cmd.wait()
-    state = None
-    for line in cmd.stdout:
-        if 'State' in line:
-            state = ' '.join(line.strip().split()[1:-2])
-    return state
+    return ping(getIp(name, inventory))
 
 def _initSSHDir(ssh_dir=os.path.join(os.environ['HOME'], '.ssh')):
     if not os.path.exists(ssh_dir):

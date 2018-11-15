@@ -9,16 +9,14 @@
 """
 
 from __future__ import print_function
+import utils
 import sys
 import subprocess
 import os
 import argparse
 import getpass
-import utils
 
-utils.checkPython()
-
-STATIONS = ('srt', 'medicina', 'noto')
+STATIONS = { 'srt': 'SRT', 'medicina': 'Medicina', 'noto': 'Noto' }
 ENVIRONMENTS = utils.getInventories()
 
 inventories = {}
@@ -43,14 +41,20 @@ parser.add_argument(
 parser.add_argument(
     '-s',
     '--station',
-    choices=STATIONS,
+    choices=STATIONS.keys(),
     default=None,
     help='the desired station'
 )
-parser.add_argument(
-    '-d',
-    '--deploy',
+group = parser.add_mutually_exclusive_group()
+group.add_argument(
+    '-b',
+    '--branch',
     help='the desired DISCOS branch to be deployed on the machines'
+)
+group.add_argument(
+    '-t',
+    '--tag',
+    help='the desired DISCOS tag to be deployed on the machines'
 )
 parser.add_argument(
     '-n',
@@ -132,30 +136,31 @@ if cluster_arg in inventories[env_arg]['groups']:
 else:
     current_machines.append(cluster_arg)
 
-extra_vars = ''
-if env_arg == 'development':
-    if bool(args.deploy) ^ bool(args.station):
-        utils.error(
-            "With 'development' environment, both or no "
-            + "'--deploy' and '--station' arguments have to be specified."
-        )
-    elif args.deploy and args.station:
-        if args.station not in STATIONS:
+extra_vars = []
+if args.branch or args.tag:
+    if env_arg == 'development':
+        if not args.station:
             utils.error(
-                'Unknown station `{}`.'.format(args.station)
+                "When deploying onto 'development' environment, "
+                + "--station' argument must be specified."
             )
-        else:
-            extra_vars += ' branch={} station={} cdb=test'.format(args.deploy, args.station)
-else:
-    if args.station:
-        if args.station != env_arg:
+        elif args.station not in STATIONS.keys():
+            utils.error('Unknown station `{}`.'.format(args.station))
+        extra_vars.append('cdb=test')
+        extra_vars.append('station={}'.format(STATIONS[args.station]))
+    else:
+        if args.station and args.station != env_arg:
             utils.error(
                 "With '{}' environment, '--station'".format(env_arg)
                 + "argument defaults to '{}', ".format(env_arg)
                 + 'you cannot specify a different station.'
             )
-    if args.deploy:
-        extra_vars += ' branch={} station={} cdb=telescope'.format(args.deploy, env_arg)
+        extra_vars.append('cdb=telescope')
+        extra_vars.append('station={}'.format(STATIONS[env_arg]))
+    if args.branch:
+        extra_vars.append('branch={}'.format(args.branch))
+    else:
+        extra_vars.append('tag={}'.format(args.tag))
 
 root_pwds = {}
 ips = {}
@@ -168,31 +173,32 @@ for machine in current_machines:
     ips[machine] = inventories[env_arg]['hosts'][machine]['ip']
 
 # Check machine availability
-for machine in current_machines:
-    reachable = utils.ping(ips[machine])
-    if not reachable:
-        if env_arg == 'development' and not args.no_vagrant:
-            if args.sim:
-                print('vagrant up {}'.format(machine))
-            else:
-                # Create/bring up virtual machines
-                code = utils.createVm(machine)
-                if code:
-                    utils.error(
-                        'Some problems starting '
-                        + 'machine {}.'.format(machine),
-                        code=code
-                    )
-        else:
-            utils.error(
-                'Machine {} not reachable.'.format(machine)
-                + ' Check your configuration and retry.'
-            )
-
-# Get or generate the RSA public key
-public_key = utils.getRSAKey()
-# Add the IPs to known_hosts
 if not args.sim:
+    for machine in current_machines:
+        reachable = utils.ping(ips[machine])
+        if not reachable:
+            if env_arg == 'development' and not args.no_vagrant:
+                if args.sim:
+                    print('vagrant up {}'.format(machine))
+                else:
+                    # Create/bring up virtual machines
+                    code = utils.createVm(machine)
+                    if code:
+                        utils.error(
+                            'Some problems starting '
+                            + 'machine {}.'.format(machine),
+                            code=code
+                        )
+            else:
+                utils.error(
+                    'Machine {} not reachable.'.format(machine)
+                    + ' Check your configuration and retry.'
+                )
+
+if not args.sim:
+    # Get or generate the RSA public key
+    public_key = utils.getRSAKey()
+    # Add the IPs to known_hosts
     utils.updateKnownHosts(ips.values())
 
 # Ask for root password
@@ -232,7 +238,7 @@ for ssh in manager_sessions + console_sessions + storage_sessions:
     utils.authorizeKey(ssh, public_key)
 
 # Disable network manager in virtual machines
-if env_arg == 'development' and not args.no_vagrant:
+if env_arg == 'development' and not args.no_vagrant and not args.sim:
     for ssh in manager_sessions + console_sessions:
         utils.detachFromNM(ssh, 'eth0')
 
@@ -289,7 +295,7 @@ ansible_cmd = [
     'ansible-playbook', playbook,
     '--inventory-file', inventory,
     '--limit', cluster_arg,
-    '--extra-vars', extra_vars.strip(),
+    '--extra-vars', ' '.join(extra_vars),
 ]
 
 print('\nCalling ansible...')

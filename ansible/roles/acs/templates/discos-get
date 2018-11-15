@@ -4,83 +4,90 @@ import os
 import sys
 import shutil
 import argparse
+import urllib2
+import json
 if os.name == 'posix' and sys.version_info[0] < 3:
     import subprocess32 as subprocess
 else:
     import subprocess
 
-import jinja2
+ghtoken = '{{ ghtoken }}'
+repository = 'https://%s@github.com/discos/discos.git' % ghtoken
+request_header = { 'Authorization': 'token %s' % ghtoken }
 
-
-BRANCH_ROOT = os.environ['HOME']
-STATIONS = ('SRT', 'Medicina', 'Noto')
-
-
-parser = argparse.ArgumentParser()
-parser.add_argument('branch')
-parser.add_argument(
-    '-s',
-    '--station',
-    choices=[s.lower() for s in STATIONS],
-    required=False)
-args = parser.parse_args()
-
-class CustomArgs:
+STATION = ''
+try:
+    with open('/{{ discos_sw_dir }}/config/misc/station', 'r') as f:
+        STATION = f.read().strip().split('=')[-1]
+except IOError:
     pass
 
-cargs = CustomArgs()
-cargs.repo = 'https://{{ ghtoken }}@github.com/discos/discos.git'
+BRANCH_ROOT = os.environ['HOME']
+stations = { s.lower(): s for s in ['SRT', 'Medicina', 'Noto']}
 
-station_branch = False
-for station in STATIONS:
-    if station.lower() in args.branch:
-        station_branch = True
-        break
+parser = argparse.ArgumentParser()
+if not STATION:
+    parser.add_argument(
+        '-s',
+        '--station',
+        choices=stations.keys(),
+        required=True
+    )
+group = parser.add_mutually_exclusive_group(required=True)
+group.add_argument('-b', '--branch')
+group.add_argument('-t', '--tag')
+args = parser.parse_args()
 
-if station_branch:
-    lower_branch = args.branch.lower()
-    for station in STATIONS:
-        if station.lower() in lower_branch:
-            cargs.station = station
-            if args.station and station.lower() not in args.station:
-                parser.error(
-                    'mismatch between -s %s and -b %s'
-                    % (args.branch, args.station))
-            break
-    else:
-        parser.error('invalid branch name.')
-else:
-    if not args.station:
-        parser.error('-s is required for branch %s.' % args.branch)
-    else:
-        for station in STATIONS:
-            if station.lower() == args.station:
-                cargs.station = station
-                break
+
+choices_type = ''
+if args.branch:
+    choices_type = 'branches'
+    args.target = args.branch
+elif args.tag:
+    choices_type = 'tags'
+    args.target = args.tag
+
+request = urllib2.Request(
+    'https://api.github.com/repos/discos/discos/%s' % choices_type,
+    headers=request_header
+)
+choices = json.loads(urllib2.urlopen(request).read())
+choices = [str(c.get('name')) for c in choices]
+
+if args.target not in choices:
+    msg = "ERROR: %s %s not found in remote repository!\nChoose between '%s'."
+    if args.branch:
+        msg = msg % ('branch', args.target, "', '".join(choices))
+    elif args.tag:
+        msg = msg % ('tag', args.target, "', '".join(choices))
+    print(msg)
+    sys.exit(1)
 
 
 os.chdir(BRANCH_ROOT)
-if not station_branch:
-    branch_name = '%s-%s' % (args.branch, args.station)
+if not STATION:
+    branch_name = '%s-%s' % (args.target, args.station)
 else:
-    branch_name = args.branch
+    branch_name = args.target
 BRANCH_PATH = os.path.join(BRANCH_ROOT, branch_name)
+
 
 # Clone the branch
 try:
-    code = subprocess.call([
-        'git',
+    code = subprocess.call(
+        ['git',
         'clone',
-        cargs.repo,
+        repository,
         branch_name,
         '--branch',
-        args.branch,
+        args.target,
         '--single-branch'],
-        timeout=120)
+        timeout=120,
+        )
 except subprocess.TimeoutExpired:
     if os.path.exists(BRANCH_PATH):
         shutil.rmtree(BRANCH_PATH)
-    print('\nERROR: timeout expired cloning %s.' % cargs.repo)
+    print('\nERROR: timeout expired cloning %s.' % repository)
     sys.stderr.flush()
     sys.exit(-1)
 if code:
@@ -88,16 +95,17 @@ if code:
 else:
     print('Repository cloned into %s' % BRANCH_PATH)
 
-# Remove the old origin, because it contains the token,
-# and add a new plain one
+
+# Remove the old origin, because it contains the token, and add a new plain one
 os.chdir(BRANCH_PATH)
 subprocess.call(['git', 'remote', 'rm', 'origin'])
-subprocess.call([
-    'git',
+subprocess.call(
+    ['git',
     'remote',
     'add',
     'origin',
-    'https://github.com/discos/discos.git'])
+    'https://github.com/discos/discos.git']
+)
 
 # Create the introot inside /{{ discos_sw_dir }}/introots/
 introot = os.path.join('/{{ discos_sw_dir }}/introots', branch_name)
@@ -113,11 +121,12 @@ else:
     subprocess.call(['chmod', '-R', 'go+rx', os.path.join(introot, 'lib')])
     subprocess.call(['chmod', '-R', 'g+rx', os.path.join(introot, 'bin')])
     subprocess.call(['chmod', '-R', 'o+rx', os.path.join(introot, 'user')])
+    if not STATION:
+        # Create the .station file
+        with open(os.path.join(introot, '.station'), 'w') as f:
+            f.write('export STATION=%s' % stations[args.station])
     print('Introot created into %s' % introot)
 
-# Create the .station file
-with open(os.path.join(introot, '.station'), 'w') as f:
-    f.write(cargs.station)
 
 # Add the branch to the list of available branches
 with open('/{{ discos_sw_dir }}/config/misc/branches', 'a+') as f:

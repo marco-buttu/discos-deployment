@@ -1,9 +1,26 @@
 ---
 
 - set_fact:
-    sources_path: "/{{ discos_sw_dir }}/{{ user }}/{{ branch }}-{{ station }}"
-    introot_path: "/{{ discos_sw_dir }}/introots/{{ branch }}-{{ station }}"
+    discos_get_cmd: "discos-get"
 
+- set_fact:
+    repo_name: "{{ branch }}"
+    discos_get_cmd: "{{ discos_get_cmd }} -b {{ branch }}"
+  when: branch is defined
+
+- set_fact:
+    repo_name: "{{ tag }}"
+    discos_get_cmd: "{{ discos_get_cmd }} -t {{ tag }}"
+  when: tag is defined
+
+- set_fact:
+    repo_name: "{{ repo_name }}-{{ station|lower }}"
+    discos_get_cmd: "{{ discos_get_cmd }} -s {{ station|lower }}"
+  when: inventory_dir.split('/')[-1] == 'development'
+
+- set_fact:
+    sources_path: "/{{ discos_sw_dir }}/{{ user }}/{{ repo_name }}"
+    introot_path: "/{{ discos_sw_dir }}/introots/{{ repo_name }}"
 
 - name: Remove the repository directory and introot (if present)
   file:
@@ -15,14 +32,14 @@
 
 
 - name: Clone the selected DISCOS branch repository
-  command: "discos-get {{ branch }} -s {{ station }}"
+  command: "{{ discos_get_cmd }}"
   become: true
   become_user: "{{ user }}"
   become_flags: "-i"
 
 
 - name: Set the correct CDB
-  command: "discos-set --cdb {{ cdb }} {{ branch }}-{{ station }}"
+  command: "discos-set --cdb {{ cdb }} {{ repo_name }}"
   become: true
   become_user: "{{ user }}"
   become_flags: "-i"

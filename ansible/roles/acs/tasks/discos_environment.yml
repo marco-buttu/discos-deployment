@@ -52,6 +52,16 @@
     group: acs
     mode: 0640
     force: yes
+
+
+- name: Create the station file
+  lineinfile:
+    path: "/{{ discos_sw_dir }}/config/misc/station"
+    line: "export STATION={{ station }}"
+    state: present
+    create: true
+    mode: 0644
+  when: inventory_dir.split('/')[-1] != 'development'
  
  
 - name: Create the /bin directory for user {{ user }}
