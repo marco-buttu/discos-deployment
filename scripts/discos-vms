@@ -19,8 +19,12 @@ parser.add_argument('machine', choices=machines)
 args = parser.parse_args()
 
 if args.action == 'status':
-    status_msg = 'Machine {} status: {}'
-    print(status_msg.format(args.machine, utils.machineState(args.machine)))
+    status_msg = 'Machine {} status: '.format(args.machine)
+    if utils.isRunning(args.machine):
+        status_msg += 'running.'
+    else:
+        status_msg += 'powered off.'
+    print(status_msg)
 elif args.action == 'start':
     utils.startVm(args.machine)
 elif args.action == 'stop':

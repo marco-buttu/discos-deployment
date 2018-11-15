@@ -2,6 +2,15 @@
 export GIT_ASKPASS=
 
 
+# Set the STATION
+# ===============
+if [ -f /{{ discos_sw_dir }}/config/misc/station ]; then
+    source /{{ discos_sw_dir }}/config/misc/station
+else
+    unset STATION
+fi
+
+
 # Useful aliases
 # ==============
 alias l='ls'
