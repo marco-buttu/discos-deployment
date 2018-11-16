@@ -137,6 +137,9 @@ else:
     current_machines.append(cluster_arg)
 
 extra_vars = []
+if env_arg != 'development':
+    extra_vars.append('station={}'.format(STATIONS[env_arg]))
+
 if args.branch or args.tag:
     if env_arg == 'development':
         if not args.station:
@@ -156,7 +159,6 @@ if args.branch or args.tag:
                 + 'you cannot specify a different station.'
             )
         extra_vars.append('cdb=telescope')
-        extra_vars.append('station={}'.format(STATIONS[env_arg]))
     if args.branch:
         extra_vars.append('branch={}'.format(args.branch))
     else:
