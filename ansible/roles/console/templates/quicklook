@@ -2,16 +2,11 @@
 #. /etc/rc.d/init.d/functions
 #. /etc/sysconfig/network
 
-APP_PATH=/{{ discos_sw_dir }}/sdtools/quicklook
+APP_PATH=/{{ discos_sw_dir }}/sdtools/quicklook/conf
 
 start() {
-    if [ -d /archive/data ]; then
-        cd $APP_PATH
-        zdaemon -C service.conf start
-    else
-        echo "Data directory missing."
-        RETVAL=1
-    fi
+    cd $APP_PATH
+    zdaemon -C service.conf start
 }
 
 stop() {

@@ -4,3 +4,5 @@ lustre_network_interface: eth1
 
 quicklook_directories:
   - "/archive/data"
+
+quicklook_server_port: 20000
