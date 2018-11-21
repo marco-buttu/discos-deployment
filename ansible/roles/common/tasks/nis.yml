@@ -42,8 +42,20 @@
         name: yppasswdd
         state: started
         enabled: yes
+    - name: Perform a backup of the ypinit script
+      command: "cp /usr/lib64/yp/ypinit /usr/lib64/yp/ypinit.bak"
+    - name: Apply a patch to the ypinit script
+      lineinfile:
+        path: '/usr/lib64/yp/ypinit'
+        regexp: '{{ item.original }}'
+        line: '{{ item.new }}'
+      with_items:
+        - { original: 'while read h', new: 'while false' }
+        - { original: 'read hostlist_ok', new: '#read hostlist_ok' }
     - name: Set up NIS maps
       command: "/usr/lib64/yp/ypinit -m"
+    - name: Restore the original ypinit script
+      command: "mv /usr/lib64/yp/ypinit.bak /usr/lib64/yp/ypinit"
   when: inventory_hostname in groups['storage']
 
 
