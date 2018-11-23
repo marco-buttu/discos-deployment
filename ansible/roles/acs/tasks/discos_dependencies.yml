@@ -392,12 +392,11 @@
 
 - name: Verify the Qt library is not installed
   yum:
-    name: "{{ item }}"
-    state: absent
-  with_items:
+    name:
       - "qt"
       - "qt-devel"
       - "qt4"
+    state: absent
   register: result
   retries: 2
   until: result is succeeded

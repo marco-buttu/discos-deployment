@@ -29,10 +29,9 @@
 
 - name: Install lustre yum packages
   yum:
-    name: "/tmp/{{ item }}-{{ lustre_client_url.tail }}"
+    name: "{{ lustre_client_files | map('regex_replace', '(.*)', '/tmp/\\1-' + lustre_client_url.tail) | list }}"
     state: present
     validate_certs: no
-  with_items: "{{ lustre_client_files }}"
 
 
 - name: Delete lustre packages from the remote
