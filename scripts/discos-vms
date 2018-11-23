@@ -1,31 +1,86 @@
 #!/usr/bin/env python
 """Some command line examples:
 
-  $ discos-vms start manager
-  $ discos-vms restart console
-  $ discos-vms stop storage
+  $ discos-vms --start manager
+  $ discos-vms --restart console storage
+  $ discos-vms --stop storage
+  $ discos-vms --status
 """
 from __future__ import print_function
+import sys
 import utils
 from argparse import ArgumentParser
 
 machines = utils.machineList()
 
+def check_machine(machine):
+    if machine not in machines:
+        utils.error(
+            'machine %s unknown!' % machine,
+            choices=machines,
+            name='machine'
+        )
+    else:
+        return machine
+
 parser = ArgumentParser()
-parser.add_argument('action', choices=['status', 'start', 'stop', 'restart'])
-parser.add_argument('machine', choices=machines)
+action = parser.add_mutually_exclusive_group(required=True)
+action.add_argument(
+    '--status',
+    action='store_true',
+    help='Display the selected machine(s) status.'
+)
+action.add_argument(
+    '--start',
+    action='store_true',
+    help='Start the selected machine(s).'
+)
+action.add_argument(
+    '--stop',
+    action='store_true',
+    help='Stop the selected machine(s).'
+)
+action.add_argument(
+    '--restart',
+    action='store_true',
+    help='Restart the selected machine(s).'
+)
+parser.add_argument(
+    'machine',
+    nargs='*',
+    type=check_machine,
+    help='The machine(s) you want to control. \
+         Choose among "%s". \
+         Leave this field empty to select all \
+         available machines.' % '", "'.join(machines)
+)
 args = parser.parse_args()
 
-if args.action == 'status':
-    status_msg = 'Machine {} status: '.format(args.machine)
-    if utils.isRunning(args.machine):
-        status_msg += 'running.'
-    else:
-        status_msg += 'powered off.'
-    print(status_msg)
-elif args.action == 'start':
-    utils.startVm(args.machine)
-elif args.action == 'stop':
-    utils.stopVm(args.machine)
-elif args.action == 'restart':
-    utils.restartVm(args.machine)
+if len(machines) == 0:
+    print('No machine currently deployed.\n')
+    parser.print_help()
+    sys.exit()
+
+if not args.machine:
+    args.machine = utils.machineList()
+
+if 'storage' in args.machine and len(args.machine) > 1:
+    args.machine.insert(0, args.machine.pop(args.machine.index('storage')))
+
+if args.stop:
+    args.machine.reverse()
+
+for machine in args.machine:
+    if args.status:
+        status_msg = 'Machine {} status: '.format(machine)
+        if utils.isRunning(machine):
+            status_msg += 'running.'
+        else:
+            status_msg += 'powered off.'
+        print(status_msg)
+    elif args.start:
+        utils.startVm(machine)
+    elif args.stop:
+        utils.stopVm(machine)
+    elif args.restart:
+        utils.restartVm(machine)
