@@ -2,6 +2,7 @@
 
 - block:
     - include: key_exchange.yml
+    - include: check_interfaces.yml
     - include: lustre_clients.yml
       when: inventory_hostname in groups['acs']
     - include: lustre_server.yml
