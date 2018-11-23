@@ -48,26 +48,25 @@
 
 - name: Install common required yum packages
   yum:
-    name: "{{ item }}"
+    name:
+      - procmail
+      - vim-enhanced
+      - subversion
+      - unzip
+      - openssl
+      - screen
+      - gnuplot
+      - xterm
+      - ksh
+      - java-1.8.0-openjdk
+      - ntp
+      - wget
+      - perl
+      - net-snmp
+      - rsync
+      - iptables
+      - rpcbind
     state: present
-  with_items:
-    - procmail
-    - vim-enhanced
-    - subversion
-    - unzip
-    - openssl
-    - screen
-    - gnuplot
-    - xterm
-    - ksh
-    - java-1.8.0-openjdk
-    - ntp
-    - wget
-    - perl
-    - net-snmp
-    - rsync
-    - iptables
-    - rpcbind
 
 
 - name: Install storage required yum packages
