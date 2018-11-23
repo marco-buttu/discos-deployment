@@ -3,9 +3,10 @@
 
   $ discos-deploy discos:development
   $ discos-deploy discos:srt
-  $ discos-deploy manager:medicina --deploy master
+  $ discos-deploy manager:medicina --branch master
+  $ discos-deploy manager:noto --tag discos1.0-rc02
   $ discos-deploy console:development --no-vagrant
-  $ discos-deploy manager:development --deploy master --station srt
+  $ discos-deploy manager:development --branch master --station srt
 """
 
 from __future__ import print_function
@@ -57,7 +58,6 @@ group.add_argument(
     help='the desired DISCOS tag to be deployed on the machines'
 )
 parser.add_argument(
-    '-n',
     '--no-vagrant',
     action='store_true',
     help='forces the process to not use Vagrant with development machines'

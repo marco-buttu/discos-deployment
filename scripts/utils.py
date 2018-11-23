@@ -4,10 +4,11 @@ import sys
 import inspect
 
 def error(msg, choices=(), name='', code=1):
+    choices_msg = ''
     if choices:
-        choices_msg = 'Allowed values of {}:\n'.format(name)
-    else:
-        choices_msg = ''
+        if len(msg) > 0:
+            choices_msg = ' '
+        choices_msg += 'Allowed values of {}:\n'.format(name)
     print('ERROR: {}{}'.format(msg, choices_msg), file=sys.stderr)
     if choices:
         for choice in choices:
@@ -276,8 +277,19 @@ def vagrantList():
     return machines
 
 def machineList(inventory='development'):
-    h, _, _ = parseInventory(inventory)
-    return h.keys()
+    machines = []
+    if inventory == 'development':
+        cmd = subprocess.Popen(
+            'VBoxManage list vms'.split(),
+            stdout=subprocess.PIPE
+        )
+        for line in cmd.stdout:
+            m_name = line.split()[0].strip('"').replace('discos_', '')
+            machines.append(m_name)
+    else:
+        h, _, _ = parseInventory(inventory)
+        machines = h.keys()
+    return machines
 
 def isRunning(name, inventory='development'):
     if name not in machineList():
