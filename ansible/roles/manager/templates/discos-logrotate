@@ -11,7 +11,7 @@
     extension .xml
     missingok
     compress
-    postrotate
+    lastaction
         rsync /archive/events/*.gz /service/events/
     endscript
 }
