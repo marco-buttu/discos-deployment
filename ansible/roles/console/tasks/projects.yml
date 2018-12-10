@@ -38,3 +38,11 @@
     dest: /etc/skel/.bash_profile
     mode: 0644
     force: yes
+
+
+- name: Activate the crontab job for home directory backup
+  cron:
+    name: projects-home-backup
+    hour: "23"
+    minute: "59"
+    job: "rsync -r /home /service"
