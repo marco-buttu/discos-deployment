@@ -2,13 +2,13 @@
 
 network_domain_name: srt.inaf.it
 nis_domain_name: "discos.{{ network_domain_name }}"
-network_ip_address: 192.168.201.0/24
+network_ip_address: 192.168.200.0/24
 
 ntp_server: { hostname: "synctime.{{ network_domain_name }}", ip_address: "192.168.202.80" }
 
 lustre_server_ip: 192.168.25.218
 
-nis_server_ip: 192.168.201.218
+nis_server_ip: 192.168.200.218
 
 OAC_nameservers:
   - '192.167.8.208    # OAC'
