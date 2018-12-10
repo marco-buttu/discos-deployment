@@ -7,7 +7,9 @@
 """
 from __future__ import print_function
 import utils
+import os
 import subprocess
+from multiprocessing import Process
 from argparse import ArgumentParser
 
 remote_starting_port = 15000
@@ -40,6 +42,22 @@ parser.add_argument(
     help='starts the vncviewer in fullscreen mode'
 )
 args = parser.parse_args()
+
+def detach(vnc_command, ssh_command):
+    if os.fork() != 0:
+        return
+
+    subprocess.call(
+        vnc_command,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
+    )
+
+    pkill_command = 'pkill -f "{}"'.format(' '.join(ssh_command))
+    subprocess.call(
+        pkill_command,
+        shell=True
+    )
 
 if utils.isRunning(args.machine):
     remote_port = remote_starting_port + users[args.user]
@@ -80,16 +98,9 @@ if utils.isRunning(args.machine):
     if args.fullscreen:
         vnc_command.append('-fullscreen')
 
-    subprocess.call(
-        vnc_command,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
-    )
-
-    pkill_command = 'pkill -f "{}"'.format(' '.join(ssh_command))
-    subprocess.call(
-        pkill_command,
-        shell=True
-    )
+    p = Process(target=detach, args=(vnc_command, ssh_command))
+    p.daemon = True
+    p.start()
+    p.join()
 else:
     print('Machine {} is not running.'.format(args.machine))
