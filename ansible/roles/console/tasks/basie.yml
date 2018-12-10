@@ -27,6 +27,6 @@
 
 
 - name: Execute the basie-get script
-  command: ./basie-get
+  command: ./basie-get -b
   args:
     chdir: /{{ discos_sw_dir }}/basie/

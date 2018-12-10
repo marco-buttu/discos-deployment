@@ -35,6 +35,6 @@
 
 
 - name: Execute the sdtools-get script
-  command: ./sdtools-get
+  command: ./sdtools-get -b
   args:
     chdir: "/{{ discos_sw_dir }}/sdtools/"
