@@ -77,14 +77,22 @@ subprocess.call(
     preexec_fn=become_discos()
 )
 
+monitor_correction = \
+"""    ignore_patterns = [
+        '*/tmp/*',
+        '*/tempfits/*',
+        '*/*.fitstemp',
+        '*/summary.fits'
+    ]
+"""
 # Add filters to SDTmonitor to avoid reading
 # Sardara `tmp` and `tempfits` directories
 monitor_file = os.path.join(sdtools_repo_dir, 'srttools/monitor.py')
 og_lines = []
 for l in open(monitor_file, 'r'):
     og_lines.append(l)
-    if "patterns =" in l:
-        og_lines.append("    ignore_patterns = ['*/tmp/*', '*/tempfits/*']\n")
+    if " patterns =" in l:
+        og_lines.append(monitor_correction)
 open(monitor_file, 'w').writelines(og_lines)
 
 subprocess.call(
