@@ -10,7 +10,7 @@
     src: ntp.conf
     dest: /etc/ntp.conf
     backup: yes
-  when: ntp_server is defined
+  when: ntp_server_ip is defined
 
 
 - name: Restart ntp service
