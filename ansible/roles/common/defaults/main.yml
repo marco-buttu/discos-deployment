@@ -1,6 +1,0 @@
----
-
-ius_release: "https://centos6.iuscommunity.org/ius-release.rpm"
-
-resolv_nameservers:
-  - '8.8.8.8    # Google DNS'

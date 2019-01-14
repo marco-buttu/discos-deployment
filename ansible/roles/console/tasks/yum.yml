@@ -1,0 +1,19 @@
+---
+
+
+- name: Install the ius_release yum package on console machine
+  yum:
+    name: "{{ ius_release }}"
+    state: present
+
+
+- name: Install console required yum packages
+  yum:
+    name:
+      - sshpass
+      - python27
+      - python27-pip
+      - python36u-pip
+      - python36u-devel
+      - python36u-tkinter
+    state: present

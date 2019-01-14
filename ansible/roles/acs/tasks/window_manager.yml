@@ -1,0 +1,10 @@
+---
+
+- name: Install xdotool
+  yum:
+    name: "xdotools"
+    state: present
+
+copy scripts
+
+copy keybindings
