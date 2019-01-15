@@ -1,0 +1,35 @@
+---
+
+yum_packages:
+  - gnome-desktop
+  - gnome-desktop-devel
+  - python-devel
+  - gcc-c++
+  - gdb
+  - cmake
+  - expat
+  - expat-devel
+  - expect
+  - gsl
+  - gsl-devel
+  - boost
+  - boost-devel
+  - openssl-devel
+  - ncurses-devel
+  - jpackage-utils
+  - ncurses
+  - libtool
+  - java-1.8.0-openjdk-devel
+  - curl-devel
+  - perl-devel
+  - gettext-devel
+  - bzip2-devel
+  - ypbind
+  - tigervnc-server
+  - firefox
+  - gedit
+  - bluefish
+  - dejavu-sans-mono-fonts
+  - "@X Window System"
+  - "@Desktop"
+  - "@fonts"

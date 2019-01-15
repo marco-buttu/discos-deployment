@@ -11,11 +11,65 @@
       run_once: true
 
 
-- name: Apply common configurations to all nodes
+- name: Configure SELINUX
   hosts: all
   remote_user: root
   roles:
-    - common
+    - selinux
+
+
+- name: Install yum packages
+  hosts: all
+  remote_user: root
+  roles:
+    - yum
+
+
+- name: Configure network
+  hosts: all
+  remote_user: root
+  roles:
+    - network
+
+
+- name: Configure firewall
+  hosts: all
+  remote_user: root
+  roles:
+    - firewall
+
+
+- name: Configure SSH
+  hosts: all
+  remote_user: root
+  roles:
+    - ssh
+
+
+- name: Configure time
+  hosts: all
+  remote_user: root
+  roles:
+    - time
+
+
+- name: Configure users and groups
+  hosts: all
+  remote_user: root
+  roles:
+    - users
+
+
+- name: Configure NIS
+  hosts: all
+  remote_user: root
+  tasks:
+    - include_role:
+        name: nis
+      when:
+        - nis_domain_name is defined
+        - network_ip_address is defined
+        - nis_server_ip is defined
 
 
 - name: Configure lustre

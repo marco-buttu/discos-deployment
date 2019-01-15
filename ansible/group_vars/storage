@@ -1,0 +1,10 @@
+---
+
+yum_packages:
+  - sg3_utils
+  - lsof
+  - attr
+  - compat-openmpi16
+  - lvm2
+  - iptables-services
+  - ypserv
