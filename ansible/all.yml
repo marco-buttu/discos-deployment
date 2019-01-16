@@ -100,6 +100,20 @@
     - console
 
 
+- name: Configure the windows management
+  hosts: acs
+  remote_user: root
+  roles:
+    - windows_management
+
+
+- name: Configure the VNC servers
+  hosts: acs
+  remote_user: root
+  roles:
+    - vnc
+
+
 - name: Deploy DISCOS
   hosts: acs
   remote_user: root

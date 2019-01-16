@@ -1,0 +1,55 @@
+---
+
+- name: Install tigervnc-server yum package
+  yum:
+    name: tigervnc-server
+    state: present
+
+
+- name: Configure the VNCSERVERS
+  lineinfile:
+    path: /etc/sysconfig/vncservers
+    line: 'VNCSERVERS="{% for element in vnc_users %}{{ element.port_offset }}:{{ element.user }}{% if element.port_offset < vnc_users | length %} {% endif %}{% endfor %}"'
+    regexp: '^VNCSERVERS=(.*)$'
+    state: present
+
+
+- name: Configure VNCSERVERARGS
+  lineinfile:
+    path: /etc/sysconfig/vncservers
+    line: 'VNCSERVERARGS[{{ item.port_offset }}]="-name {{ inventory_hostname_short }}-{{ item.user }} -localhost -SecurityTypes None -geometry {{ vnc_resolution }} -depth 32 -AlwaysShared -nolisten tcp -rfbport {{ vnc_starting_port+item.port_offset|int }}"'
+    state: present
+  loop: "{{ vnc_users }}"
+
+
+- name: Enable ssh tunneling for only for the VNCSERVER port
+  blockinfile:
+    path: "/etc/ssh/sshd_config"
+    state: present
+    marker: "##### {{ item.user }} port forwarding configuration {mark} #####"
+    block: |
+        Match User {{ item.user }}
+            PermitOpen localhost:{{ vnc_starting_port+item.port_offset|int }}
+  loop: "{{ vnc_users }}"
+
+
+- name: Restart ssh service
+  service:
+    name: sshd
+    state: restarted
+    enabled: yes
+
+
+- name: Apply a patch to GNOME in order to avoid an annoying VNC popup
+  lineinfile:
+    path: /etc/xdg/autostart/gpk-update-icon.desktop
+    line: X-GNOME-Autostart-enabled=false
+    state: present
+  failed_when: false
+
+
+- name: Start vncserver service
+  service:
+    name: vncserver
+    state: restarted
+    enabled: yes

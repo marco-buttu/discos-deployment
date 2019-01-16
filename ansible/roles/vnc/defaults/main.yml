@@ -1,0 +1,4 @@
+---
+
+vnc_starting_port: 15000
+vnc_resolution: "1920x1080"

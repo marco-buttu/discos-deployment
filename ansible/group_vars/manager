@@ -1,0 +1,7 @@
+---
+
+gconf_users:
+  - "{{ user }}"
+
+vnc_users:
+  - { user: "{{ user }}", port_offset: 1 }

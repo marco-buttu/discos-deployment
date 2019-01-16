@@ -91,13 +91,3 @@ pyqwt_url: "{{ pyqwt_base_path }}/{{ pyqwt_version }}/{{ pyqwt_file }}"
 
 git_dir: /usr/local/git
 ghtoken: 47aabb9fb8a55376eb43ede8e375a774e8e50b3b
-
-
-###############
-# VNC Variables
-###############
-
-vnc_starting_port: 15000
-user_vnc_port: 1
-observer_vnc_port: 2
-vnc_resolution: "1920x1080"

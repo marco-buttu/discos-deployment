@@ -25,7 +25,6 @@ yum_packages:
   - gettext-devel
   - bzip2-devel
   - ypbind
-  - tigervnc-server
   - firefox
   - gedit
   - bluefish

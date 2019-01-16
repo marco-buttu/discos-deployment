@@ -1,0 +1,52 @@
+---
+
+- name: Install xdotool package
+  yum:
+    name: xdotool
+    state: present
+
+
+- name: Copy the maximize_left and maximize_right scripts
+  template:
+    src: "{{ item }}"
+    dest: /usr/bin
+    mode: 0755
+    force: yes
+  with_items:
+    - maximize_left
+    - maximize_right
+
+
+- name: Make sure keybindings gconf path exists
+  file:
+    path: "{{ item[1].path }}"
+    state: "{{ item[1].state }}"
+  become: True
+  become_user: "{{ item[0] }}"
+  with_nested:
+    - "{{ gconf_users }}"
+    - "{{ paths }}" 
+  vars:
+    paths:
+      - { path: "~/.gconf/desktop/gnome/keybindings/custom0", state: directory }
+      - { path: "~/.gconf/desktop/gnome/keybindings/custom1", state: directory }
+      - { path: "~/.gconf/desktop/gnome/keybindings/%gconf.xml", state: touch }
+      - { path: "~/.gconf/desktop/gnome/%gconf.xml", state: touch }
+      - { path: "~/.gconf/desktop/%gconf.xml", state: touch }
+
+
+- name: Copy the keybindings files
+  template:
+    src: "gconf.xml"
+    dest: "~/.gconf/desktop/gnome/keybindings/{{ item[1].dest }}/%gconf.xml"
+    owner: "{{ item[0] }}"
+    force: yes
+  become: True
+  become_user: "{{ item[0] }}"
+  with_nested:
+    - "{{ gconf_users }}"
+    - "{{ paths }}"
+  vars:
+    paths:
+      - { side: "Left", dest: "custom0" }
+      - { side: "Right", dest: "custom1" }
