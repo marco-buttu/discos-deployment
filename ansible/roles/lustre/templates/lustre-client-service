@@ -4,6 +4,14 @@
 #
 # description: This service handles the mount/umount of the lustre remote partitions
 
+check_user()
+{
+    if [[ $EUID -ne 0 ]]; then
+        echo "This action can only be performed as root." 1>&2
+        exit 1
+    fi
+}
+
 start()
 {
     touch /var/lock/subsys/lustre
@@ -57,12 +65,26 @@ stop()
     rm -f /var/lock/subsys/lustre
 }
 
+status()
+{
+    if [[ $(mount | grep '{{ lustre_server_ip }}@tcp0:/discos' | wc -l) -eq 1 ]]; then
+        echo "Lustre remote partition mounted."
+    else
+        echo "Lustre remote partition not mounted."
+    fi
+}
+
 case "$1" in
     start)
+        check_user
         start
         ;;
     stop)
+        check_user
         stop
+        ;;
+    status)
+        status
         ;;
     *)
         echo $"Usage: $0 {start|stop}"
