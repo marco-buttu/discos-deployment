@@ -1,39 +1,5 @@
 ---
 
-- name: Retrieve the typed {{ user }} password
-  block:
-    - set_fact:
-        user_pwd: "{{ lookup('env', 'DISCOS_PWD') }}"
-    - set_fact:
-        user_pwd: "{{ user_pwd | password_hash('md5', user[:8]) }}"
-      when: user_pwd != ""
-
-
-- name: Retrieve the typed {{ observer }} password
-  block:
-    - set_fact:
-        observer_pwd: "{{ lookup('env', 'OBSERVER_PWD') }}"
-    - set_fact:
-        observer_pwd: "{{ observer_pwd | password_hash('md5', observer[:8]) }}"
-      when: observer_pwd != ""
-
-
-- name: Define the list of users to be inserted in the machines
-  block:
-    - set_fact:
-        users: [{ name: "{{ user }}", uid: "{{ user_uid }}", password: "{{ user_pwd }}" }]
-    - set_fact:
-        users: "{{ users }} + [{ 'name': observer, 'uid': observer_uid, 'password': observer_pwd }]"
-      when: inventory_hostname in groups['console']
-
-
-- name: Add the acs group
-  group:
-    name: acs
-    gid: "{{ acs_gid }}"
-    state: present
-
-
 - name: Create the /{{ discos_sw_dir }} directory
   file:
     path: "/{{ discos_sw_dir }}"
@@ -41,110 +7,52 @@
     mode: 0755
 
 
+- name: Add the groups
+  group:
+    name: "{{ item.key }}"
+    gid: "{{ item.value }}"
+    state: present
+  with_dict: "{{ users_groups }}"
+
+
 - name: Add the users
   user:
-    name: "{{ item.name }}"
-    password: "{{ item.password }}"
-    group: acs
-    uid: "{{ item.uid }}"
-    home: "/{{ discos_sw_dir }}/{{ item.name }}"
+    name: "{{ item.value.name }}"
+    password: "{{ item.value.password }}"
+    group: "{{ item.value.group }}"
+    groups: "{{ item.value.groups | default('') }}"
+    uid: "{{ item.value.uid }}"
+    home: "/{{ discos_sw_dir }}/{{ item.value.name }}"
     state: present
     generate_ssh_key: yes
     ssh_key_file: .ssh/id_rsa
-  no_log: true
-  with_items: "{{ users }}"
-  when: item.password != ""
+  no_log: True
+  with_dict: "{{ users }}"
+  when: item.value.password is defined
 
 
 - name: Tune the /{{ discos_sw_dir }} directory ownership
   file:
     path: "/{{ discos_sw_dir }}"
     state: directory
-    owner: "{{ user }}"
-    group: acs
+    owner: "{{ user.name }}"
+    group: "{{ user.group }}"
 
 
-- name: Add the user {{ observer }} in the storage machine in order to prevent UIDs conflicts
-  user:
-    name: "{{ observer }}"
-    group: acs
-    uid: "{{ observer_uid }}"
-    shell: "/sbin/nologin"
-    createhome: false
-    state: present
-  when: inventory_hostname in groups['storage']
-
-
-- name: Add the user {{ user }} to sudoers
+- name: Give administrator permissions
   lineinfile:
     dest: /etc/sudoers
     state: present
-    line: '{{ user }}    ALL=(ALL)       ALL'
-
-
-- name: Configure the projects group
-  block:
-    - name: Add the projects group
-      group:
-        name: projects
-        gid: "{{ projects_gid }}"
-        state: present
-    - name: Append group projects to {{ user }} secondary groups
-      user:
-        name: "{{ user }}"
-        groups: projects
+    line: '{{ item.value.name }}    ALL=(ALL)       ALL'
+  no_log: True
+  with_dict: "{{ users }}"
+  when: item.value.administrator == True
 
 
 - name: Create the DISCOS archive directory
   file:
     path: /archive
     state: directory
-    owner: "{{ user }}"
-    group: projects
-    mode: 0755  
-
-
-- name: Perform RSA key exchange between deployed machines
-  block:
-    - name: Make sure the ssh files exists
-      file:
-        path: "/{{ discos_sw_dir }}/{{ user }}/.ssh/{{ item }}"
-        state: touch
-        owner: "{{ user }}"
-        group: acs
-        mode: 0600
-      with_items:
-        - "authorized_keys"
-        - "known_hosts"
-    - name: Removing old machine RSA fingerprints from known_hosts file
-      lineinfile:
-        path: /{{ discos_sw_dir }}/{{ user }}/.ssh/known_hosts
-        state: absent
-        regexp: "^{{ hostvars[item].inventory_hostname }},{{ hostvars[item].inventory_hostname_short}},{{ hostvars[item].ansible_host }}(.*)$"
-      with_items: "{{ play_hosts }}"
-    - name: Fetch the machine RSA fingerprints
-      command: cat /etc/ssh/ssh_host_rsa_key.pub
-      register: machine_public_key
-    - name: Add machine RSA fingerprints to known_hosts file
-      lineinfile:
-        path: /{{ discos_sw_dir }}/{{ user }}/.ssh/known_hosts
-        state: present
-        line: "{{ hostvars[item].inventory_hostname }},{{ hostvars[item].inventory_hostname_short}},{{ hostvars[item].ansible_host }} {{ hostvars[item].machine_public_key.stdout }}"
-      with_items:
-        - "{{ play_hosts }}"
-    - name: Fetch the {{ user }} user RSA public key
-      command: cat /{{ discos_sw_dir }}/{{ user }}/.ssh/id_rsa.pub
-      register: user_public_key
-    - name: Remove old public keys from authorized_keys file
-      lineinfile:
-        path: /{{ discos_sw_dir }}/{{ user }}/.ssh/authorized_keys
-        state: absent
-        regexp: "^(.*)ansible-generated on {{ hostvars[item].inventory_hostname_short }}$"
-      with_items: "{{ play_hosts }}"
-    - name: Share public key with all machines in current deployment session
-      lineinfile:
-        path: /{{ discos_sw_dir }}/{{ user }}/.ssh/authorized_keys
-        state: present
-        line: "{{ hostvars[item].user_public_key.stdout }}" 
-      with_items:
-        - "{{ play_hosts }}"
+    owner: "{{ user.name }}"
+    group: "{{ users_groups.projects }}"
+    mode: 0755

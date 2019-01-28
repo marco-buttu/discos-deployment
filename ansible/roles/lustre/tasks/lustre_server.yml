@@ -1,5 +1,16 @@
 ---
 
+- name: Install some yum dependencies
+  yum:
+    name:
+      - sg3_utils
+      - lsof
+      - attr
+      - compat-openmpi16
+      - lvm2
+    state: present
+
+
 #########################
 # e2fsprogs configuration
 #########################
@@ -121,21 +132,11 @@
 
 
 - name: Reboot the machine if required
-  shell: 'sleep 5 && shutdown -r now "Kernel update with lustre modules."'
-  async: 1
-  poll: 0
-  ignore_errors: true
+  include_role:
+    name: reboot
+  vars:
+    reboot_msg: 'Kernel update with lustre modules.'
   when: reboot_required.stdout.find("reboot") != -1
-  register: rebooting
-
-
-- name: Wait for machine to come back online
-  wait_for_connection:
-    connect_timeout: 20
-    sleep: 5
-    delay: 5
-    timeout: 300
-  when: rebooting is changed
 
 
 - name: Copy lustre server yum packages to the remote
@@ -344,8 +345,10 @@
 - name: Update the lustre clients list
   set_fact:
     lustre_clients_list: "{{ lustre_clients_list }} {{ hostvars[item].inventory_hostname_short }}"
-  with_items: "{{ groups['acs'] }}"
-  when: hostvars[item].lustre_network_interface is defined
+  with_items: "{{ groups['all'] }}"
+  when:
+    - hostvars[item].lustre_network_interface is defined
+    - hostvars[item].lustre_type == "client"
 
 
 - name: Copy the lustre-server-service template
@@ -364,7 +367,7 @@
     force: yes
 
 
-- name: Configure the server lustre service
+- name: Start the server lustre service
   systemd:
     name: lustre
     state: restarted
@@ -377,6 +380,6 @@
   file:
     path: /archive
     state: directory
-    owner: "{{ user }}"
-    group: projects
+    owner: "{{ user.name }}"
+    group: "{{ users_groups.projects }}"
     mode: 0755

@@ -1,6 +1,8 @@
-ansible/site.retry
+ansible/*.retry
 .vagrant
-TODO*
-repository
-ansible/all.retry
 *.pyc
+build/
+dist/
+discos_deployment.egg-info/
+.python-version
+TODO*

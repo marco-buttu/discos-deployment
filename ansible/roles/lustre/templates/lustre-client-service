@@ -28,7 +28,7 @@ start()
             echo -n "Mounting remote lustre partition..."
             mount -t lustre {{ lustre_server_ip }}@tcp0:/discos /archive
             echo "done."
-{% if inventory_hostname in groups['console'] %}
+{% if quicklook_directories is defined %}
 
             if [[ -f /etc/rc.d/init.d/quicklook ]]; then
                 echo -n "Starting quicklook service..."
@@ -47,7 +47,7 @@ start()
 stop()
 {
     if [[ $(mount | grep '{{ lustre_server_ip }}@tcp0:/discos' | wc -l) -eq 1 ]]; then
-{% if inventory_hostname in groups['console'] %}
+{% if quicklook_directories is defined %}
         if [[ -f /etc/rc.d/init.d/quicklook ]]; then
             echo -n "Stopping quicklook service..."
             service quicklook stop
@@ -87,7 +87,7 @@ case "$1" in
         status
         ;;
     *)
-        echo $"Usage: $0 {start|stop}"
+        echo $"Usage: $0 {start|stop|status}"
         RETVAL=2
 esac
 exit $RETVAL

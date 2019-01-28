@@ -1,5 +1,0 @@
----
-
-git_dir: "/usr/local/git"
-
-ius_release: "https://centos6.iuscommunity.org/ius-release.rpm"

@@ -1,0 +1,33 @@
+---
+
+- name: Install ypbind yum package
+  yum:
+    name: ypbind
+    state: present
+
+
+- name: Configure NIS on client machines
+  command: "authconfig --enablenis --nisdomain={{ nis_domain_name }} --nisserver={{ nis_server_ip }} {% if nis_create_home == True %}--enablemkhomedir {% endif %}--update"
+
+
+- name: Set NISTIMEOUT to 10 seconds
+  lineinfile:
+    path: /etc/sysconfig/ypbind
+    line: NISTIMEOUT=10
+    state: present
+    create: True
+
+
+- name: Start rcpbind service
+  service:
+    name: rpcbind
+    state: started
+    enabled: yes
+
+
+- name: Start ypbind service
+  service:
+    name: ypbind
+    state: started
+    enabled: yes
+  failed_when: false

@@ -10,20 +10,20 @@
 """
 
 from __future__ import print_function
-import utils
 import sys
 import subprocess
 import os
 import argparse
 import getpass
+import deployment
 
 STATIONS = { 'srt': 'SRT', 'medicina': 'Medicina', 'noto': 'Noto' }
-ENVIRONMENTS = utils.getInventories()
+ENVIRONMENTS = deployment.getInventories()
 
 inventories = {}
 systems = []
 for env in ENVIRONMENTS:
-    h, g, c = utils.parseInventory(env)
+    h, g, c = deployment.parseInventory(env)
     inventories[env] = {}
     inventories[env]['hosts'] = h
     inventories[env]['groups'] = g
@@ -80,7 +80,7 @@ if args.system.count(':') != 1:
         + 'the system is "{0}:{1}", and the command will be:'
         + '\n\n  $ discos-deploy {0}:{1}.\n\n'
     )
-    utils.error(
+    deployment.error(
         msg.format(*[c, e]),
         choices=systems,
         name='system'
@@ -95,7 +95,7 @@ else:
             msg = (
                 'Cluster "{}" not found in the "{}" environment.\n'
             ).format(cluster_arg, env_arg)
-            utils.error(
+            deployment.error(
                 msg,
                 allowed_clusters,
                 name='cluster (in {})'.format(env_arg)
@@ -112,22 +112,21 @@ else:
                 'Environment "{}" not found in {}.\nPlease use a right '
                 + 'cluster:environment combination, like:\n{}, {}, {}, ...'
             )
-            utils.error(
+            deployment.error(
                 msg.format(
                     env_arg, ENVIRONMENTS, systems[0], systems[-1], systems[-2]
                 )
             )
         # wrong_cluster:wrong_env
         if cluster_arg not in all_clusters:
-            utils.error(
+            deployment.error(
                 'System "{}:{}" not recognized.\n'.format(cluster_arg, env_arg),
                 systems,
                 name='system'
             )
 
-inventory = os.path.join(utils.ANSIBLE_DIR, 'inventories', env_arg)
-playbook = os.path.join(utils.ANSIBLE_DIR, 'all.yml')
-os.chdir(utils.ANSIBLE_DIR)
+inventory = os.path.join(deployment.INVENTORIES_DIR, env_arg)
+playbook = os.path.join(deployment.ANSIBLE_DIR, env_arg + '.yml')
 
 # Machines to provision in the current process
 current_machines = []
@@ -143,17 +142,17 @@ if env_arg != 'development':
 if args.branch or args.tag:
     if env_arg == 'development':
         if not args.station:
-            utils.error(
+            deployment.error(
                 "When deploying onto 'development' environment, "
                 + "--station' argument must be specified."
             )
         elif args.station not in STATIONS.keys():
-            utils.error('Unknown station `{}`.'.format(args.station))
+            deployment.error('Unknown station `{}`.'.format(args.station))
         extra_vars.append('cdb=test')
         extra_vars.append('station={}'.format(STATIONS[args.station]))
     else:
         if args.station and args.station != env_arg:
-            utils.error(
+            deployment.error(
                 "With '{}' environment, '--station'".format(env_arg)
                 + "argument defaults to '{}', ".format(env_arg)
                 + 'you cannot specify a different station.'
@@ -177,131 +176,66 @@ for machine in current_machines:
 # Check machine availability
 if not args.sim:
     for machine in current_machines:
-        reachable = utils.ping(ips[machine])
+        reachable = deployment.ping(ips[machine])
         if not reachable:
             if env_arg == 'development' and not args.no_vagrant:
-                if args.sim:
-                    print('vagrant up {}'.format(machine))
-                else:
-                    # Create/bring up virtual machines
-                    code = utils.createVm(machine)
-                    if code:
-                        utils.error(
-                            'Some problems starting '
-                            + 'machine {}.'.format(machine),
-                            code=code
-                        )
+                # Create/bring up virtual machines
+                code = deployment.createVm(machine)
+                if code:
+                    deployment.error(
+                        'Encountered some problems while starting '
+                        + 'machine {}.'.format(machine),
+                        code=code
+                    )
             else:
-                utils.error(
+                deployment.error(
                     'Machine {} not reachable.'.format(machine)
                     + ' Check your configuration and retry.'
                 )
 
 if not args.sim:
     # Get or generate the RSA public key
-    public_key = utils.getRSAKey()
+    public_key = deployment.getRSAKey()
     # Add the IPs to known_hosts
-    utils.updateKnownHosts(ips.values())
+    deployment.updateKnownHosts(ips.values())
 
 # Ask for root password
-manager_sessions = []
-console_sessions = []
-storage_sessions = []
 if not args.sim:
     for machine in current_machines:
         root_pwd = root_pwds[machine]
         ip = inventories[env_arg]['hosts'][machine]['ip']
-        ssh = utils.sshLogin(ip)
+        ssh = deployment.sshLogin(ip)
         if not ssh:
-            ssh = utils.sshLogin(ip, root_pwds[machine])
+            ssh = deployment.sshLogin(ip, root_pwds[machine])
         if not ssh:
             # Cannot authenticate, it means we have to ask for password
             root_pwd = getpass.getpass(
                 '\nType the root password for machine {}: '.format(machine)
             )
-            ssh = utils.sshLogin(ip, root_pwd)
+            ssh = deployment.sshLogin(ip, root_pwd)
         if not ssh:
-            utils.error(
+            deployment.error(
                 'Cannot authenticate to machine {}'.format(machine)
-                + ', probable wrong password.'
+                + ', try again.'
             )
         else:
-            root_pwds[machine] = root_pwd
-            if 'manager' in machine:
-                manager_sessions.append(ssh)
-            elif 'console' in machine:
-                console_sessions.append(ssh)
-            elif 'storage' in machine:
-                storage_sessions.append(ssh)
-
-# Insert the local public key into target machines
-# in order to enable public key ssh access
-for ssh in manager_sessions + console_sessions + storage_sessions:
-    utils.authorizeKey(ssh, public_key)
-
-# Disable network manager in virtual machines
-if env_arg == 'development' and not args.no_vagrant and not args.sim:
-    for ssh in manager_sessions + console_sessions:
-        utils.detachFromNM(ssh, 'eth0')
-
-ansible_env = os.environ.copy()
-# Check if user discos is present in the machines,
-# otherwise ask for its password
-discos_pwd = ''
-for ssh in manager_sessions + console_sessions + storage_sessions:
-    if discos_pwd:
-        break
-    result = utils.sshCommand(ssh, 'getent passwd discos')
-
-    if not result.stdout:
-        discos_pwd = getpass.getpass('\nType the `discos` user desired password: ')
-        if not discos_pwd:
-            utils.error(
-                'A password is required for user `discos`.'
-            )
-        if discos_pwd != getpass.getpass('Confirm password: '):
-            utils.error(
-                'Typed password and confirm does not match. Retry.'
-            )
-        ansible_env['DISCOS_PWD'] = discos_pwd
-
-# Check if user observer is present in the console machine,
-# otherwise ask for its password
-observer_pwd = ''
-for ssh in console_sessions:
-    if observer_pwd:
-        break
-    result = utils.sshCommand(ssh, 'getent passwd observer')
-
-    if not result.stdout:
-        observer_pwd = getpass.getpass('\nType the `observer` user desired password: ')
-        if not observer_pwd:
-            utils.error(
-                'A password is required for user `observer`.'
-            )
-        if observer_pwd != getpass.getpass('Confirm password: '):
-            utils.error(
-                'Typed password and confirm does not match. Retry.'
-            )
-        ansible_env['OBSERVER_PWD'] = observer_pwd
-
-# Close the ssh sessions
-for ssh in manager_sessions + console_sessions + storage_sessions:
-    ssh.logout()
-del manager_sessions
-del console_sessions
-del storage_sessions
+            deployment.authorizeKey(ssh, public_key)
+            if env_arg == 'development' and not args.no_vagrant:
+                deployment.detachFromNM(ssh, 'eth0')
+            ssh.logout()
 
 # Call ansible
 ansible_cmd = [
     'ansible-playbook', playbook,
     '--inventory-file', inventory,
-    '--limit', cluster_arg,
-    '--extra-vars', ' '.join(extra_vars),
+    '--limit', cluster_arg
 ]
+
+if extra_vars:
+    ansible_cmd += ['--extra-vars', ' '.join(extra_vars)]
 
 print('\nCalling ansible...')
 if args.sim:
     print(' '.join(ansible_cmd))
 else:
-    subprocess.call(ansible_cmd, env=ansible_env, shell=False)
+    subprocess.call(ansible_cmd)

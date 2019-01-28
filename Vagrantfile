@@ -12,6 +12,7 @@ Vagrant.configure(vagrantfile_api_version) do |config|
         vb.customize ["modifyvm", :id, "--ioapic", "on"]
         vb.memory = 4096
         vb.cpus = 4
+        vb.default_nic_type = "virtio"
     end
 
 

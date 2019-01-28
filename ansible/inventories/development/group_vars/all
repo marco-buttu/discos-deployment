@@ -11,3 +11,7 @@ network_ip_address: 192.168.10.0/24
 nis_server_ip: 192.168.10.200
 
 lustre_server_ip: 192.168.10.200
+
+key_exchange_users:
+  - "{{ user.name }}"
+  - "root"

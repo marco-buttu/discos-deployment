@@ -384,7 +384,7 @@
 
 - name: Increment the process stack size in order to compile AS GUI
   pam_limits:
-    domain: "{{ user }}"
+    domain: "{{ user.name }}"
     limit_type: '-'
     limit_item: stack
     value: 65532
@@ -497,8 +497,8 @@
     path: "{{ remote_build_path }}/{{ sip_build_dir }}"
     state: directory
     recurse: yes
-    owner: "{{ user }}"
-    group: acs
+    owner: "{{ user.name }}"
+    group: "{{ user.group }}"
     mode: 0755
 
 
@@ -509,7 +509,7 @@
     - "make"
     - "make install"
   become: true
-  become_user: "{{ user }}"
+  become_user: "{{ user.name }}"
   become_flags: "-i"
   when: sip_library.stat.exists == False
 
@@ -558,8 +558,8 @@
     path: "{{ remote_build_path }}/{{ pyqt_build_dir }}"
     state: directory
     recurse: yes
-    owner: "{{ user }}"
-    group: acs
+    owner: "{{ user.name }}"
+    group: "{{ user.group }}"
     mode: 0755
 
 
@@ -568,7 +568,7 @@
   with_items:
     - "python configure.py --confirm-license --qmake /usr/local/{{ qt_version }}/bin/qmake"
   become: true
-  become_user: "{{ user }}"
+  become_user: "{{ user.name }}"
   become_flags: "-i"
   when: pyqt_library.stat.exists == False
 
@@ -583,7 +583,7 @@
     - "{{ remote_build_path }}/{{ pyqt_build_dir }}/QtGui/sipQtGuiQAbstractPrintDialog.cpp"
     - "{{ remote_build_path }}/{{ pyqt_build_dir }}/sip/QtGui/qabstractprintdialog.sip"
   become: true
-  become_user: "{{ user }}"
+  become_user: "{{ user.name }}"
   when: pyqt_library.stat.exists == False
 
 
@@ -593,7 +593,7 @@
     - "make"
     - "make install"
   become: true
-  become_user: "{{ user }}"
+  become_user: "{{ user.name }}"
   when: pyqt_library.stat.exists == False
 
 
@@ -635,8 +635,8 @@
     path: "{{ remote_build_path }}/{{ pyqwt_build_dir }}"
     state: directory
     recurse: yes
-    owner: "{{ user }}"
-    group: acs
+    owner: "{{ user.name }}"
+    group: "{{ user.group }}"
     mode: 0755
 
 
@@ -645,7 +645,7 @@
   with_items:
     - "python configure.py -Q ../qwt-5.2"
   become: true
-  become_user: "{{ user }}"
+  become_user: "{{ user.name }}"
   become_flags: "-i"
   when: pyqwt_library.stat.exists == False
 
@@ -656,7 +656,7 @@
     - "make"
     - "make install"
   become: true
-  become_user: "{{ user }}"
+  become_user: "{{ user.name }}"
   when: pyqwt_library.stat.exists == False
 
 
@@ -678,7 +678,7 @@
     - "pip install subprocess32"
     - "pip install pyfits"
   become: true
-  become_user: "{{ user }}"
+  become_user: "{{ user.name }}"
   become_flags: "-i"
 
 
@@ -688,7 +688,7 @@
 
 - name: Increment the maximum number of user processes in order to run the AS
   pam_limits:
-    domain: "{{ user }}"
+    domain: "{{ user.name }}"
     limit_type: '-'
     limit_item: nproc
     value: 63266

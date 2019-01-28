@@ -1,10 +1,7 @@
 ---
 
-- block:
-    - include: key_exchange.yml
-    - include: check_interfaces.yml
-    - include: lustre_clients.yml
-      when: inventory_hostname in groups['acs']
-    - include: lustre_server.yml
-      when: inventory_hostname in groups['storage']
-  when: lustre_server_ip is defined
+- include: check_interfaces.yml
+- include: lustre_clients.yml
+  when: lustre_type == "client"
+- include: lustre_server.yml
+  when: lustre_type == "server"

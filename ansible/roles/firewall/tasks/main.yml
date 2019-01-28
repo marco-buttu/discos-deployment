@@ -1,10 +1,16 @@
 ---
 
+- name: Install iptables yum packages
+  yum:
+    name: "{{ firewall_packages }}"
+    state: present
+
+
 - name: Mask firewalld service
   systemd:
     name: firewalld
     masked: yes
-  failed_when: false
+  failed_when: False
 
 
 - name: Copy the firewall-reset template

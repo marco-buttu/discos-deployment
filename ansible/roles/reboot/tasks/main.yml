@@ -1,0 +1,17 @@
+---
+
+- name: Reboot the machine
+  shell: 'sleep 5 && shutdown -r now "{{ reboot_msg }}"'
+  async: 1
+  poll: 0
+  ignore_errors: True
+  register: rebooting
+
+
+- name: Wait for machine to come back online
+  wait_for_connection:
+    connect_timeout: 20
+    sleep: 5
+    delay: 5
+    timeout: 300
+  when: rebooting is changed

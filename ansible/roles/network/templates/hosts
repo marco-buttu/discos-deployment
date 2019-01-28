@@ -1,6 +1,6 @@
 127.0.0.1 localhost localhost.localdomain localhost4 localhost4.localdomain4
 
-{% for hostname in groups['discos'] %}
+{% for hostname in groups['all'] %}
 {{ hostvars[hostname].ansible_host }} {{ hostvars[hostname].inventory_hostname }} {{ hostvars[hostname].inventory_hostname_short }}
 {% endfor %}
 

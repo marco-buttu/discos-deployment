@@ -4,17 +4,17 @@
   file:
     path: "/archive/{{ item.path }}"
     state: directory
-    owner: "{{ user }}"
+    owner: "{{ user.name }}"
     group: "{{ item.group }}"
     mode: "{{ item.mode }}"
     recurse: yes
     follow: yes
   with_items:
-    - { path: "data", group: "projects", mode: "0710" }
-    - { path: "extraData", group: "projects", mode: "0710" }
-    - { path: "events", group: "acs", mode: "0750" }
-    - { path: "logs", group: "projects", mode: "0750" }
-    - { path: "schedules", group: "projects", mode: "0710" }
+    - { path: "data", group: "{{ users_groups.projects }}", mode: "0710" }
+    - { path: "extraData", group: "{{ users_groups.projects }}", mode: "0710" }
+    - { path: "events", group: "{{ users_groups.acs }}", mode: "0750" }
+    - { path: "logs", group: "{{ users_groups.projects }}", mode: "0750" }
+    - { path: "schedules", group: "{{ users_groups.projects }}", mode: "0710" }
 
 
 - name: Set ACLs for the /archive directory tree
@@ -31,8 +31,8 @@
   template:
     src: discos-logrotate
     dest: "/{{ discos_sw_dir }}/config/misc/"
-    owner: "{{ user }}"
-    group: acs
+    owner: "{{ user.name }}"
+    group: "{{ user.group }}"
     mode: 0644
     force: yes
 
@@ -41,15 +41,15 @@
   file:
     path: "/service/events"
     state: directory
-    owner: "{{ user }}"
-    group: acs
+    owner: "{{ user.name }}"
+    group: "{{ user.group }}"
     mode: 0755
 
 
-- name: Activate the crontab job for log rotation
+- name: Activate the crontab job for ACS log rotation
   cron:
     name: discos-logrotate
     hour: "23"
     minute: "59"
-    user: "{{ user }}"
+    user: "{{ user.name }}"
     job: "/usr/sbin/logrotate -f /{{ discos_sw_dir }}/config/misc/discos-logrotate"
