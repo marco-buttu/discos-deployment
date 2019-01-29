@@ -1,0 +1,7 @@
+---
+
+- hosts: all
+  tasks:
+    - debug:
+        msg: "No tasks to apply for this inventory!"
+      failed_when: True

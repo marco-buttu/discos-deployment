@@ -27,3 +27,7 @@ resolv_nameservers: "{{ OAC_nameservers }} + {{ SRT_nameservers }} + {{ IRA_name
 
 host_list:
   - { hostname: "dorian", ip_address: "192.168.200.216" }
+
+key_exchange_users:
+  - "{{ user.name }}"
+  - "root"

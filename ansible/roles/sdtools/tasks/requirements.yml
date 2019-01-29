@@ -1,0 +1,31 @@
+---
+
+
+- name: Install the ius_release yum package
+  yum:
+    name: "{{ ius_release }}"
+    state: present
+
+
+- name: Install SDTools required yum packages
+  yum:
+    name:
+      - python36u-pip
+      - python36u-devel
+      - python36u-tkinter
+    state: present
+
+
+- name: Install SDTools python dependencies
+  command: "pip3.6 install {{ item }}"
+  with_items:
+    - astropy
+    - numpy
+    - scipy
+    - matplotlib
+    - pyyaml
+    - h5py
+    - statsmodels
+    - numba
+    - watchdog
+    - Zdaemon

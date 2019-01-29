@@ -5,7 +5,7 @@
   with_items:
     - pip install prospector==0.12.11
   become: true
-  become_user: "{{ user }}"
+  become_user: "{{ user.name }}"
   become_flags: "-i"
 
 
@@ -13,9 +13,9 @@
   command: "{{ item[0] }}"
   with_nested:
     - ["pip install ipython", "ipython profile create"]
-    - "{{ users }}"
+    - "{{ users | dict2items }}"
   become: true
-  become_user: "{{ item[1].name }}"
+  become_user: "{{ item[1].value.name }}"
   become_flags: "-i"
   no_log: true
 
@@ -23,11 +23,11 @@
 - name: Copy the ipython startup files
   template:
     src: ipython_startup_01.py
-    dest: "/{{ discos_sw_dir }}/{{ item.name }}/.ipython/profile_default/startup/01.py"
-    owner: "{{ item.name }}"
-    group: acs
+    dest: "/{{ discos_sw_dir }}/{{ item.value.name }}/.ipython/profile_default/startup/01.py"
+    owner: "{{ item.value.name }}"
+    group: "{{ item.value.group }}"
     mode: 0644
-  with_items: "{{ users }}"
+  with_dict: "{{ users }}"
   no_log: true
 
 

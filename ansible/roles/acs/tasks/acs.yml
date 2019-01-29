@@ -4,8 +4,8 @@
   file:
     path: "{{ remote_build_path }}"
     state: directory
-    owner: "{{ user }}"
-    group: acs
+    owner: "{{ user.name }}"
+    group: "{{ user.group }}"
     mode: 0770
     recurse: yes
 
@@ -60,8 +60,8 @@
   copy:
     src: "{{ local_repository_path }}/{{ acs_dest.file }}"
     dest: "{{ remote_build_path }}"
-    owner: "{{ user }}"
-    group: acs
+    owner: "{{ user.name }}"
+    group: "{{ user.group }}"
   when: target_dir.matched|int == 0
 
 
@@ -69,8 +69,8 @@
   copy:
     src: "{{ local_repository_path }}/{{ extprod_dest.file }}"
     dest: "{{ remote_build_path }}"
-    owner: "{{ user }}"
-    group: acs
+    owner: "{{ user.name }}"
+    group: "{{ user.group }}"
   when: target_dir.matched|int == 0
 
 
@@ -83,7 +83,7 @@
     - "{{ acs_dest.file }}"
     - "{{ extprod_dest.file }}"
   become: true
-  become_user: "{{ user }}"
+  become_user: "{{ user.name }}"
   when: target_dir.matched|int == 0
 
 
@@ -110,15 +110,15 @@
   with_items:
     - "cp -r .acs /{{ discos_sw_dir }}/config/acs"
   become: true
-  become_user: "{{ user }}"
+  become_user: "{{ user.name }}"
 
 
 - name: Create the acstmp directory
   file:
     path: "/service/acstmp/{{ inventory_hostname_short }}"
     state: directory
-    owner: "{{ user }}"
-    group: acs
+    owner: "{{ user.name }}"
+    group: "{{ user.group }}"
     mode: 0755
     recurse: yes
 
@@ -127,11 +127,11 @@
   template:
     src: acsStartContainerGdb
     dest: "/alma/{{ acs_tag }}/ACSSW/bin/"
-    owner: "{{ user }}"
-    group: acs
+    owner: "{{ user.name }}"
+    group: "{{ user.group }}"
     mode: 0755
   become: true
-  become_user: "{{ user }}"
+  become_user: "{{ user.name }}"
 
 
 - name: Copy the Python bz2.so from system to ACS
@@ -139,7 +139,7 @@
   with_items:
     - "cp bz2.so /alma/ACS-FEB2017/Python/lib/python2.7/site-packages/"
   become: true
-  become_user: "{{ user }}"
+  become_user: "{{ user.name }}"
 
 
 - name: Create a symlink to the correct Java home path, needed by ACS
@@ -169,8 +169,8 @@
   template:
     src: ContainerServices.py
     dest: "{{ container_services }}"
-    owner: "{{ user }}"
-    group: acs
+    owner: "{{ user.name }}"
+    group: "{{ user.group }}"
     mode: 0644
     force: yes
   when: container_services_content.stdout.find('getattr') == -1
@@ -185,8 +185,8 @@
   template:
     src: BaciHelper.py
     dest: "{{ baci_helper }}"
-    owner: "{{ user }}"
-    group: acs
+    owner: "{{ user.name }}"
+    group: "{{ user.group }}"
     mode: 0644
     force: yes
   when: baci_helper_content.stdout.find('getattr') == -1
@@ -196,8 +196,8 @@
   template:
     src: ExecuteContainer.java
     dest: "{{ execute_container }}"
-    owner: "{{ user }}"
-    group: acs
+    owner: "{{ user.name }}"
+    group: "{{ user.group }}"
     mode: 0755
     backup: yes
 
@@ -206,8 +206,8 @@
   template:
     src: Executor.java
     dest: "{{ executor }}"
-    owner: "{{ user }}"
-    group: acs
+    owner: "{{ user.name }}"
+    group: "{{ user.group }}"
     mode: 0755
     backup: yes
 
@@ -215,8 +215,8 @@
 - name: Create the idl directory under acscommandcenter
   file:
     path: "{{ acs_command_center }}/idl"
-    owner: "{{ user }}"
-    group: acs
+    owner: "{{ user.name }}"
+    group: "{{ user.group }}"
     state: directory
     mode: 0755
 
@@ -228,7 +228,7 @@
     - AcsCommandCenterProject.xsd
     - AcsCommandCenterTools.xsd
   become: true
-  become_user: "{{ user }}"
+  become_user: "{{ user.name }}"
 
 
 - name: Build acscommandcenter
@@ -237,7 +237,7 @@
       - make clean
       - make
   become: true
-  become_user: "{{ user }}"
+  become_user: "{{ user.name }}"
 
 
 - name: Copy Acs Command Center .jar files
@@ -246,7 +246,7 @@
       - acscommandcenter.jar
       - AcsCommandCenterEntities.jar
   become: true
-  become_user: "{{ user }}"
+  become_user: "{{ user.name }}"
 
 
 ##################################
@@ -279,7 +279,7 @@
     path: "/alma/{{ acs_tag }}/boost"
     state: absent
   become: true
-  become_user: "{{ user }}"
+  become_user: "{{ user.name }}"
 
 
 # ACS source files from:

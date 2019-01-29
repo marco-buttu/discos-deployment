@@ -19,7 +19,7 @@
   when: inventory_dir.split('/')[-1] == 'development'
 
 - set_fact:
-    sources_path: "/{{ discos_sw_dir }}/{{ user }}/{{ repo_name }}"
+    sources_path: "/{{ discos_sw_dir }}/{{ user.name }}/{{ repo_name }}"
     introot_path: "/{{ discos_sw_dir }}/introots/{{ repo_name }}"
 
 - name: Remove the repository directory and introot (if present)
@@ -33,15 +33,15 @@
 
 - name: Clone the selected DISCOS branch repository
   command: "{{ discos_get_cmd }}"
-  become: true
-  become_user: "{{ user }}"
+  become: True
+  become_user: "{{ user.name }}"
   become_flags: "-i"
 
 
 - name: Set the correct CDB
   command: "discos-set --cdb {{ cdb }} {{ repo_name }}"
-  become: true
-  become_user: "{{ user }}"
+  become: True
+  become_user: "{{ user.name }}"
   become_flags: "-i"
 
 
@@ -52,6 +52,6 @@
   with_items:
     - make
     - make install
-  become: true
-  become_user: "{{ user }}"
+  become: True
+  become_user: "{{ user.name }}"
   become_flags: "-i"

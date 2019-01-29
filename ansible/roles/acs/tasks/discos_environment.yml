@@ -4,8 +4,8 @@
   file:
     path: "/{{ discos_sw_dir }}/{{ item.path }}"
     state: directory
-    owner: "{{ user }}"
-    group: acs
+    owner: "{{ user.name }}"
+    group: "{{ user.group }}"
     mode: "{{ item.mode }}"
     recurse: yes
     follow: yes
@@ -19,8 +19,8 @@
   template:
     src: bashrc
     dest: "/{{ discos_sw_dir }}/config/misc/"
-    owner: "{{ user }}"
-    group: acs
+    owner: "{{ user.name }}"
+    group: "{{ user.group }}"
     mode: 0640
     force: yes
 
@@ -29,8 +29,8 @@
   template:
     src: prompt_command.sh
     dest: "/{{ discos_sw_dir }}/config/misc/"
-    owner: "{{ user }}"
-    group: acs
+    owner: "{{ user.name }}"
+    group: "{{ user.group }}"
     mode: 0640
     force: yes
 
@@ -39,8 +39,8 @@
   file:
     path: "/{{ discos_sw_dir }}/config/misc/branches"
     state: touch
-    owner: "{{ user }}"
-    group: acs
+    owner: "{{ user.name }}"
+    group: "{{ user.group }}"
     mode: 0640
  
  
@@ -48,8 +48,8 @@
   template:
     src: load_branch
     dest: "/{{ discos_sw_dir }}/config/misc/"
-    owner: "{{ user }}"
-    group: acs
+    owner: "{{ user.name }}"
+    group: "{{ user.group }}"
     mode: 0640
     force: yes
 
@@ -64,21 +64,21 @@
   when: inventory_dir.split('/')[-1] != 'development'
  
  
-- name: Create the /bin directory for user {{ user }}
+- name: Create the /bin directory for user {{ user.name }}
   file:
-    path: "/{{ discos_sw_dir }}/{{ user }}/bin"
+    path: "/{{ discos_sw_dir }}/{{ user.name }}/bin"
     state: directory
-    owner: "{{ user }}"
-    group: acs
+    owner: "{{ user.name }}"
+    group: "{{ user.group }}"
     mode: 0700
  
  
 - name: Render the discos-get template
   template:
     src: discos-get
-    dest: "/{{ discos_sw_dir }}/{{ user }}/bin/"
-    owner: "{{ user }}"
-    group: acs
+    dest: "/{{ discos_sw_dir }}/{{ user.name }}/bin/"
+    owner: "{{ user.name }}"
+    group: "{{ user.group }}"
     mode: 0500
     force: yes
 
@@ -86,9 +86,9 @@
 - name: Render the discos-set template
   template:
     src: discos-set
-    dest: "/{{ discos_sw_dir }}/{{ user }}/bin/"
-    owner: "{{ user }}"
-    group: acs
+    dest: "/{{ discos_sw_dir }}/{{ user.name }}/bin/"
+    owner: "{{ user.name }}"
+    group: "{{ user.group }}"
     mode: 0500
     force: yes
  
@@ -96,9 +96,9 @@
 - name: Render the _discos-check-branch template
   template:
     src: _discos-check-branch
-    dest: "/{{ discos_sw_dir }}/{{ user }}/bin/"
-    owner: "{{ user }}"
-    group: acs
+    dest: "/{{ discos_sw_dir }}/{{ user.name }}/bin/"
+    owner: "{{ user.name }}"
+    group: "{{ user.group }}"
     mode: 0500
     force: yes
 
@@ -106,33 +106,33 @@
 - name: Copy the pyrc template
   template:
     src: pyrc
-    dest: "/{{ discos_sw_dir }}/{{ item.name }}/.pyrc"
-    owner: "{{ item.name }}"
-    group: acs
+    dest: "/{{ discos_sw_dir }}/{{ item.value.name }}/.pyrc"
+    owner: "{{ item.value.name }}"
+    group: "{{ item.value.group }}"
     mode: 0600
-  no_log: true
-  with_items: "{{ users }}"
+  no_log: True
+  with_dict: "{{ users }}"
 
 
 - name: Copy vimrc
   template:
     src: vimrc
-    dest: "/{{ discos_sw_dir }}/{{ item.name }}/.vimrc"
-    owner: "{{ item.name }}"
-    group: acs
+    dest: "/{{ discos_sw_dir }}/{{ item.value.name }}/.vimrc"
+    owner: "{{ item.value.name }}"
+    group: "{{ item.value.group }}"
     mode: 0600
-  no_log: true
-  with_items: "{{ users }}"
+  no_log: True
+  with_dict: "{{ users }}"
 
 
 - name: Add the custom bashrc sourcing to the default one
   blockinfile:
-    path: "/{{ discos_sw_dir }}/{{ item.name }}/.bashrc"
+    path: "/{{ discos_sw_dir }}/{{ item.value.name }}/.bashrc"
     state: present
     marker: "######## DISCOS configuration {mark} ########"
     block: |
         if [ -f /{{ discos_sw_dir }}/config/misc/bashrc ]; then
             source /{{ discos_sw_dir }}/config/misc/bashrc
         fi
-  no_log: true
-  with_items: "{{ users }}"
+  no_log: True
+  with_dict: "{{ users }}"

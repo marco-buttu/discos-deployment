@@ -1,76 +1,41 @@
 #!/usr/bin/env python
-from __future__ import print_function
-import sys
+
 import os
-import subprocess
+import shutil
+try:
+    from setuptools import setup, find_packages
+except ImportError:
+    from distutils.core import setup, find_packages
 
-def queryYesNo(question):
-    valid = {
-        '': True,
-        'yes': True,
-        'y': True,
-        'ye': True,
-        'no': False,
-        'n': False
-    }
+scripts = ['discos-deploy', 'discos-vms', 'discos-vnc', 'discos-login']
+scripts = [os.path.join('scripts', s) for s in scripts]
 
-    for _ in range(3):
-        sys.stdout.write(question + ' [Y/n]: ')
-        choice = raw_input().lower()
-        try:
-            return valid[choice]
-        except KeyError:
-            print("Please respond with 'yes' or 'no' (or 'y' or 'n').")
-
-    print("ERROR: please, respond with 'yes' or 'no' (or 'y' or 'n').")
-    sys.exit(2)
-
-if sys.version_info[0] != 2 or sys.version_info[1] != 7:
-    print('ERROR: the setup procedure and the scripts require Python 2.7!')
-    sys.exit(1)
-
-if queryYesNo('Would you like to automatically install the requirements?'):
-    requirements = [
-        'pexpect'
+setup(
+    name='discos-deployment',
+    version='1.0',
+    description='Ansible-automated setup procedure of DISCOS machines.',
+    author='Marco Buttu, Giuseppe Carboni',
+    author_email='marco.buttu@inaf.it',
+    maintainer='Giuseppe Carboni',
+    maintainer_email='giuseppe.carboni@inaf.it',
+    url='https://github.com/discos/deployment/',
+    packages=['deployment'],
+    scripts=scripts,
+    platforms='all',
+    classifiers=[
+        'Operating System :: OS Independent',
+        'Programming Language :: Python :: 2.7',
     ]
-    FNULL = open(os.devnull, 'w')
-    for requirement in requirements:
-        sys.stdout.write("Installing '{}' package...".format(requirement))
-        sys.stdout.flush()
-        subprocess.call(
-            ['pip', 'install', requirement],
-            stdout=FNULL,
-            stderr=FNULL
-        )
-        print('done.')
+)
 
-if not queryYesNo('Would you like to add the scripts to your ~/.bashrc file?'):
-    sys.exit(0)
+deployment_env = os.path.join(os.environ['HOME'], '.deployment')
+vagrantfile_dst = os.path.join(deployment_env, 'Vagrantfile')
+ansible_dst = os.path.join(deployment_env, 'ansible')
 
-home = os.environ['HOME']
-bashrc = os.path.join(home, '.bashrc')
-deployment_path = os.path.dirname(os.path.realpath(__file__)).lstrip(home)
-source_file_path = '$HOME/{}/scripts/source.sh'.format(deployment_path)
-source_line = 'source {}'.format(source_file_path)
+if not os.path.exists(deployment_env):
+    os.mkdir(deployment_env)
+if os.path.exists(ansible_dst):
+    shutil.rmtree(ansible_dst)
 
-found = False
-for line in open(bashrc):
-    if source_line in line:
-        found = True
-
-if found:
-    print('The scripts are already installed. Nothing to do.')
-    sys.exit(0)
-else:
-    lines = []
-    lines.append('\nif [ -f {} ]; then\n'.format(source_file_path))
-    lines.append('    ' + source_line + '\n')
-    lines.append('fi')
-    open(bashrc, 'a').writelines(lines)
-    print(
-        'The file that sources the scripts has been '
-        + 'added to your ~/.bashrc file. They will '
-        + 'be available as soon as you open a new '
-        + 'terminal. Have fun!'
-    )
-    sys.exit(0)
+shutil.copyfile('Vagrantfile', vagrantfile_dst)
+shutil.copytree('ansible', ansible_dst)

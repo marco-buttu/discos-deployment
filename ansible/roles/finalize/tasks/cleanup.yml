@@ -1,7 +1,7 @@
 ---
 
 - name: Fetch the local user's public key
-  command: cat ~/.ssh/id_rsa.pub
+  command: "cat ~/.ssh/id_rsa.pub"
   register: local_public_key
   delegate_to: localhost
   run_once: true
@@ -9,6 +9,6 @@
 
 - name: Remove the local user's public key from remote .ssh/authorized_hosts file
   lineinfile:
-    path: ~/.ssh/authorized_keys
+    path: "~/.ssh/authorized_keys"
     line: "{{ local_public_key.stdout }}"
     state: absent

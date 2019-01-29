@@ -6,9 +6,9 @@
   $ discos-login -u observer console
 """
 from __future__ import print_function
-import utils
 import subprocess
 from argparse import ArgumentParser
+import deployment
 
 parser = ArgumentParser()
 parser.add_argument(
@@ -16,16 +16,16 @@ parser.add_argument(
     required=False,
     default='discos'
 )
-parser.add_argument('machine', choices=utils.machineList())
+parser.add_argument('machine', choices=deployment.machineList())
 args = parser.parse_args()
 
-if utils.isRunning(args.machine):
+if deployment.isRunning(args.machine):
     subprocess.call([
         'ssh',
         '-CX',
         '-l',
         args.user,
-        utils.getIp(args.machine)
+        deployment.getIp(args.machine)
     ])
 else:
     print('Machine {} is not running.'.format(args.machine))

@@ -1,0 +1,10 @@
+---
+
+- name: Check if user '{{ item.value.name }}' already exists
+  command: "getent passwd {{ item.value.uid }}"
+  register: user_exists
+  failed_when: False
+
+
+- include: askpass.yml
+  when: user_exists.stdout_lines | length == 0

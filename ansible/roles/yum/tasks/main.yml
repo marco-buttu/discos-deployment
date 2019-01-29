@@ -57,17 +57,8 @@
       - screen
       - xterm
       - ksh
-      - java-1.8.0-openjdk
       - wget
       - perl
       - net-snmp
       - rsync
-      - iptables
-      - rpcbind
-    state: present
-
-
-- name: Install machine-specific yum packages
-  yum:
-    name: "{{ yum_packages }}"
     state: present

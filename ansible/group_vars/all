@@ -1,20 +1,17 @@
 ---
 
-ansible_user: root
+ansible_user: "root"
 
-acs_gid: 335
-projects_gid: 336
+users_groups: { acs: 335, projects: 336 }
 
-user: discos
-user_uid: 3060
+user: { name: "discos", uid: 3060, group: "{{ users_groups.acs }}", groups: "{{ users_groups.projects }}", administrator: True, vnc_port_offset: 1 }
+observer: { name: "observer", uid: 3061, group: "{{ users_groups.acs }}", administrator: False, vnc_port_offset: 2 }
 
-observer: observer
-observer_uid: 3061
+discos_sw_dir: "discos-sw"
 
-discos_sw_dir: discos-sw
+local_repository_path: "{{ lookup('env','HOME') }}/.deployment/repository"
+remote_build_path: "/tmp/builds"
 
-local_repository_path: "{{ lookup('env','HOME') }}/repository"
-remote_build_path: /tmp/builds
+ius_release: "https://centos6.iuscommunity.org/ius-release.rpm"
 
-firewall_state: stopped
-firewall_enabled: no
+git_dir: "/usr/local/git"

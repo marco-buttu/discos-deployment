@@ -1,5 +1,11 @@
 ---
 
+- name: Install NetworkManager yum package
+  yum:
+    name: NetworkManager
+    state: present
+
+
 - name: Disable NetworkManager service
   service:
     name: NetworkManager

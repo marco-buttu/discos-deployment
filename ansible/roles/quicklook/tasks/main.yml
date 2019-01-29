@@ -1,0 +1,35 @@
+---
+
+- name: Copy the quicklook service template
+  template:
+    src: quicklook
+    dest: /etc/rc.d/init.d/quicklook
+    mode: 0755
+    force: true
+
+
+- name: Create the sdtools/quicklook directories
+  file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: "{{ user.name }}"
+    group: "{{ user.group }}"
+    mode: "{{ item.mode }}"
+  with_items:
+    - { path: "/{{ discos_sw_dir }}/sdtools/quicklook", mode: "0710" }
+    - { path: "/{{ discos_sw_dir }}/sdtools/quicklook/conf", mode: "0700" }
+    - { path: "/{{ discos_sw_dir }}/sdtools/quicklook/page", mode: "0750" }
+
+
+- name: Copy the quicklook configuration files
+  template:
+    src: "{{ item.src }}"
+    dest: "/{{ discos_sw_dir }}/sdtools/quicklook/conf"
+    owner: "{{ user.name }}"
+    group: "{{ user.group }}"
+    mode: "{{ item.mode }}"
+    force: true
+  with_items:
+    - { src: "monitor_config.ini", mode: "0640" }
+    - { src: "service.conf", mode: "0640" }
+    - { src: "service.sh", mode: "0740" }

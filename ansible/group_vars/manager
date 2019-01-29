@@ -1,7 +1,5 @@
 ---
 
-gconf_users:
-  - "{{ user }}"
+users: { user: "{{ user }}" }
 
-vnc_users:
-  - { user: "{{ user }}", port_offset: 1 }
+nis_create_home: False

@@ -8,14 +8,14 @@
 """
 from __future__ import print_function
 import sys
-import utils
 from argparse import ArgumentParser
+import deployment
 
-machines = utils.machineList()
+machines = deployment.machineList()
 
 def check_machine(machine):
     if machine not in machines:
-        utils.error(
+        deployment.error(
             'machine %s unknown!' % machine,
             choices=machines,
             name='machine'
@@ -62,7 +62,7 @@ if len(machines) == 0:
     sys.exit()
 
 if not args.machine:
-    args.machine = utils.machineList()
+    args.machine = deployment.machineList()
 
 if 'storage' in args.machine and len(args.machine) > 1:
     args.machine.insert(0, args.machine.pop(args.machine.index('storage')))
@@ -73,14 +73,14 @@ if args.stop:
 for machine in args.machine:
     if args.status:
         status_msg = 'Machine {} status: '.format(machine)
-        if utils.isRunning(machine):
+        if deployment.isRunning(machine):
             status_msg += 'running.'
         else:
             status_msg += 'powered off.'
         print(status_msg)
     elif args.start:
-        utils.startVm(machine)
+        deployment.startVm(machine)
     elif args.stop:
-        utils.stopVm(machine)
+        deployment.stopVm(machine)
     elif args.restart:
-        utils.restartVm(machine)
+        deployment.restartVm(machine)

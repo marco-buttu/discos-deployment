@@ -1,0 +1,21 @@
+---
+
+- name: Install the ius_release yum package on console machine
+  yum:
+    name: "{{ ius_release }}"
+    state: present
+
+
+- name: Install BASIE required yum packages
+  yum:
+    name:
+      - python27
+      - python27-pip
+    state: present
+
+
+- name: Install BASIE Python dependencies
+  command: "pip2.7 install {{ item }}"
+  with_items:
+    - astropy==2.0.8
+    - persistent==4.4.2

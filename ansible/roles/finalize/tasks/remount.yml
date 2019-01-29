@@ -4,4 +4,6 @@
   systemd:
     name: lustre
     state: restarted
-  when: inventory_hostname in groups['storage']
+  when:
+    - lustre_network_interface is defined
+    - lustre_type == "server"

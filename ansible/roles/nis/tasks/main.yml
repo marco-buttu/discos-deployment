@@ -1,92 +1,25 @@
 ---
 
-- name: Perform a basic NIS configuration for all machines
-  block:
-    - name: Set ypdomainname
-      command: "ypdomainname {{ nis_domain_name }}"
-    - name: Set NISDOMAIN
-      lineinfile:
-        path: /etc/sysconfig/network
-        state: present
-        line: "NISDOMAIN={{ nis_domain_name }}"
+- name: Install rpcbind yum package
+  yum:
+    name: rpcbind
+    state: present
 
 
-- name: Configure NIS on storage machine
-  block:
-    - name: Set yp securenets
-      lineinfile:
-        path: /var/yp/securenets
-        state: present
-        line: "{{ item }}"
-        create: yes
-      with_items:
-        - "255.255.255.0 {{ network_ip_address.split('/')[0] }}"
-        - "255.0.0.0 127.0.0.1"
-    - name: Start rpcbind service
-      service:
-        name: rpcbind
-        state: started
-        enabled: yes
-    - name: Start ypserv service
-      service:
-        name: ypserv
-        state: started
-        enabled: yes
-    - name: Start ypxfrd service
-      service:
-        name: ypxfrd
-        state: started
-        enabled: yes
-    - name: Start yppasswdd
-      service:
-        name: yppasswdd
-        state: started
-        enabled: yes
-    - name: Perform a backup of the ypinit script
-      command: "cp /usr/lib64/yp/ypinit /usr/lib64/yp/ypinit.bak"
-    - name: Apply a patch to the ypinit script
-      lineinfile:
-        path: '/usr/lib64/yp/ypinit'
-        regexp: '{{ item.original }}'
-        line: '{{ item.new }}'
-      with_items:
-        - { original: 'while read h', new: 'while false' }
-        - { original: 'read hostlist_ok', new: '#read hostlist_ok' }
-    - name: Set up NIS maps
-      command: "/usr/lib64/yp/ypinit -m"
-    - name: Restore the original ypinit script
-      command: "mv /usr/lib64/yp/ypinit.bak /usr/lib64/yp/ypinit"
-  when: inventory_hostname in groups['storage']
+- name: Set ypdomainname
+  command: "ypdomainname {{ nis_domain_name }}"
 
 
-- block:
-    - name: Configure NIS on ACS machines
-      command: "authconfig --enablenis --nisdomain={{ nis_domain_name }} --nisserver={{ nis_server_ip }} --update"
-    - name: Set NISTIMEOUT to 10 seconds
-      lineinfile:
-        path: /etc/sysconfig/ypbind
-        line: NISTIMEOUT=10
-        state: present
-        create: true
-  when: inventory_hostname in groups['acs']
+- name: Set NISDOMAIN
+  lineinfile:
+    path: /etc/sysconfig/network
+    state: present
+    line: "NISDOMAIN={{ nis_domain_name }}"
 
 
-- name: Enable home directory automatic generation on console machine
-  command: "authconfig --enablemkhomedir --update"
-  when: inventory_hostname in groups['console']
+- include: nis_server.yml
+  when: nis_type == "server"
 
 
-- name: Start NIS services on ACS machines
-  block:
-    - name: Start rcpbind service
-      service:
-        name: rpcbind
-        state: started
-        enabled: yes
-    - name: Start ypbind service
-      service:
-        name: ypbind
-        state: started
-        enabled: yes
-      failed_when: false
-  when: inventory_hostname in groups['acs']
+- include: nis_client.yml
+  when: nis_type == "client"

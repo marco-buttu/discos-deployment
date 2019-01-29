@@ -6,11 +6,11 @@
   $ discos-vnc -u observer console
 """
 from __future__ import print_function
-import utils
 import os
 import subprocess
 from multiprocessing import Process
 from argparse import ArgumentParser
+import deployment
 
 remote_starting_port = 15000
 local_starting_port = 15000
@@ -18,7 +18,7 @@ users = {
     'discos': 1,
     'observer': 2
 }
-machines = utils.machineList()
+machines = deployment.machineList()
 machines.remove('storage')
 
 parser = ArgumentParser()
@@ -59,7 +59,7 @@ def detach(vnc_command, ssh_command):
         shell=True
     )
 
-if utils.isRunning(args.machine):
+if deployment.isRunning(args.machine):
     remote_port = remote_starting_port + users[args.user]
     local_port = local_starting_port
     found_open_port = False
@@ -77,9 +77,9 @@ if utils.isRunning(args.machine):
             break
 
     if not found_open_port:
-        utils.error('could not find an available port in range 15000-15050!')
+        deployment.error('could not find an available port in range 15000-15050!')
 
-    ip = utils.getIp(args.machine)
+    ip = deployment.getIp(args.machine)
 
     ssh_command = [
         'ssh',
