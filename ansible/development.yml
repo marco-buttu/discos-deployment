@@ -99,13 +99,6 @@
       when: lustre_server_ip is defined
 
 
-- name: Install GIT
-  hosts: acs
-  remote_user: root
-  roles:
-    - git
-
-
 - name: Apply ACS configuration to ACS nodes
   hosts: acs
   remote_user: root
@@ -138,6 +131,13 @@
     - basie
 
 
+- name: Install GILDAS
+  hosts: console
+  remote_user: root
+  roles:
+    - gildas
+
+
 - name: Apply configuration for project users
   hosts: console
   remote_user: root
@@ -162,8 +162,10 @@
 - name: Deploy DISCOS
   hosts: acs
   remote_user: root
-  roles:
-    - deploy
+  tasks:
+    - include_role:
+        name: deploy
+      when: branch is defined or tag is defined
 
 
 - name: Finalize the installation

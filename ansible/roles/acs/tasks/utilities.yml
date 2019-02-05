@@ -1,10 +1,8 @@
 ---
 
 - name: Install prospector (Python linter)
-  command: "{{ item }}"
-  with_items:
-    - pip install prospector==0.12.11
-  become: true
+  command: "pip install prospector==0.12.11"
+  become: True
   become_user: "{{ user.name }}"
   become_flags: "-i"
 
@@ -14,10 +12,10 @@
   with_nested:
     - ["pip install ipython", "ipython profile create"]
     - "{{ users | dict2items }}"
-  become: true
+  become: True
   become_user: "{{ item[1].value.name }}"
   become_flags: "-i"
-  no_log: true
+  no_log: True
 
 
 - name: Copy the ipython startup files
@@ -28,7 +26,7 @@
     group: "{{ item.value.group }}"
     mode: 0644
   with_dict: "{{ users }}"
-  no_log: true
+  no_log: True
 
 
 - name: Set the default application for html files
@@ -36,7 +34,7 @@
     path: /usr/share/applications/mimeapps.list
     line: "{{ item }}"
     state: present
-    create: true
+    create: True
   with_items:
     - "[Default Applications]"
     - "text/html=firefox.desktop"

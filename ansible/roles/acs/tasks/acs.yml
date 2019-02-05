@@ -88,7 +88,9 @@
 
 
 - name: Copy the ACS files to /
-  command: "chdir={{ remote_build_path }} mv alma /"
+  command: "mv alma /"
+  args:
+    chdir: "{{ remote_build_path }}"
   when: target_dir.matched|int == 0
 
 
@@ -106,11 +108,13 @@
 
 
 - name: Copy the .acs dir from /alma to /{{ discos_sw_dir }}/config
-  command: chdir={{ acssw }}/config {{ item }}
+  command: "{{ item }}"
   with_items:
     - "cp -r .acs /{{ discos_sw_dir }}/config/acs"
   become: true
   become_user: "{{ user.name }}"
+  args:
+    chdir: "{{ acssw }}/config"
 
 
 - name: Create the acstmp directory
@@ -134,25 +138,34 @@
   become_user: "{{ user.name }}"
 
 
-- name: Copy the Python bz2.so from system to ACS
-  command: "chdir=/usr/lib64/python2.6/lib-dynload/ {{ item }}"
+- name: Copy some system Python libraries into ACS path
+  copy:
+    src: "/usr/lib64/python2.6/lib-dynload/{{ item }}"
+    dest: "/alma/{{ acs_tag }}/Python/lib/python2.7/lib-dynload/"
+    remote_src: True
   with_items:
-    - "cp bz2.so /alma/ACS-FEB2017/Python/lib/python2.7/site-packages/"
-  become: true
+    - "bz2.so"
+    - "_sqlite3.so"
+  become: True
   become_user: "{{ user.name }}"
 
 
+- name: Check in which path Java is installed
+  shell: "readlink -f $(which java)"
+  register: java_home
+
+
+- name: Make sure /usr/java directory exists
+  file:
+    path: "/usr/java"
+    state: directory
+
+
 - name: Create a symlink to the correct Java home path, needed by ACS
-  block:
-    - shell: "readlink -f $(which java)"
-      register: java_home
-    - file:
-        path: "/usr/java"
-        state: directory
-    - file:
-        src: "{{ java_home.stdout | regex_replace('/jre/bin/java') }}"
-        dest: "/usr/java/default"
-        state: link
+  file:
+    src: "{{ java_home.stdout | regex_replace('/jre/bin/java') }}"
+    dest: "/usr/java/default"
+    state: link
 
 
 #########################
@@ -232,12 +245,15 @@
 
 
 - name: Build acscommandcenter
-  shell: source ~/.bashrc && chdir={{ acs_command_center }}/src {{ item }}
+  shell: "{{ item }}"
+  args:
+    chdir: "{{ acs_command_center }}/src"
   with_items:
       - make clean
       - make
   become: true
   become_user: "{{ user.name }}"
+  become_flags: "-i"
 
 
 - name: Copy Acs Command Center .jar files
@@ -263,6 +279,7 @@
   with_items:
     - "/alma/{{ acs_tag }}/ACSSW/lib"
     - "/alma/{{ acs_tag }}/TAO/ACE_wrappers/build/linux/lib"
+    - "/alma/{{ acs_tag }}/Python/lib"
 
 
 - name: Load the ACS libraries to the system

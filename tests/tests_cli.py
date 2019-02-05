@@ -2,17 +2,14 @@ import os
 import unittest
 from subprocess import Popen, PIPE
 
-TESTS_DIR = os.path.dirname(os.path.realpath(__file__))
-SCRIPT_DIR = os.path.dirname(TESTS_DIR)
-SCRIPT = os.path.join(SCRIPT_DIR, 'build')
-BASECMD = ['python', SCRIPT, '--sim']
+BASECMD = ['discos-deploy', '--sim']
 
 
-class TestCLI(unittest.TestCase):
+class TestDeployCLI(unittest.TestCase):
 
     def test_cannot_split_the_system_in_cluster_and_env(self):
         """Cluster and env are not separated by :"""
-        cmd = BASECMD + ['large_development']
+        cmd = BASECMD + ['discos_development']
         pipes = Popen(cmd, stdout=PIPE, stderr=PIPE)
         out, err = pipes.communicate()
         self.assertRegexpMatches(err, b'You must specify an available system.')
@@ -36,7 +33,7 @@ class TestCLI(unittest.TestCase):
         cmd = BASECMD + ['large:wrong_env']
         pipes = Popen(cmd, stdout=PIPE, stderr=PIPE)
         out, err = pipes.communicate()
-        self.assertRegexpMatches(err, b'"wrong_env" not found')
+        self.assertRegexpMatches(err, b'System "large:wrong_env" not recognized')
 
     def test_wrong_cluster_and_wrong_env(self):
         """The user specify a wrong_cluster and wrong_env"""
@@ -46,71 +43,99 @@ class TestCLI(unittest.TestCase):
         self.assertRegexpMatches(err, b'System "wrong:wrong" not recognized')
 
     def test_no_deploy(self):
-        """Do not set the tag 'deploy'"""
-        cmd = BASECMD + ['small:development']
+        """Do not set branch or tag to deploy"""
+        cmd = BASECMD + ['acs:development']
         pipes = Popen(cmd, stdout=PIPE, stderr=PIPE)
         out, err = pipes.communicate()
-        self.assertNotRegexpMatches(out, b'branch')
-        self.assertNotRegexpMatches(out, b'--tags')
+        self.assertNotRegexpMatches(out, b'branch=')
+        self.assertNotRegexpMatches(out, b'tag=')
+        self.assertNotRegexpMatches(out, b'cdb=')
+        self.assertNotRegexpMatches(out, b'station=')
 
     def test_deploy_branch(self):
-        """Set the tag 'deploy'"""
-        cmd = BASECMD + ['large:development', '--deploy', 'srt-0.1']
-        pipes = Popen(cmd, stdout=PIPE, stderr=PIPE)
-        out, err = pipes.communicate()
-        self.assertRegexpMatches(out, b'branch=srt-0.1')
-        self.assertRegexpMatches(out, b'--tags deploy')
-
-    def test_deploy_master_no_station(self):
-        """Require the station in case of master branch"""
-        cmd = BASECMD + ['large:development', '--deploy', 'master']
-        pipes = Popen(cmd, stdout=PIPE, stderr=PIPE)
-        out, err = pipes.communicate()
-        self.assertRegexpMatches(err, b'--station is required')
-
-    def test_deploy_master(self):
-        """Set the station"""
+        """Set a branch and a station"""
         cmd = BASECMD + [
-            'small:development',
-            '--deploy',
-            'master',
-            '--station', 'srt']
-        pipes = Popen(cmd, stdout=PIPE, stderr=PIPE)
-        out, err = pipes.communicate()
-        self.assertRegexpMatches(out, b'station=srt')
-
-    def test_only_master_accepts_station(self):
-        """You can not set -s if branch name does not contain the station."""
-        cmd = BASECMD + [
-            'large:development',
-            '--deploy',
-            'srt-0.1',
+            'acs:development',
+            '--branch',
+            'stable',
             '--station',
-            'medicina']
+            'srt'
+        ]
         pipes = Popen(cmd, stdout=PIPE, stderr=PIPE)
         out, err = pipes.communicate()
-        self.assertRegexpMatches(err, b'branch srt-0.1 does not accept the -s')
+        self.assertRegexpMatches(
+            out,
+            b'--extra-vars cdb=test station=SRT branch=stable'
+        )
 
-    def test_do_not_call_vagrant_up(self):
-        """Do not run 'vagrant up' in production."""
-        cmd = BASECMD + ['ms:production']
+    def test_deploy_branch_no_station(self):
+        """Set the arg '--branch' but not the station"""
+        cmd = BASECMD + ['acs:development', '--branch', 'stable']
         pipes = Popen(cmd, stdout=PIPE, stderr=PIPE)
         out, err = pipes.communicate()
-        self.assertNotRegexpMatches(out, b'vagrant up')
+        self.assertRegexpMatches(
+            err,
+            b"'--station' argument must be specified."
+        )
 
-    def test_vagrant_up_large(self):
-        """Run 'vagrant up manager ms as'"""
-        cmd = BASECMD + ['large:development']
+    def test_deploy_tag(self):
+        """Set a tag and a station"""
+        cmd = BASECMD + [
+            'acs:development',
+            '--tag',
+            'discos1.0.0',
+            '--station',
+            'srt'
+        ]
         pipes = Popen(cmd, stdout=PIPE, stderr=PIPE)
         out, err = pipes.communicate()
-        self.assertRegexpMatches(out, b'vagrant up manager as ms')
+        self.assertRegexpMatches(
+            out,
+            b'--extra-vars cdb=test station=SRT tag=discos1.0.0'
+        )
 
-    def test_vagrant_up_ms(self):
-        """Run 'vagrant up ms'."""
-        cmd = BASECMD + ['ms:development']
+    def test_deploy_wrong_station(self):
+        """Deploy onto SRT with '--station=medicina'"""
+        cmd = BASECMD + [
+            'acs:srt',
+            '--branch',
+            'stable',
+            '--station',
+            'medicina'
+        ]
         pipes = Popen(cmd, stdout=PIPE, stderr=PIPE)
         out, err = pipes.communicate()
-        self.assertRegexpMatches(out, b'vagrant up ms')
+        self.assertRegexpMatches(
+            err,
+            b'you cannot specify a different station.'
+        )
+
+    def test_bring_machines_up(self):
+        """Test if machines are brought up"""
+        cmd = BASECMD + ['discos:development']
+        pipes = Popen(cmd, stdout=PIPE, stderr=PIPE)
+        out, err = pipes.communicate()
+        self.assertRegexpMatches(out, b'Starting machine storage....done.')
+        self.assertRegexpMatches(out, b'Starting machine manager....done.')
+        self.assertRegexpMatches(out, b'Starting machine console....done.')
+
+    def test_bring_single_machine_up(self):
+        """Test if machine manager is brought up"""
+        cmd = BASECMD + ['manager:development']
+        pipes = Popen(cmd, stdout=PIPE, stderr=PIPE)
+        out, err = pipes.communicate()
+        self.assertNotRegexpMatches(out, b'Starting machine storage....done.')
+        self.assertRegexpMatches(out, b'Starting machine manager....done.')
+        self.assertNotRegexpMatches(out, b'Starting machine console....done.')
+
+    def test_do_not_use_vagrant(self):
+        """Do not use vagrant in development environment"""
+        cmd = BASECMD + ['discos:development', '--no-vagrant']
+        pipes = Popen(cmd, stdout=PIPE, stderr=PIPE)
+        out, err = pipes.communicate()
+        self.assertNotRegexpMatches(out, b'Starting machine storage....done.')
+        self.assertNotRegexpMatches(out, b'Starting machine manager....done.')
+        self.assertNotRegexpMatches(out, b'Starting machine console....done.')
 
 
 if __name__ == '__main__':

@@ -81,4 +81,6 @@ pyqwt_url: "{{ pyqwt_base_path }}/{{ pyqwt_version }}/{{ pyqwt_file }}"
 # Git Variables
 ###############
 
+git_orig: { base: "https://github.com/git/git/archive/", version: "2.18.0", extension: ".tar.gz" }
+git_dest: { file: 'git-v{{ git_orig.version }}{{ git_orig.extension }}' }
 ghtoken: 47aabb9fb8a55376eb43ede8e375a774e8e50b3b

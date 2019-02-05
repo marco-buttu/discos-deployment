@@ -96,11 +96,13 @@
 
 
 - name: Install cfitsio
-  command: "chdir={{ remote_build_path }}/{{ cfitsio.build_dir }} {{ item }}"
+  command: "{{ item }}"
   with_items:
     - "./configure --prefix=/usr/local"
     - "make"
     - "make install"
+  args:
+    chdir: "{{ remote_build_path }}/{{ cfitsio.build_dir }}"
   when: cfitsio_include.stat.exists == False
 
 
@@ -112,12 +114,20 @@
 
 
 - name: Install CCfits
-  command: "chdir={{ remote_build_path }}/{{ ccfits.build_dir }} {{ item }}"
+  command: "{{ item }}"
   with_items:
     - "./configure --prefix=/usr/local"
     - "make"
     - "make install"
+  args:
+    chdir: "{{ remote_build_path }}/{{ ccfits.build_dir }}"
   when: ccfits_include.stat.exists == False
+
+
+- name: Export 'PKG_CONFIG_PATH' in order to have access to libcfitsio.so
+  lineinfile:
+    dest: /etc/profile
+    line: 'export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig'
 
 
 - name: Remove the directory used for the libraries compilation
@@ -183,11 +193,13 @@
 
 
 - name: Install modbus
-  command: "chdir={{ remote_build_path }}/{{ modbus.build_dir }} {{ item }}"
+  command: "{{ item }}"
   with_items:
     - "./configure --prefix=/usr/local"
     - "make"
     - "make install"
+  args:
+    chdir: "{{ remote_build_path }}/{{ modbus.build_dir }}"
   when: modbus_lib.stat.exists == False
 
 
@@ -244,10 +256,12 @@
 
 
 - name: Compile gmock
-  command: "chdir={{ gmock_build }}/build {{ item }}"
+  command: "{{ item }}"
   with_items:
     - 'cmake ..'
     - 'make'
+  args:
+    chdir: "{{ gmock_build }}/build"
   when: gmock_lib.stat.exists == False
 
 
@@ -264,11 +278,13 @@
 
 
 - name: Copy the gmock static libraries to /usr/local/lib
-  command: "chdir={{ gmock_build }}/{{ item.subdir }} {{ item.cmd }}"
+  command: "{{ item.cmd }}"
   with_items:
     - { cmd: 'cp -r gmock /usr/local/include', subdir: 'include' }
     - { cmd: 'cp libgmock.a /usr/local/lib', subdir: 'build' }
     - { cmd: 'cp libgmock_main.a /usr/local/lib', subdir: 'build' }
+  args:
+    chdir: "{{ gmock_build }}/{{ item.subdir }}"
   when: gmock_lib.stat.exists == False
 
 
@@ -308,7 +324,9 @@
 
 
 - name: Copy the gtest static libraries to /usr/local
-  command: "chdir={{ gtest_build }}/{{ item.subdir }} {{ item.cmd }}"
+  command: "{{ item.cmd }}"
+  args:
+    chdir: "{{ gtest_build }}/{{ item.subdir }}"
   with_items:
     - { cmd: 'cp -r gtest /usr/local/include', subdir: 'include' }
     - { cmd: 'cp libgtest.a /usr/local/lib', subdir: 'build' }
@@ -361,12 +379,14 @@
 
 
 - name: Install f2c
-  command: "chdir={{ remote_build_path }}/f2c-master/src {{ item }}"
+  command: "{{ item }}"
   with_items:
     - "cp makefile.u Makefile"
     - "make"
     - "cp f2c.h /usr/local/include"
     - "cp f2c /usr/local/bin"
+  args:
+    chdir: "{{ remote_build_path }}/f2c-master/src"
   when: f2c_header.stat.exists == False
 
 
@@ -444,12 +464,13 @@
 
 
 - name: Install Qt
-  command: "chdir={{ remote_build_path }}/{{ qt_build_dir }} {{ item }}"
+  command: "{{ item }}"
   with_items:
     - "./configure -no-openssl -opensource --prefix=/usr/local/{{ qt_version }}"
     - "gmake"
     - "gmake install"
-  become: true
+  args:
+    chdir: "{{ remote_build_path }}/{{ qt_build_dir }}"
   when: qt_library.stat.exists == False
 
 
@@ -503,7 +524,7 @@
 
 
 - name: Install sip
-  command: "chdir={{ remote_build_path }}/{{ sip_build_dir }} {{ item }}"
+  command: "{{ item }}"
   with_items:
     - "python configure.py"
     - "make"
@@ -511,6 +532,8 @@
   become: true
   become_user: "{{ user.name }}"
   become_flags: "-i"
+  args:
+    chdir: "{{ remote_build_path }}/{{ sip_build_dir }}"
   when: sip_library.stat.exists == False
 
 
@@ -564,12 +587,14 @@
 
 
 - name: Configure PyQt
-  command: "chdir={{ remote_build_path }}/{{ pyqt_build_dir }} {{ item }}"
+  command: "{{ item }}"
   with_items:
     - "python configure.py --confirm-license --qmake /usr/local/{{ qt_version }}/bin/qmake"
   become: true
   become_user: "{{ user.name }}"
   become_flags: "-i"
+  args:
+    chdir: "{{ remote_build_path }}/{{ pyqt_build_dir }}"
   when: pyqt_library.stat.exists == False
 
 
@@ -588,12 +613,14 @@
 
 
 - name: Install PyQt
-  command: "chdir={{ remote_build_path }}/{{ pyqt_build_dir }} {{ item }}"
+  command: "{{ item }}"
   with_items:
     - "make"
     - "make install"
   become: true
   become_user: "{{ user.name }}"
+  args:
+    chdir: "{{ remote_build_path }}/{{ pyqt_build_dir }}"
   when: pyqt_library.stat.exists == False
 
 
@@ -641,22 +668,26 @@
 
 
 - name: Configure PyQwt
-  command: "chdir={{ remote_build_path }}/{{ pyqwt_build_dir }}/configure {{ item }}"
+  command: "{{ item }}"
   with_items:
     - "python configure.py -Q ../qwt-5.2"
   become: true
   become_user: "{{ user.name }}"
   become_flags: "-i"
+  args:
+    chdir: "{{ remote_build_path }}/{{ pyqwt_build_dir }}/configure"
   when: pyqwt_library.stat.exists == False
 
 
 - name: Install PyQwt
-  command: "chdir={{ remote_build_path }}/{{ pyqwt_build_dir }}/configure {{ item }}"
+  command: "{{ item }}"
   with_items:
     - "make"
     - "make install"
   become: true
   become_user: "{{ user.name }}"
+  args:
+    chdir: "{{ remote_build_path }}/{{ pyqwt_build_dir }}/configure"
   when: pyqwt_library.stat.exists == False
 
 

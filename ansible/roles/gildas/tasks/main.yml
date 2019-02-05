@@ -1,0 +1,27 @@
+---
+
+- name: Check if GILDAS archive exists in the local repository
+  stat:
+    path: "{{ local_repository_path }}/{{ gildas_sources_archive }}"
+  delegate_to: localhost
+  run_once: True
+  register: gildas_file_exists
+
+
+- name: Download GILDAS
+  get_url:
+    url: "{{ gildas_url }}"
+    dest: "{{ local_repository_path }}/{{ gildas_sources_archive }}"
+  delegate_to: localhost
+  run_once: True
+  when: gildas_file_exists.stat.exists == False
+
+
+- name: Check if GILDAS is already installed
+  stat:
+    path: "/{{ discos_sw_dir }}/gildas"
+  register: gildas_exe_dir
+
+
+- include: install.yml
+  when: gildas_exe_dir.stat.exists == False

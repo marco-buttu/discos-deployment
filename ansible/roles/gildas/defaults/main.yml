@@ -1,0 +1,5 @@
+---
+
+gildas_release: "mar18c"
+gildas_sources_archive: "gildas-src-{{ gildas_release }}.tar.gz"
+gildas_url: "http://www.iram.fr/~gildas/dist/archive/gildas/{{ gildas_sources_archive }}"

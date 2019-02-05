@@ -14,6 +14,12 @@
     replace: 'UseDNS no'
 
 
+- name: Disable gnome-ssh-askpass
+  lineinfile:
+    dest: /etc/profile
+    line: 'unset SSH_ASKPASS'
+
+
 - name: Disable GSSAPIAuthentication for ssh
   replace:
     dest: /etc/ssh/sshd_config

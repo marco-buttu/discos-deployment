@@ -144,7 +144,7 @@ if args.branch or args.tag:
         if not args.station:
             deployment.error(
                 "When deploying onto 'development' environment, "
-                + "--station' argument must be specified."
+                + "'--station' argument must be specified."
             )
         elif args.station not in STATIONS.keys():
             deployment.error('Unknown station `{}`.'.format(args.station))
@@ -174,11 +174,11 @@ for machine in current_machines:
     ips[machine] = inventories[env_arg]['hosts'][machine]['ip']
 
 # Check machine availability
-if not args.sim:
-    for machine in current_machines:
-        reachable = deployment.ping(ips[machine])
-        if not reachable:
-            if env_arg == 'development' and not args.no_vagrant:
+for machine in current_machines:
+    if env_arg == 'development' and not args.no_vagrant:
+        if not args.sim:
+            reachable = deployment.ping(ips[machine])
+            if not reachable:
                 # Create/bring up virtual machines
                 code = deployment.createVm(machine)
                 if code:
@@ -187,11 +187,15 @@ if not args.sim:
                         + 'machine {}.'.format(machine),
                         code=code
                     )
-            else:
-                deployment.error(
-                    'Machine {} not reachable.'.format(machine)
-                    + ' Check your configuration and retry.'
-                )
+        else:
+            print('Starting machine {}....done.'.format(machine))
+    elif not args.sim:
+        reachable = deployment.ping(ips[machine])
+        if not reachable:
+            deployment.error(
+                'Machine {} not reachable.'.format(machine)
+                + ' Check your configuration and retry.'
+            )
 
 if not args.sim:
     # Get or generate the RSA public key

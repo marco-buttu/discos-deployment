@@ -10,8 +10,3 @@ observer: { name: "observer", uid: 3061, group: "{{ users_groups.acs }}", admini
 discos_sw_dir: "discos-sw"
 
 local_repository_path: "{{ lookup('env','HOME') }}/.deployment/repository"
-remote_build_path: "/tmp/builds"
-
-ius_release: "https://centos6.iuscommunity.org/ius-release.rpm"
-
-git_dir: "/usr/local/git"
