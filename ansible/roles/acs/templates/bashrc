@@ -1,15 +1,4 @@
-[ -n "$SSH_CONNECTION" ] && unset SSH_ASKPASS
-export GIT_ASKPASS=
-
-
-# Set the STATION
-# ===============
-if [ -f /{{ discos_sw_dir }}/config/misc/station ]; then
-    source /{{ discos_sw_dir }}/config/misc/station
-else
-    unset STATION
-fi
-
+#!/usr/bin/env bash
 
 # Useful aliases
 # ==============
@@ -17,58 +6,3 @@ alias l='ls'
 alias ll='ls -la'
 alias la='ls -A'
 alias lt='ls -lt | more'
-
-
-# Load ACS definitions
-# ====================
-if [ -f /{{ discos_sw_dir }}/config/acs/.bash_profile.acs ]; then
-    source /{{ discos_sw_dir }}/config/acs/.bash_profile.acs
-fi
-export ACS_TMP=/service/acstmp/{{ inventory_hostname_short }}
-
-
-# Load DISCOS environment
-# =======================
-if [ -f /{{ discos_sw_dir }}/config/misc/load_branch ]; then
-    source /{{ discos_sw_dir }}/config/misc/load_branch
-fi
-
-
-# Set the prompt
-# ==============
-red='\e[1;31m'  # Red
-grn='\e[1;32m'  # Green
-cyn='\e[1;36m'  # Cyan
-pur='\e[1;35m'  # Purple
-txtrst='\e[0m'  # Text Reset
-if [ -n "${DISCOS_BRANCH}" ]
-then
-    PS1="(\[$grn\]$DISCOS_BRANCH\[$txtrst\]:\[$cyn\]$CDB\[$txtrst\]) \u@\h \w $ "
-else
-    PS1="(\[$red\]branch?\[$txtrst\]) \u@\h \w $ "
-fi
-
-
-# Update the environment at every prompt
-# ======================================
-PROMPT_COMMAND='source /{{ discos_sw_dir }}/config/misc/prompt_command.sh'
-
-
-# Variables to export
-# ===================
-export QTDIR=/usr/local/{{ qt_version }}
-export QTLIB=$QTDIR/lib
-export QTINC=$QTDIR/include
-export qt_prefix=$QTLIB
-export PATH=$PATH:$QTDIR/bin:$HOME/bin
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib:/usr/lib64:$QTLIB
-export PYTHONSTARTUP=/{{ discos_sw_dir }}/config/misc/.pyrc
-export EDITOR=vi
-{% if inventory_hostname not in groups['manager'] %}
-
-
-# Manager reference
-# =================
-MNG_IP={{ hostvars[groups['manager'].0].ansible_host }}
-export MANAGER_REFERENCE=corbaloc::$MNG_IP:3000/Manager
-{% endif %}

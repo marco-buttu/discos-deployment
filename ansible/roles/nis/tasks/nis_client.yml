@@ -18,7 +18,7 @@
     create: True
 
 
-- name: Start rcpbind service
+- name: Start rpcbind service
   service:
     name: rpcbind
     state: started

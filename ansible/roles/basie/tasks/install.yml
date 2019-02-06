@@ -22,4 +22,14 @@
 - name: Execute the basie-get script
   command: ./basie-get -b
   args:
-    chdir: /{{ discos_sw_dir }}/basie/
+    chdir: "/{{ discos_sw_dir }}/basie/"
+  become: True
+  become_user: "{{ user.name }}"
+  become_flags: "-i"
+
+
+- name: Create a symlink to basie executable
+  file:
+    src: '/alma/ACS-FEB2017/Python/bin/basie'
+    dest: '/usr/bin/basie'
+    state: link

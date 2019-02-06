@@ -7,7 +7,6 @@
     owner: "{{ user.name }}"
     group: "{{ user.group }}"
     mode: "{{ item.mode }}"
-    recurse: yes
     follow: yes
   with_items:
     - { path: "config", mode: "0750" }
@@ -18,6 +17,16 @@
 - name: Copy the bashrc template
   template:
     src: bashrc
+    dest: "/{{ discos_sw_dir }}/config/misc/"
+    owner: "{{ user.name }}"
+    group: "{{ user.group }}"
+    mode: 0640
+    force: yes
+
+
+- name: Copy the bash_profile template
+  template:
+    src: bash_profile
     dest: "/{{ discos_sw_dir }}/config/misc/"
     owner: "{{ user.name }}"
     group: "{{ user.group }}"
@@ -57,10 +66,14 @@
 - name: Create the station file
   lineinfile:
     path: "/{{ discos_sw_dir }}/config/misc/station"
-    line: "export STATION={{ station }}"
+    line: "{{ item }}"
     state: present
     create: true
     mode: 0644
+  loop:
+    - "#!/usr/bin/env bash"
+    - ""
+    - "export STATION={{ station }}"
   when: inventory_dir.split('/')[-1] != 'development'
  
  
@@ -133,6 +146,19 @@
     block: |
         if [ -f /{{ discos_sw_dir }}/config/misc/bashrc ]; then
             source /{{ discos_sw_dir }}/config/misc/bashrc
+        fi
+  no_log: True
+  with_dict: "{{ users }}"
+
+
+- name: Add the custom bash_profile sourcing to the default one
+  blockinfile:
+    path: "/{{ discos_sw_dir }}/{{ item.value.name }}/.bash_profile"
+    state: present
+    marker: "######## DISCOS configuration {mark} ########"
+    block: |
+        if [ -f /{{ discos_sw_dir }}/config/misc/bash_profile ]; then
+            source /{{ discos_sw_dir }}/config/misc/bash_profile
         fi
   no_log: True
   with_dict: "{{ users }}"

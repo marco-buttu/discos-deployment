@@ -44,20 +44,6 @@ if args.target not in choices:
     print(msg)
     sys.exit(1)
 
-if os.geteuid() != 0:
-    os.execvp('sudo', ['sudo', 'python2.7'] + sys.argv)
-
-env_path = '{{ git_dir }}/bin'
-if os.environ.get('PATH'):
-    env_path += ':%s' % os.environ.get('PATH')
-os.environ['PATH'] = env_path
-
-def become_discos():
-    def set_ids():
-        os.setgid({{ users_groups.acs }})
-        os.setuid({{ user.uid }})
-    return set_ids
-
 current_dir = os.path.dirname(os.path.realpath(__file__))
 basie_repo = 'basie'
 basie_bin_dir = os.path.join(current_dir, 'bin')
@@ -72,48 +58,20 @@ subprocess.call(
     '--branch',
     args.target,
     '--single-branch'],
-    cwd=current_dir,
-    preexec_fn=become_discos()
+    cwd=current_dir
 )
 
 subprocess.call(
-    ['pip2.7',
+    ['pip',
     'install',
     '-r',
     'requirements.txt'],
-    cwd=basie_repo_dir,
-)
-
-subprocess.call(
-    ['python2.7',
-    'setup.py',
-    'install',
-    '--install-scripts=%s' % basie_bin_dir],
     cwd=basie_repo_dir
 )
 
-correction = \
-"""import os
-import sys
-
-if os.environ.get('LD_LIBRARY_PATH'):
-    del os.environ['LD_LIBRARY_PATH']
-    os.execvp('/usr/bin/python2.7', ['python2.7'] + sys.argv)
-"""
-
-lines = []
-for line in open(os.path.join(basie_bin_dir, 'basie')):
-    lines.append(line)
-    if '#coding=utf-8' in line:
-        lines.append(correction)
-
-with open(os.path.join(basie_bin_dir, 'basie'), 'w') as f:
-    f.writelines(lines)
-
-subprocess.call([
-    'cp',
-    os.path.join(basie_bin_dir, 'basie'),
-    os.path.join('/usr/bin/', 'basie')
-])
-
-subprocess.call(['rm', '-rf', basie_bin_dir])
+subprocess.call(
+    ['python',
+    'setup.py',
+    'install'],
+    cwd=basie_repo_dir
+)

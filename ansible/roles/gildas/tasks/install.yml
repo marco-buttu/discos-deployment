@@ -1,0 +1,44 @@
+---
+
+- name: Install some GILDAS dependencies
+  yum:
+    name:
+     - gcc-gfortran
+     - lpr
+    state: present
+
+
+- name: Extract the GILDAS archive
+  unarchive:
+    src: "{{ local_repository_path }}/{{ gildas_sources_archive }}"
+    dest: "/{{ discos_sw_dir }}"
+  become: True
+  become_user: "{{ user.name }}"
+
+
+- name: Install GILDAS
+  shell: "source admin/gildas-env.sh && make && make install"
+  args:
+    chdir: "/{{ discos_sw_dir }}/gildas-src-{{ gildas_release }}"
+  become: True
+  become_user: "{{ user.name }}"
+  become_flags: "-i"
+
+
+- name: Rename the gildas-exe directory
+  command: "mv gildas-exe-{{ gildas_release }} gildas"
+  args:
+    chdir: "/{{ discos_sw_dir }}"
+
+
+- name: Remove the gildas-src directory
+  file:
+    path: "/{{ discos_sw_dir }}/gildas-src-{{ gildas_release }}"
+    state: absent
+
+
+- name: Add GILDAS initialization to bash profile
+  template:
+    src: gildas.sh
+    dest: "/etc/profile.d/gildas.sh"
+    mode: 0644

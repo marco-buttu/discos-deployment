@@ -1,6 +1,7 @@
 ---
 
 - include: yum.yml
+- include: git.yml
 - include: discos_environment.yml
 - include: acs.yml
 - include: discos_dependencies.yml
