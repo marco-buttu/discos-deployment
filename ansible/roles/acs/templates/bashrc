@@ -6,3 +6,7 @@ alias l='ls'
 alias ll='ls -la'
 alias la='ls -A'
 alias lt='ls -lt | more'
+
+# Update the environment at every prompt
+# ======================================
+PROMPT_COMMAND='source /{{ discos_sw_dir }}/config/misc/prompt_command.sh'
