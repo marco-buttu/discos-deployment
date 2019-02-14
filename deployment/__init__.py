@@ -285,8 +285,9 @@ def machineList(inventory='development'):
             stdout=subprocess.PIPE
         )
         for line in cmd.stdout:
-            m_name = line.split()[0].strip('"').replace('discos_', '')
-            machines.append(m_name)
+            if 'discos_' in line:
+                m_name = line.split()[0].strip('"').replace('discos_', '')
+                machines.append(m_name)
     else:
         h, _, _ = parseInventory(inventory)
         machines = h.keys()
