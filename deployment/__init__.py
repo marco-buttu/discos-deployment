@@ -34,6 +34,7 @@ import pexpect
 from threading import Thread
 from pexpect import pxssh
 from argparse import Namespace
+from multiprocessing import Process
 try:
     from subprocess import DEVNULL
 except ImportError:
@@ -117,13 +118,22 @@ def sshLogin(ip, password=None):
         return None
 
 def ping(ip):
-    rc = subprocess.call(
-        ['timeout', '1s', 'ping', '-c', '1', '-i', '0.2', ip],
-        stdout=DEVNULL
-    )
-    if rc == 0:
-        return True
-    return False
+    def loginTry(ip):
+        try:
+            ssh = pxssh.pxssh()
+            ssh.login(ip, 'root')
+            ssh.logout()
+        except pxssh.ExceptionPxssh as err:
+            if err.message == 'Could not establish connection to host':
+                time.sleep(4)
+
+    p = Process(target=loginTry, args=(ip,))
+    p.start()
+    p.join(3)
+    if p.is_alive():
+        p.terminate()
+        return False
+    return True
 
 def getIp(machine, inventory='development'):
     hosts, _, _ = parseInventory(inventory)
