@@ -10,8 +10,8 @@
 
 - name: Wait for machine to come back online
   wait_for_connection:
-    connect_timeout: 20
+    connect_timeout: 5
     sleep: 5
     delay: 5
-    timeout: 300
+    timeout: 600
   when: rebooting is changed
