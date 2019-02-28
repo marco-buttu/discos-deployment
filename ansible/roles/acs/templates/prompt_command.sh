@@ -22,20 +22,18 @@ fi
 export ACS_TMP=/service/acstmp/{{ inventory_hostname_short }}
 
 if [ -n "${DISCOS_BRANCH}" ]; then
-    if [ -z "${STATION}" ]; then
-        if [ -f $INTROOT/.station ]; then
-            source $INTROOT/.station
-        else
-            echo -e "${pur}WARNING:${txtrst} STATION is unset, cannot set the ACS_CDB!"
-            unset ACS_CDB
-            return
-        fi
+    if [ -f $INTROOT/.station ]; then
+        source $INTROOT/.station
     fi
 
     if [ $CDB = "test" ]; then
         export ACS_CDB=/{{ discos_sw_dir }}/{{ user.name }}/$DISCOS_BRANCH/$STATION
     else
         export ACS_CDB=/{{ discos_sw_dir }}/{{ user.name }}/$DISCOS_BRANCH/$STATION/Configuration
+    fi
+else
+    if [ ! -f /{{ discos_sw_dir }}/config/misc/station ]; then
+        unset STATION
     fi
 fi
 
