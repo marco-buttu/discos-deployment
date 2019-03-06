@@ -6,3 +6,6 @@
 - include: acs.yml
 - include: discos_dependencies.yml
 - include: utilities.yml
+- include: receivers_monitor.yml
+  when:
+    - monitor_receivers == True
