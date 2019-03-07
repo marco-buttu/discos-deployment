@@ -1,3 +1,4 @@
 ---
 
 quicklook_workers: 1
+quicklook_polling: False
