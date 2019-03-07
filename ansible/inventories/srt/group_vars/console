@@ -7,3 +7,5 @@ quicklook_directories:
   - "{{ sardara_mount_point }}"
 
 quicklook_server_port: 8080
+
+monitor_receivers = True
