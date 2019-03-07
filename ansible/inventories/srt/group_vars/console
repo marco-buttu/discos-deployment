@@ -8,4 +8,6 @@ quicklook_directories:
 
 quicklook_server_port: 8080
 
+quicklook_workers: 7
+
 monitor_receivers = True
