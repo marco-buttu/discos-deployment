@@ -42,7 +42,7 @@ if pwd != getpass.getpass('Confirm password: '):
     print("Typed passwords don't match, retry!")
     sys.exit(2)
 
-pwd = md5_crypt.using(salt=args.user, salt_size=8).hash(pwd)
+pwd = md5_crypt.using(salt=args.user[8:], salt_size=8).hash(pwd)
 
 subprocess.call(['sudo', '-k'])
 subprocess.call(['sudo', 'true'])
