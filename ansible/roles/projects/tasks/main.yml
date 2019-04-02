@@ -1,10 +1,17 @@
 ---
 
-- name: Install console required yum packages
+- name: Install required yum packages
   yum:
     name:
       - sshpass
     state: present
+
+
+- name: Install Python required packages
+  command: "pip install passlib"
+  become: True
+  become_user: "{{ user.name }}"
+  become_flags: "-i"
 
 
 - name: Render the discos-addProject template
