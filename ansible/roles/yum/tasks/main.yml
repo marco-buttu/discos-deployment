@@ -61,4 +61,5 @@
       - perl
       - net-snmp
       - rsync
+      - telnet
     state: present
