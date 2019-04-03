@@ -16,7 +16,7 @@
 
 - name: Disable gnome-ssh-askpass
   lineinfile:
-    dest: /etc/profile
+    dest: /etc/bashrc
     line: 'unset SSH_ASKPASS'
 
 
