@@ -1,7 +1,5 @@
 ---
 
-users: { user: "{{ user }}", observer: "{{ observer }}" }
-
 lustre_type: "server"
 
 nis_type: "server"

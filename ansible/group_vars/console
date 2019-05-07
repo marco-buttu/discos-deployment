@@ -1,5 +1,3 @@
 ---
 
-users: { user: "{{ user }}", observer: "{{ observer }}" }
-
 nis_create_home: True

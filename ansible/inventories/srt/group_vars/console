@@ -10,3 +10,5 @@ quicklook_workers: 7
 quicklook_polling: True
 
 monitor_receivers = True
+
+users: { user: "{{ user }}", observer: "{{ observer }}" }

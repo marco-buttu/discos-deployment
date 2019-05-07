@@ -1,17 +1,13 @@
 ---
 
-firewall_rules:
-  - '-A INPUT -p icmp -j ACCEPT'
-  - '-A OUTPUT -p icmp -j ACCEPT'
-
 network_domain_name: development.inaf.it
-nis_domain_name: "discos.{{ network_domain_name }}"
-network_ip_address: 192.168.10.0/24
-
-nis_server_ip: 192.168.10.200
-
-lustre_server_ip: 192.168.10.200
 
 key_exchange_users:
   - "{{ user.name }}"
-  - "root"
+
+quicklook_directories:
+  - "/archive/data"
+
+quicklook_server_port: 8080
+
+users: { user: "{{ user }}", observer: "{{ observer }}" }
