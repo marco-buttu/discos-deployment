@@ -45,6 +45,7 @@ you have to execute the following command:
 .. code-block:: shell
 
    $ python setup.py install --user
+   $ source ~/.bashrc  # Refresh the shell environment
 
 
 Now that the package setup procedure is completed, you are ready to start deploying a
