@@ -6,16 +6,24 @@ import argparse
 import getpass
 import subprocess
 import time
+import random
+import string
 from threading import Thread
 from passlib.hash import md5_crypt
 
 parser = argparse.ArgumentParser(
-    description=('Add a project user to the DISCOS environment.')
+    description=('Add a project user to the DISCOS environment')
 )
 parser.add_argument(
     'user',
     type=str,
-    help='The name of the project user you want to add.'
+    help='the name of the project user you want to add'
+)
+parser.add_argument(
+    '--ask-password',
+    action='store_true',
+    default=False,
+    help='ask for a custom password instead of an auto-generated one'
 )
 args = parser.parse_args()
 
@@ -36,16 +44,6 @@ user_absent = subprocess.call(cmd, stdout=FNULL)
 if not user_absent:
     print("Project user '%s' already present!" % args.user)
     sys.exit(1)
-
-pwd = getpass.getpass('Type a password for user %s: ' % args.user)
-if pwd != getpass.getpass('Confirm password: '):
-    print("Typed passwords don't match, retry!")
-    sys.exit(2)
-
-pwd = md5_crypt.using(salt=args.user[8:], salt_size=8).hash(pwd)
-
-subprocess.call(['sudo', '-k'])
-subprocess.call(['sudo', 'true'])
 
 def add_remote(server_ip, user, pwd):
     subprocess.call([
@@ -154,15 +152,38 @@ def add_user(server_ip, user, pwd):
         'date>>discosUser'
     ], stdout=FNULL)
 
-sys.stdout.write("Adding '%s' to project users" % args.user)
-sys.stdout.flush()
+try:
+    if args.ask_password:
+        password = getpass.getpass('Type a password for user %s: ' % args.user)
+        if password != getpass.getpass('Confirm password: '):
+            print("Typed passwords don't match, retry!")
+            sys.exit(2)
+    else:
+        password = (
+            'p'
+            + args.user.replace('-', '').zfill(4)
+            + '-'
+            + ''.join([random.choice(string.letters) for x in range(4)])
+        )
 
-t = Thread(target=add_user, args=(server_ip, args.user, pwd))
-t.daemon = True
-t.start()
+    pwd = md5_crypt.using(salt=args.user[8:], salt_size=8).hash(password)
 
-while t.is_alive():
-        sys.stdout.write('...')
-        sys.stdout.flush()
-        time.sleep(1)
-print('done, enjoy!')
+    subprocess.call(['sudo', '-k'])
+    if subprocess.call(['sudo', 'true']):
+        sys.exit(0)
+
+    sys.stdout.write("Adding '%s' to project users" % args.user)
+    sys.stdout.flush()
+
+    t = Thread(target=add_user, args=(server_ip, args.user, pwd))
+    t.daemon = True
+    t.start()
+
+    while t.is_alive():
+            sys.stdout.write('...')
+            sys.stdout.flush()
+            time.sleep(1)
+    print('done!')
+    print('The password for user "%s" is "%s", enjoy!' % (args.user, password))
+except KeyboardInterrupt:
+    sys.exit(0)

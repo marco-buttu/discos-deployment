@@ -9,12 +9,12 @@ import time
 from threading import Thread
 
 parser = argparse.ArgumentParser(
-    description=('Remove a project user from the DISCOS environment.')
+    description=('Remove a project user from the DISCOS environmet')
 )
 parser.add_argument(
     'user',
     type=str,
-    help='The name of the project user you want to remove.'
+    help='the name of the project user you want to remove'
 )
 args = parser.parse_args()
 
@@ -32,38 +32,6 @@ if server_ip:
     cmd = ['ssh', server_ip] + cmd
 
 user_absent = subprocess.call(cmd, stdout=FNULL)
-
-try:
-    u_gid = subprocess.check_output([
-        'getent',
-        'passwd',
-        args.user
-    ]).strip().split(':')[3]
-    if u_gid != gid:
-        raise ValueError
-except:
-    print("'%s' is not a valid project user, retry!" % args.user)
-    sys.exit(1)
-
-choices = {
-    '': False,
-    'n': False,
-    'N': False,
-    'y': True,
-    'Y': True
-}
-
-choice = choices.get(raw_input(
-    'Are you sure you want to remove user %s? [y/N]: ' % args.user
-))
-if choice is None:
-    print('Invalid choice, retry!')
-    sys.exit(3)
-elif choice is False:
-    sys.exit(0)
-
-subprocess.call(['sudo', '-k'])
-subprocess.call(['sudo', 'true'])
 
 def remove_remote(server_ip, user):
     subprocess.call([
@@ -138,15 +106,55 @@ def remove_user(server_ip, user):
         except:
             pass
 
-sys.stdout.write("Removing '%s' project user" % args.user)
-sys.stdout.flush()
+choices = {
+    '': False,
+    'n': False,
+    'N': False,
+    'y': True,
+    'Y': True
+}
 
-t = Thread(target=remove_user, args=(server_ip, args.user))
-t.daemon = True
-t.start()
+try:
+    try:
+        u_gid = subprocess.check_output([
+            'getent',
+            'passwd',
+            args.user
+        ]).strip().split(':')[3]
+        if u_gid != gid:
+            raise ValueError
+    except:
+        print("'%s' is not a valid project user, retry!" % args.user)
+        sys.exit(1)
 
-while t.is_alive():
-    sys.stdout.write('...')
+    try:
+        choice = choices.get(raw_input(
+            'Are you sure you want to remove user %s? [y/N]: ' % args.user
+        ))
+    except (KeyboardInterrupt, EOFError):
+        print('')
+        raise KeyboardInterrupt
+    if choice is None:
+        print('Invalid choice, retry!')
+        sys.exit(3)
+    elif choice is False:
+        sys.exit(0)
+
+    subprocess.call(['sudo', '-k'])
+    if subprocess.call(['sudo', 'true']):
+        sys.exit(0)
+
+    sys.stdout.write("Removing '%s' project user..." % args.user)
     sys.stdout.flush()
-    time.sleep(1)
-print('done!')
+
+    t = Thread(target=remove_user, args=(server_ip, args.user))
+    t.daemon = True
+    t.start()
+
+    while t.is_alive():
+        sys.stdout.write('.')
+        sys.stdout.flush()
+        time.sleep(1)
+    print('done!')
+except KeyboardInterrupt:
+    sys.exit(0)
