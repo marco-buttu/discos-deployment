@@ -76,3 +76,11 @@
   file: path={{ item }} state=absent
   with_items:
     - "{{ remote_build_path }}"
+
+
+- name: Install yum packages required for git autocompletion
+  yum:
+    name:
+      - git-core
+      - bash-completion
+    state: present
