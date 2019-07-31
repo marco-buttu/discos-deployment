@@ -1,11 +1,5 @@
 ---
 
-- name: Install the ius_release yum package
-  yum:
-    name: "{{ ius_release }}"
-    state: present
-
-
 - name: Install SDTools required yum packages
   yum:
     name:

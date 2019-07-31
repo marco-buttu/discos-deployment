@@ -8,4 +8,3 @@ firewall_packages:
   - iptables
 
 remote_build_path: "/tmp/builds"
-git_dir: "/usr/local/git"

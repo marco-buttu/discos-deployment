@@ -1,5 +1,47 @@
 ---
 
+- name: Check if the ius-release package exists in the local repository
+  stat:
+    path: "{{ local_repository_path }}/{{ ius_release.file }}"
+  delegate_to: localhost
+  run_once: true
+  register: ius_release_package
+
+
+- name: Download ius-release yum package
+  get_url:
+    url: "{{ ius_release.url }}"
+    dest: "{{ local_repository_path }}"
+    validate_certs: false
+  when: ius_release_package.stat.exists == False
+  delegate_to: localhost
+  run_once: true
+
+
+- name: Copy {{ ius_release.file }} to the remote
+  copy:
+    src: "{{ local_repository_path }}/{{ ius_release.file }}"
+    dest: "/root/"
+
+
+- name: Install the {{ ius_release.file }} yum package
+  yum:
+    name: "/root/{{ ius_release.file }}"
+    state: present
+
+
+- name: Delete the {{ ius_release.file }} package from the remote
+  file:
+    path: "/root/{{ ius_release.file }}"
+    state: absent
+
+
+- name: Make sure the git yum package is not installed
+  yum:
+    name: git
+    state: absent
+
+
 - name: Install ACS related yum-packages
   yum:
     name:
@@ -31,6 +73,8 @@
       - bluefish
       - dejavu-sans-mono-fonts
       - java-1.8.0-openjdk
+      - git-core
+      - bash-completion
       - "@X Window System"
       - "@Desktop"
       - "@fonts"
