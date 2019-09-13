@@ -48,11 +48,6 @@ if args.target not in choices:
 if os.geteuid() != 0:
     os.execvp('sudo', ['sudo', 'python3.6'] + sys.argv)
 
-env_path = '{{ git_dir }}/bin'
-if os.environ.get('PATH'):
-    env_path += ':%s' % os.environ.get('PATH')
-os.environ['PATH'] = env_path
-
 def become_discos():
     def set_ids():
         os.setgid({{ users_groups.acs }})
