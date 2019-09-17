@@ -2,7 +2,8 @@
 
 network_domain_name: "noto.ira.inaf.it"
 
-ntp_server_ip: "192.167.187.78"
+ntp_servers:
+  - "192.167.187.78"
 
 NOTO_nameservers:
   - '192.167.187.99   # NOTO'
