@@ -1,13 +1,16 @@
-[manager]
-manager.AAA ansible_host=BBB
+[storage]
+discos-storage.med.ira.inaf.it ansible_host=192.168.1.9
 
-[core]
-core.AAA ansible_host=BBB
+[manager]
+discos-manager.med.ira.inaf.it ansible_host=192.168.1.100
 
 [console]
-console.AAA ansible_host=BBB
+discos-console.med.ira.inaf.it ansible_host=192.168.1.57
+
+[acs:children]
+manager
+console
 
 [discos:children]
-manager
-core
-console
+storage
+acs
