@@ -1,37 +1,5 @@
 ---
 
-firewall_rules:
-  - '-A INPUT -s 222.186.15.174 -j DROP'
-  - '-A INPUT -s 121.18.238.39 -j DROP'
-  - '-N SSHATTACK'
-  - '-A SSHATTACK -j LOG --log-prefix "Possible SSH attack! " --log-level 7'
-  - '-A SSHATTACK -j DROP'
-  - '-A INPUT -i eth2 -s 192.168.51.0/24 -j ACCEPT'
-  - '-A INPUT -i eth1 -s 192.168.1.0/24 -j ACCEPT'
-  - '-A INPUT -i eth0 -s 192.167.165.0/24 -p tcp --dport 873 -j ACCEPT'
-  - '--table nat -A POSTROUTING -o eth0 -j SNAT --to-source 192.167.189.98'
-  - '--table nat -A POSTROUTING -o eth2 -j SNAT --to-source 192.168.51.98'
-  - '-A FORWARD -i eth1 -o eth0 -j ACCEPT'
-  - '-A FORWARD -i eth0 -o eth1 -m state --state RELATED,ESTABLISHED -j ACCEPT'
-  - '-A FORWARD -i eth2 -o eth0 -j ACCEPT'
-  - '-A FORWARD -i eth0 -o eth2 -m state --state RELATED,ESTABLISHED -j ACCEPT'
-  - '-A FORWARD -s 192.167.189.2 -o eth2 -j ACCEPT'
-  - '-A FORWARD -s 192.167.189.173 -o eth2 -j ACCEPT'
-  - '-A FORWARD -s 192.167.189.8 -o eth2 -j ACCEPT'
-  - '-A FORWARD -s 192.167.189.75 -o eth2 -j ACCEPT'
-  - '-A FORWARD -s 192.167.189.19 -o eth2 -j ACCEPT'
-  - '-A FORWARD -s 192.167.189.69 -o eth2 -j ACCEPT'
-  - '-A FORWARD -s 192.167.189.30 -o eth2 -j ACCEPT'
-  - '-A FORWARD -s 192.167.189.178 -o eth2 -j ACCEPT'
-  - '-A FORWARD -s 192.167.189.25 -o eth2 -j ACCEPT'
-  - '-A FORWARD -s 192.167.189.62 -o eth2 -j ACCEPT'
-  - '-A FORWARD -s 192.167.189.63 -o eth2 -j ACCEPT'
-  - '-A FORWARD -s 192.167.189.102 -o eth2 -j ACCEPT'
-  - '-A FORWARD -s 192.167.189.78 -o eth2 -j ACCEPT'
-  - '-A FORWARD -s 192.167.189.44 -o eth2 -j ACCEPT'
-  - '-A FORWARD -s 192.167.189.52 -o eth2 -j ACCEPT'
-  - '-A FORWARD -s 192.167.189.175 -o eth2 -j ACCEPT'
-  - '-A FORWARD -s 192.167.189.37 -o eth2 -j ACCEPT'
+lustre_network_interface: p1p1
 
-firewall_state: started
-firewall_enabled: yes
+users: { user: "{{ user }}" }
