@@ -1,3 +1,22 @@
 ---
 
-ntp_server_ip: "192.167.189.69"
+network_domain_name: "med.ira.inaf.it"
+nis_domain_name: "discos.{{ network_domain_name }}"
+network_ip_address: "192.168.1.0/24"
+
+ntp_servers:
+  - "192.167.189.19"
+  - "192.167.189.37"
+  - "192.167.189.1"
+
+lustre_server_ip: "192.168.10.9"
+
+nis_server_ip: "192.168.1.9"
+
+resolv_nameservers:
+  - "192.167.189.30   # IRA"
+  - "192.167.165.11   # IRA"
+
+key_exchange_users:
+  - "{{ user.name }}"
+  - "root"
