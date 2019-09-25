@@ -1,12 +1,12 @@
 ---
 
-lustre_network_interface: p1p1
+lustre_network_interface: ens11f1
 
 initialize_lustre_disk: true
-lustre_device = "/dev/sdc"
+lustre_device: "/dev/sdc"
 merge_mgs_mdt: true
 
-lustre_mgs_mdt_partition: { device: "/dev/md126p3", number: 4, start: " 180226048s", end: " 347998207s" }
+lustre_mgs_mdt_partition: { device: "/dev/md126p", number: "3", start: "180226048s", end: "347998207s" }
 lustre_ost_partition: { device: "/dev/sdc", number: 1, start: "0%", end: "100%" }
 
 users: { user: "{{ user }}", observer: "{{ observer }}" }

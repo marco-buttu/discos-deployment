@@ -260,6 +260,7 @@
     state: present
     part_start: "{{ lustre_ost_partition.start }}"
     part_end: "{{ lustre_ost_partition.end }}"
+    label: gpt
   when: initialize_lustre_disk
 
 
