@@ -11,9 +11,7 @@ if os.name == 'posix' and sys.version_info[0] < 3:
 else:
     import subprocess
 
-ghtoken = '{{ ghtoken }}'
-repository = 'https://%s@github.com/discos/discos.git' % ghtoken
-request_header = { 'Authorization': 'token %s' % ghtoken }
+repository = 'https://github.com/discos/discos.git'
 
 STATION = ''
 try:
@@ -49,7 +47,6 @@ elif args.tag:
 
 request = urllib2.Request(
     'https://api.github.com/repos/discos/discos/%s' % choices_type,
-    headers=request_header
 )
 choices = json.loads(urllib2.urlopen(request).read())
 choices = [str(c.get('name')) for c in choices]
@@ -95,17 +92,6 @@ if code:
 else:
     print('Repository cloned into %s' % BRANCH_PATH)
 
-
-# Remove the old origin, because it contains the token, and add a new plain one
-os.chdir(BRANCH_PATH)
-subprocess.call(['git', 'remote', 'rm', 'origin'])
-subprocess.call(
-    ['git',
-    'remote',
-    'add',
-    'origin',
-    'https://github.com/discos/discos.git']
-)
 
 # Create the introot inside /{{ discos_sw_dir }}/introots/
 introot = os.path.join('/{{ discos_sw_dir }}/introots', branch_name)
