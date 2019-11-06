@@ -77,13 +77,6 @@ pyqwt_file: "{{ pyqwt_build_dir }}.tar.gz"
 pyqwt_url: "{{ pyqwt_base_path }}/{{ pyqwt_version }}/{{ pyqwt_file }}"
 
 
-###############
-# Git Variables
-###############
-
-ghtoken: 47aabb9fb8a55376eb43ede8e375a774e8e50b3b
-
-
 #######################
 # IUS Release Variables
 #######################
