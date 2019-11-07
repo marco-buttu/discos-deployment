@@ -7,6 +7,6 @@
         <stringvalue>Maximize window {{ item[1].side | lower }}</stringvalue>
 	</entry>
 	<entry name="binding" type="string">
-        <stringvalue>&lt;Mod4&gt;{{ item[1].side }}</stringvalue>
+        <stringvalue>&lt;Alt&gt;{{ item[1].side }}</stringvalue>
 	</entry>
 </gconf>

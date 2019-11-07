@@ -10,3 +10,4 @@ observer: { name: "observer", uid: 3061, group: "{{ users_groups.acs }}", admini
 discos_sw_dir: "discos-sw"
 
 local_repository_path: "{{ lookup('env','HOME') }}/.deployment/repository"
+remote_repository_download_url: "https://raw.github.com/discos/dependencies/dependencies"

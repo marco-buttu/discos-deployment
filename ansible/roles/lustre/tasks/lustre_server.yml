@@ -15,44 +15,23 @@
 # e2fsprogs configuration
 #########################
 
-- name: Check if e2fsprogs packages exist in the local repository
-  stat:
-    path: "{{ local_repository_path }}/{{ item }}-{{ e2fsprogs_url.tail }}"
-  with_items: "{{ e2fsprogs_files }}"
-  delegate_to: localhost
-  run_once: true
-  register: e2fsprogs_files_exists
-
-
-- name: Download e2fsprogs packages
-  get_url:
-    validate_certs: no
-    url: "{{ e2fsprogs_url.header }}/{{ item.item }}-{{ e2fsprogs_url.tail }}"
-    dest: "{{ local_repository_path }}/{{ item.item }}-{{ e2fsprogs_url.tail }}"
-  with_items: "{{ e2fsprogs_files_exists.results }}"
-  when: item.stat.exists == False
-  no_log: true
-  delegate_to: localhost
-  run_once: true
-
-
 - name: Copy e2fsprogs yum packages to the remote
   copy:
-    src: "{{ local_repository_path }}/{{ item }}-{{ e2fsprogs_url.tail }}"
+    src: "{{ local_repository_path }}/{{ item }}-{{ e2fsprogs_tail }}"
     dest: "/tmp/"
   with_items: "{{ e2fsprogs_files }}"
 
 
 - name: Install e2fsprogs yum packages
   yum:
-    name: "{{ e2fsprogs_files | map('regex_replace', '(.*)', '/tmp/\\1-' + e2fsprogs_url.tail) | list }}"
+    name: "{{ e2fsprogs_files | map('regex_replace', '(.*)', '/tmp/\\1-' + e2fsprogs_tail) | list }}"
     state: present
     validate_certs: no
 
 
 - name: Delete e2fsprogs packages from the remote
   file:
-    path: "/tmp/{{ item }}-{{ e2fsprogs_url.tail }}"
+    path: "/tmp/{{ item }}-{{ e2fsprogs_tail }}"
     state: absent
   with_items: "{{ e2fsprogs_files }}"
 
@@ -61,66 +40,23 @@
 # Lustre configuration
 ######################
 
-
-- name: Check if lustre kernel packages exist in the local repository
-  stat:
-    path: "{{ local_repository_path }}/{{ item }}-{{ lustre_server_kernel_url.tail }}"
-  with_items: "{{ lustre_server_kernel_files }}"
-  delegate_to: localhost
-  run_once: true
-  register: lustre_server_kernel_files_exists
-
-
-- name: Download lustre kernel packages
-  get_url:
-    validate_certs: no
-    url: "{{ lustre_server_kernel_url.header }}/{{ item.item }}-{{ lustre_server_kernel_url.tail }}"
-    dest: "{{ local_repository_path }}/{{ item.item }}-{{ lustre_server_kernel_url.tail }}"
-  with_items: "{{ lustre_server_kernel_files_exists.results }}"
-  when: item.stat.exists == False
-  no_log: true
-  delegate_to: localhost
-  run_once: true
-
-
-- name: Check if lustre server packages exist in the local repository
-  stat:
-    path: "{{ local_repository_path }}/{{ item }}-{{ lustre_server_url.tail }}"
-  with_items: "{{ lustre_server_files }}"
-  delegate_to: localhost
-  run_once: true
-  register: lustre_server_files_exists
-
-
-- name: Download lustre server packages
-  get_url:
-    validate_certs: no
-    url: "{{ lustre_server_url.header }}/{{ item.item }}-{{ lustre_server_url.tail }}"
-    dest: "{{ local_repository_path }}/{{ item.item }}-{{ lustre_server_url.tail }}"
-  with_items: "{{ lustre_server_files_exists.results }}"
-  when: item.stat.exists == False
-  no_log: true
-  delegate_to: localhost
-  run_once: true
-
-
 - name: Copy lustre server kernel yum packages to the remote
   copy:
-    src: "{{ local_repository_path }}/{{ item }}-{{ lustre_server_kernel_url.tail }}"
+    src: "{{ local_repository_path }}/{{ item }}-{{ lustre_server_kernel_tail }}"
     dest: "/tmp/"
   with_items: "{{ lustre_server_kernel_files }}"
 
 
 - name: Install lustre server kernel yum packages
   yum:
-    name: "{{ lustre_server_kernel_files | map('regex_replace', '(.*)', '/tmp/\\1-' + lustre_server_kernel_url.tail) | list }}"
+    name: "{{ lustre_server_kernel_files | map('regex_replace', '(.*)', '/tmp/\\1-' + lustre_server_kernel_tail) | list }}"
     state: present
     validate_certs: no
 
 
 - name: Delete lustre server kernel packages from the remote
   file:
-    path: "/tmp/{{ item }}-{{ lustre_server_kernel_url.tail }}"
+    path: "/tmp/{{ item }}-{{ lustre_server_kernel_tail }}"
     state: absent
   with_items: "{{ lustre_server_kernel_files }}"
 
@@ -132,30 +68,28 @@
 
 
 - name: Reboot the machine if required
-  include_role:
-    name: reboot
-  vars:
-    reboot_msg: 'Kernel update with lustre modules.'
+  reboot:
+    msg: 'Kernel update with lustre modules.'
   when: reboot_required.stdout.find("reboot") != -1
 
 
 - name: Copy lustre server yum packages to the remote
   copy:
-    src: "{{ local_repository_path }}/{{ item }}-{{ lustre_server_url.tail }}"
+    src: "{{ local_repository_path }}/{{ item }}-{{ lustre_server_tail }}"
     dest: "/tmp/"
   with_items: "{{ lustre_server_files }}"
 
 
 - name: Install lustre server yum packages
   yum:
-    name: "{{ lustre_server_files | map('regex_replace', '(.*)', '/tmp/\\1-' + lustre_server_url.tail) | list }}"
+    name: "{{ lustre_server_files | map('regex_replace', '(.*)', '/tmp/\\1-' + lustre_server_tail) | list }}"
     state: present
     validate_certs: no
 
 
 - name: Delete lustre server packages from the remote
   file:
-    path: "/tmp/{{ item }}-{{ lustre_server_url.tail }}"
+    path: "/tmp/{{ item }}-{{ lustre_server_tail }}"
     state: absent
   with_items: "{{ lustre_server_files }}"
 
@@ -228,6 +162,7 @@
     state: present
     part_start: "{{ lustre_mgs_mdt_partition.start }}"
     part_end: "{{ lustre_mgs_mdt_partition.end }}"
+    label: gpt
   when:
     - initialize_lustre_disk
     - merge_mgs_mdt
@@ -241,6 +176,7 @@
       state: present
       part_start: "{{ lustre_mgs_partition.start }}"
       part_end: "{{ lustre_mgs_partition.end }}"
+      label: gpt
   - name: Create the lustre mdt partition
     parted:
       device: "{{ lustre_mdt_partition.device }}"
@@ -248,6 +184,7 @@
       state: present
       part_start: "{{ lustre_mdt_partition.start }}"
       part_end: "{{ lustre_mdt_partition.end }}"
+      label: gpt
   when:
     - initialize_lustre_disk
     - not merge_mgs_mdt

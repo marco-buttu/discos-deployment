@@ -1,14 +1,11 @@
 ---
 
-whamcloud_url: "https://downloads.whamcloud.com/public"
-
-
 #####################
 # e2fsprogs variables
 #####################
 
 e2fsprogs_version: { major: "1.42.13.wc6", minor: "7" }
-e2fsprogs_url: { header: "{{ whamcloud_url }}/e2fsprogs/{{ e2fsprogs_version.major }}/el7/RPMS/x86_64", tail: "{{ e2fsprogs_version.major }}-{{ e2fsprogs_version.minor }}.el7.x86_64.rpm" }
+e2fsprogs_tail: "{{ e2fsprogs_version.major }}-{{ e2fsprogs_version.minor }}.el7.x86_64.rpm"
 e2fsprogs_files:
   - "e2fsprogs"
   - "e2fsprogs-libs"
@@ -21,10 +18,10 @@ e2fsprogs_files:
 #########################
 
 lustre_server_version: { major: "2.10.3", minor: "1" }
-lustre_server_url: { header: "{{ whamcloud_url }}/lustre/lustre-{{ lustre_server_version.major }}/el7/server/RPMS/x86_64", tail: "{{ lustre_server_version.major }}-{{ lustre_server_version.minor }}.el7.x86_64.rpm" }
+lustre_server_tail: "{{ lustre_server_version.major }}-{{ lustre_server_version.minor }}.el7.x86_64.rpm"
 
 lustre_server_kernel_version: { major: "3.10.0", minor: "693.11.6" }
-lustre_server_kernel_url: { header: "{{ whamcloud_url }}/lustre/lustre-{{ lustre_server_version.major }}/el7/server/RPMS/x86_64", tail: "{{ lustre_server_kernel_version.major }}-{{ lustre_server_kernel_version.minor }}.el7_lustre.x86_64.rpm" }
+lustre_server_kernel_tail: "{{ lustre_server_kernel_version.major }}-{{ lustre_server_kernel_version.minor }}.el7_lustre.x86_64.rpm"
 
 lustre_server_kernel_files:
   - "kernel"
@@ -47,8 +44,7 @@ lustre_server_files:
 #########################
 
 lustre_client_version: { major: "2.10.3", minor: "1" }
-lustre_client_url: { header: "{{ whamcloud_url }}/lustre/lustre-{{ lustre_client_version.major }}/el6/client/RPMS/x86_64", tail: "{{ lustre_client_version.major }}-{{ lustre_client_version.minor }}.el6.x86_64.rpm" }
-
+lustre_client_tail: "{{ lustre_client_version.major }}-{{ lustre_client_version.minor }}.el6.x86_64.rpm"
 lustre_client_files:
   - "kmod-lustre-client"
   - "lustre-client"

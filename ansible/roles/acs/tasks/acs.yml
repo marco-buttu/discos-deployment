@@ -10,50 +10,96 @@
     recurse: yes
 
 
-- name: Check if ACS is already installed
-  find:
-    paths: /alma
-    file_type: directory
-    patterns: "ACS*"
-  register: target_dir
-
-
 - name: Check if ACS binaries exist in the local repository
   stat:
     path: "{{ local_repository_path }}/{{ acs_dest.file }}"
   delegate_to: localhost
-  run_once: true
+  run_once: True
   register: acs_bin
+
+
+- name: Download {{ acs_dest.file }}
+  get_url:
+    url: "{{ remote_repository_download_url }}/{{ acs_dest.file }}_0{{ item }}"
+    dest: "{{ local_repository_path }}"
+    headers:
+      Authorization: "token {{ repository_token }}"
+  with_sequence: start=0 end=4
+  when:
+    - acs_bin.stat.exists == False
+  delegate_to: localhost
+  run_once: True
+
+
+- name: Merge ACS part files
+  shell: "cat {{ acs_dest.file }}_* >> {{ acs_dest.file }}"
+  args:
+    chdir: "{{ local_repository_path }}"
+  when:
+    - acs_bin.stat.exists == False
+  delegate_to: localhost
+  run_once: True
+
+
+- name: Get rid of ACS part files
+  file:
+    path: "{{ local_repository_path }}/{{ acs_dest.file }}_0{{ item }}"
+    state: absent
+  with_sequence: start=0 end=4
+  when:
+    - acs_bin.stat.exists == False
+  delegate_to: localhost
+  run_once: True
 
 
 - name: Check if ACS extprod exists in the local repository
   stat:
     path: "{{ local_repository_path }}/{{ extprod_dest.file }}"
   delegate_to: localhost
-  run_once: true
+  run_once: True
   register: extprod_bin
 
 
-- name: Download {{ acs_orig.file }}
+- name: Download {{ extprod_dest.file }}
   get_url:
-    url: "{{ acs_orig.base }}/{{ acs_orig.file }}"
-    dest: "{{ local_repository_path }}/{{ acs_dest.file }}"
-  when:
-    - acs_bin.stat.exists == False
-    - target_dir.matched|int == 0
-  delegate_to: localhost
-  run_once: true
-
-
-- name: Download {{ extprod_orig.file }}
-  get_url:
-    url: "{{ extprod_orig.base }}/{{ extprod_orig.file }}"
-    dest: "{{ local_repository_path }}/{{ extprod_dest.file }}"
+    url: "{{ remote_repository_download_url }}/{{ extprod_dest.file }}_0{{ item }}"
+    dest: "{{ local_repository_path }}"
+    headers:
+      Authorization: "token {{ repository_token }}"
+  with_sequence: start=0 end=5
   when:
     - extprod_bin.stat.exists == False
-    - target_dir.matched|int == 0
   delegate_to: localhost
-  run_once: true
+  run_once: True
+
+
+- name: Merge ACS extprod part files
+  shell: "cat {{ extprod_dest.file }}_* >> {{ extprod_dest.file }}"
+  args:
+    chdir: "{{ local_repository_path }}"
+  when:
+    - extprod_bin.stat.exists == False
+  delegate_to: localhost
+  run_once: True
+
+
+- name: Get rid of ACS extprod part files
+  file:
+    path: "{{ local_repository_path }}/{{ extprod_dest.file }}_0{{ item }}"
+    state: absent
+  with_sequence: start=0 end=5
+  when:
+    - extprod_bin.stat.exists == False
+  delegate_to: localhost
+  run_once: True
+
+
+- name: Check if ACS is already installed
+  find:
+    paths: /alma
+    file_type: directory
+    patterns: "ACS*"
+  register: target_dir
 
 
 - name: Copy {{ acs_dest.file }} to the remote
@@ -82,7 +128,7 @@
   with_items:
     - "{{ acs_dest.file }}"
     - "{{ extprod_dest.file }}"
-  become: true
+  become: True
   become_user: "{{ user.name }}"
   when: target_dir.matched|int == 0
 
@@ -111,7 +157,7 @@
   command: "{{ item }}"
   with_items:
     - "cp -r .acs /{{ discos_sw_dir }}/config/acs"
-  become: true
+  become: True
   become_user: "{{ user.name }}"
   args:
     chdir: "{{ acssw }}/config"
@@ -134,7 +180,7 @@
     owner: "{{ user.name }}"
     group: "{{ user.group }}"
     mode: 0755
-  become: true
+  become: True
   become_user: "{{ user.name }}"
 
 
@@ -240,7 +286,7 @@
     - AcsCommandCenterEntities.xml
     - AcsCommandCenterProject.xsd
     - AcsCommandCenterTools.xsd
-  become: true
+  become: True
   become_user: "{{ user.name }}"
 
 
@@ -251,7 +297,7 @@
   with_items:
       - make clean
       - make
-  become: true
+  become: True
   become_user: "{{ user.name }}"
   become_flags: "-i"
 
@@ -261,7 +307,7 @@
   with_items:
       - acscommandcenter.jar
       - AcsCommandCenterEntities.jar
-  become: true
+  become: True
   become_user: "{{ user.name }}"
 
 
@@ -275,7 +321,7 @@
     path: "/etc/ld.so.conf.d/acs.conf"
     line: "{{ item }}"
     state: present
-    create: true
+    create: True
   with_items:
     - "/alma/{{ acs_tag }}/ACSSW/lib"
     - "/alma/{{ acs_tag }}/TAO/ACE_wrappers/build/linux/lib"
@@ -295,7 +341,7 @@
   file:
     path: "/alma/{{ acs_tag }}/boost"
     state: absent
-  become: true
+  become: True
   become_user: "{{ user.name }}"
 
 

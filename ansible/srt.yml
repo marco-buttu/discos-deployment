@@ -1,22 +1,20 @@
 ---
 
+- name: Check presence of dependencies on local repository
+  hosts: all
+  tasks:
+    - import_role:
+        name: dependencies
+      delegate_to: localhost
+      run_once: True
+
+
 - name: Check users presence and eventually ask for their password
   hosts: all
   tasks:
     - include_role:
         name: ask_password
       with_dict: "{{ users }}"
-
-
-- name: Apply local tasks
-  hosts: all
-  tasks:
-    - name: Create a local directory to be used as a repository
-      file:
-        path: "{{ local_repository_path }}"
-        state: directory
-      delegate_to: localhost
-      run_once: True
 
 
 - name: Configure SELINUX
