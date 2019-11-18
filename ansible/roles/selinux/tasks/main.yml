@@ -13,8 +13,6 @@
 
 
 - name: Reboot the machine if required
-  include_role:
-    name: reboot
-  vars:
-    reboot_msg: 'SELINUX disabled.'
+  reboot:
+    msg: 'SELINUX disabled.'
   when: selinux_state.reboot_required

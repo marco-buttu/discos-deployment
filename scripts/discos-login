@@ -20,12 +20,15 @@ parser.add_argument('machine', choices=deployment.machineList())
 args = parser.parse_args()
 
 if deployment.isRunning(args.machine):
-    subprocess.call([
-        'ssh',
-        '-CX',
-        '-l',
-        args.user,
-        deployment.getIp(args.machine)
-    ])
+    try:
+        subprocess.call([
+            'ssh',
+            '-CX',
+            '-l',
+            args.user,
+            deployment.getIp(args.machine)
+        ])
+    except KeyboardInterrupt:
+        pass
 else:
     print('Machine {} is not running.'.format(args.machine))

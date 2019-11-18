@@ -1,0 +1,78 @@
+---
+
+- set_fact:
+    download_lustre_packages: { client: false, server: false }
+
+
+- set_fact:
+    download_lustre_packages: "{{ download_lustre_packages | combine(new_item) }}"
+  vars:
+      new_item: "{ '{{ hostvars[item].lustre_type }}': true }"
+  when: hostvars[item].lustre_type is defined
+  with_items: "{{ play_hosts }}"
+
+
+- name: Eventually download lustre client packages
+  block:
+  - name: Check if lustre client packages exist in the local repository
+    stat:
+      path: "{{ local_repository_path }}/{{ item }}-{{ lustre_client_tail }}"
+    with_items: "{{ lustre_client_files }}"
+    register: lustre_client_files_exists
+  - name: Download lustre client packages
+    get_url:
+      url: "{{ remote_repository_download_url }}/{{ item.item }}-{{ lustre_client_tail }}"
+      dest: "{{ local_repository_path }}"
+      headers:
+        Authorization: "token {{ repository_token }}"
+    with_items: "{{ lustre_client_files_exists.results }}"
+    no_log: True
+    when: item.stat.exists == False
+  when: download_lustre_packages.client == True
+
+
+- name: Eventually download lustre server packages
+  block:
+  - name: Check if e2fsprogs packages exist in the local repository
+    stat:
+      path: "{{ local_repository_path }}/{{ item }}-{{ e2fsprogs_tail }}"
+    with_items: "{{ e2fsprogs_files }}"
+    register: e2fsprogs_files_exists
+  - name: Download e2fsprogs packages
+    get_url:
+      url: "{{ remote_repository_download_url }}/{{ item.item }}-{{ e2fsprogs_tail }}"
+      dest: "{{ local_repository_path }}"
+      headers:
+        Authorization: "token {{ repository_token }}"
+    with_items: "{{ e2fsprogs_files_exists.results }}"
+    no_log: True
+    when: item.stat.exists == False
+  - name: Check if lustre kernel packages exist in the local repository
+    stat:
+      path: "{{ local_repository_path }}/{{ item }}-{{ lustre_server_kernel_tail }}"
+    with_items: "{{ lustre_server_kernel_files }}"
+    register: lustre_server_kernel_files_exists
+  - name: Download lustre kernel packages
+    get_url:
+      url: "{{ remote_repository_download_url }}/{{ item.item }}-{{ lustre_server_kernel_tail }}"
+      dest: "{{ local_repository_path }}"
+      headers:
+        Authorization: "token {{ repository_token }}"
+    with_items: "{{ lustre_server_kernel_files_exists.results }}"
+    no_log: True
+    when: item.stat.exists == False
+  - name: Check if lustre server packages exist in the local repository
+    stat:
+      path: "{{ local_repository_path }}/{{ item }}-{{ lustre_server_tail }}"
+    with_items: "{{ lustre_server_files }}"
+    register: lustre_server_files_exists
+  - name: Download lustre server packages
+    get_url:
+      url: "{{ remote_repository_download_url }}/{{ item.item }}-{{ lustre_server_tail }}"
+      dest: "{{ local_repository_path }}"
+      headers:
+        Authorization: "token {{ repository_token }}"
+    with_items: "{{ lustre_server_files_exists.results }}"
+    no_log: True
+    when: item.stat.exists == False
+  when: download_lustre_packages.server == True

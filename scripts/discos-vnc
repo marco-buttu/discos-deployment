@@ -19,7 +19,10 @@ users = {
     'observer': 2
 }
 machines = deployment.machineList()
-machines.remove('storage')
+try:
+    machines.remove('storage')
+except:
+    pass
 
 parser = ArgumentParser()
 parser.add_argument(

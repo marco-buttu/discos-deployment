@@ -46,7 +46,7 @@
 
 - name: Check if the fitsviewer binary exist in the local repository
   stat:
-    path: "{{ local_repository_path }}/{{ fv_file }}"
+    path: "{{ local_repository_path }}/{{ fv.file }}"
   delegate_to: localhost
   run_once: true
   register: fv_archive
@@ -54,9 +54,10 @@
 
 - name: Download {{ cfitsio.file }}
   get_url:
-    validate_certs: no
-    url: "ftp://heasarc.gsfc.nasa.gov/software/fitsio/c/{{ cfitsio.file }}"
+    url: "{{ remote_repository_download_url }}/{{ cfitsio.file }}"
     dest: "{{ local_repository_path }}"
+    headers:
+      Authorization: "token {{ repository_token }}"
   when:
     - cfitsio_include.stat.exists == False
     - cfitsio_sources.stat.exists == False
@@ -66,9 +67,10 @@
 
 - name: Download {{ ccfits.file }}
   get_url:
-    validate_certs: no
-    url: "http://heasarc.gsfc.nasa.gov/fitsio/CCfits-2.4/{{ ccfits.file }}"
+    url: "{{ remote_repository_download_url }}/{{ ccfits.file }}"
     dest: "{{ local_repository_path }}"
+    headers:
+      Authorization: "token {{ repository_token }}"
   when:
     - ccfits_include.stat.exists == False
     - ccfits_sources.stat.exists == False
@@ -76,11 +78,12 @@
   run_once: true
 
 
-- name: Download {{ fv_file }}
+- name: Download {{ fv.file }}
   get_url:
-    validate_certs: no
-    url: "http://heasarc.gsfc.nasa.gov/FTP/software/lheasoft/fv/{{ fv_file }}"
+    url: "{{ remote_repository_download_url }}/{{ fv.file }}"
     dest: "{{ local_repository_path }}"
+    headers:
+      Authorization: "token {{ repository_token }}"
   when:
     - fv_binary.stat.exists == False
     - fv_archive.stat.exists == False
@@ -139,9 +142,9 @@
     - "{{ remote_build_path }}/{{ ccfits.build_dir }}"
 
 
-- name: Copy {{ fv_file }} to the remote /usr/local/lib
+- name: Copy {{ fv.file }} to the remote /usr/local/lib
   unarchive:
-    src: "{{ local_repository_path }}/{{ fv_file }}"
+    src: "{{ local_repository_path }}/{{ fv.file }}"
     dest: "/usr/local/lib"
   when: fv_binary.stat.exists == False
 
@@ -165,7 +168,7 @@
   register: modbus_lib
 
 
-- name: "Check if the modbus sources exist in the local repository"
+- name: Check if the modbus sources exist in the local repository
   stat:
     path: "{{ local_repository_path }}/{{ modbus.file }}"
   delegate_to: localhost
@@ -175,9 +178,10 @@
 
 - name: Download modbus (if it does not exist in the local repo)
   get_url:
-    validate_certs: no
-    url: "http://libmodbus.org/releases/{{ modbus.file }}"
+    url: "{{ remote_repository_download_url }}/{{ modbus.file }}"
     dest: "{{ local_repository_path }}"
+    headers:
+      Authorization: "token {{ repository_token }}"
   when:
     - modbus_sources.stat.exists == False
     - modbus_lib.stat.exists == False
@@ -231,9 +235,10 @@
 
 - name: Download {{ googletest_file }}
   get_url:
-    validate_certs: no
-    url: "https://github.com/google/googletest/archive/{{ googletest_repo }}.zip"
-    dest: "{{ local_repository_path }}/{{ googletest_file }}"
+    url: "{{ remote_repository_download_url }}/{{ googletest_file }}"
+    dest: "{{ local_repository_path }}"
+    headers:
+      Authorization: "token {{ repository_token }}"
   when:
     - gmock_lib.stat.exists == False
     - gmock_sources.stat.exists == False
@@ -351,9 +356,10 @@
     path: "/usr/local/include/f2c.h"
   register: f2c_header
 
+
 - name: Check if the f2c sources exist in the local repository
   stat:
-    path: "{{ local_repository_path }}/f2c.zip"
+    path: "{{ local_repository_path }}/{{ f2c.file }}"
   delegate_to: localhost
   run_once: true
   register: f2c_sources
@@ -361,9 +367,10 @@
 
 - name: Download f2c
   get_url:
-    validate_certs: no
-    url: "https://github.com/barak/f2c/archive/master.zip"
-    dest: "{{ local_repository_path }}/f2c.zip"
+    url: "{{ remote_repository_download_url }}/{{ f2c.file }}"
+    dest: "{{ local_repository_path }}"
+    headers:
+      Authorization: "token {{ repository_token }}"
   when:
     - f2c_header.stat.exists == False
     - f2c_sources.stat.exists == False
@@ -373,7 +380,7 @@
 
 - name: Copy f2c to the remote {{ remote_build_path }}
   unarchive:
-    src: "{{ local_repository_path }}/f2c.zip"
+    src: "{{ local_repository_path }}/{{ f2c.file }}"
     dest: "{{ remote_build_path }}"
   when: f2c_header.stat.exists == False
 
@@ -407,7 +414,7 @@
     domain: "{{ user.name }}"
     limit_type: '-'
     limit_item: stack
-    value: 65532
+    value: '65532'
 
 
 - name: Verify the Qt library is not installed
@@ -428,7 +435,7 @@
   register: qt_library
 
 
-- name: Check if the {{ qt_file }}  exists in the local repository
+- name: Check if the {{ qt_file }} exists in the local repository
   stat:
     path: "{{ local_repository_path }}/{{ qt_file }}"
   delegate_to: localhost
@@ -436,13 +443,35 @@
   register: qt_sources
 
 
-- name: Download {{ qt_file }}
+- name: Download {{ qt_file }} parts
   get_url:
-    validate_certs: no
-    url: "{{ qt_url }}"
+    url: "{{ remote_repository_download_url }}/{{ qt_file }}_0{{ item }}"
     dest: "{{ local_repository_path }}"
+    headers:
+      Authorization: "token {{ repository_token }}"
+  with_sequence: start=0 end=1
   when:
-    - qt_library.stat.exists == False
+    - qt_sources.stat.exists == False
+  delegate_to: localhost
+  run_once: true
+
+
+- name: Merge {{ qt_file }} parts
+  shell: "cat {{ qt_file }}_* >> {{ qt_file }}"
+  args:
+    chdir: "{{ local_repository_path }}"
+  when:
+    - qt_sources.stat.exists == False
+  delegate_to: localhost
+  run_once: true
+
+
+- name: Delete {{ qt_file }} parts
+  file:
+    path: "{{ local_repository_path }}/{{ qt_file }}_0{{ item }}"
+    state: absent
+  with_sequence: start=0 end=1
+  when:
     - qt_sources.stat.exists == False
   delegate_to: localhost
   run_once: true
@@ -466,7 +495,7 @@
 - name: Install Qt
   command: "{{ item }}"
   with_items:
-    - "./configure -no-openssl -opensource --prefix=/usr/local/{{ qt_version }}"
+    - "./configure -no-openssl -opensource --prefix={{ qt_lib }}"
     - "gmake"
     - "gmake install"
   args:
@@ -496,9 +525,10 @@
 
 - name: Download {{ sip_file }}
   get_url:
-    validate_certs: no
-    url: "{{ sip_url }}"
+    url: "{{ remote_repository_download_url }}/{{ sip_file }}"
     dest: "{{ local_repository_path }}"
+    headers:
+      Authorization: "token {{ repository_token }}"
   when:
     - sip_library.stat.exists == False
     - sip_sources.stat.exists == False
@@ -559,9 +589,10 @@
 
 - name: Download {{ pyqt_file }}
   get_url:
-    validate_certs: no
-    url: "{{ pyqt_url }}"
+    url: "{{ remote_repository_download_url }}/{{ pyqt_file }}"
     dest: "{{ local_repository_path }}"
+    headers:
+      Authorization: "token {{ repository_token }}"
   when:
     - pyqt_library.stat.exists == False
     - pyqt_sources.stat.exists == False
@@ -589,7 +620,7 @@
 - name: Configure PyQt
   command: "{{ item }}"
   with_items:
-    - "python configure.py --confirm-license --qmake /usr/local/{{ qt_version }}/bin/qmake"
+    - "python configure.py --confirm-license --qmake {{ qt_lib }}/bin/qmake"
   become: true
   become_user: "{{ user.name }}"
   become_flags: "-i"
@@ -640,9 +671,10 @@
 
 - name: Download {{ pyqwt_file }}
   get_url:
-    validate_certs: no
-    url: "{{ pyqwt_url }}"
+    url: "{{ remote_repository_download_url }}/{{ pyqwt_file }}"
     dest: "{{ local_repository_path }}"
+    headers:
+      Authorization: "token {{ repository_token }}"
   when:
     - pyqwt_library.stat.exists == False
     - pyqwt_sources.stat.exists == False
@@ -722,4 +754,4 @@
     domain: "{{ user.name }}"
     limit_type: '-'
     limit_item: nproc
-    value: 63266
+    value: '63266'

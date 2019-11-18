@@ -10,9 +10,10 @@
 
 - name: Download ius-release yum package
   get_url:
-    url: "{{ ius_release.url }}"
+    url: "{{ remote_repository_download_url }}/{{ ius_release.file }}"
     dest: "{{ local_repository_path }}"
-    validate_certs: false
+    headers:
+      Authorization: "token {{ repository_token }}"
   when: ius_release_package.stat.exists == False
   delegate_to: localhost
   run_once: true

@@ -1,7 +1,13 @@
 ---
 
 - include: check_interfaces.yml
+
+- include: check_dependencies.yml
+  delegate_to: localhost
+  run_once: true
+
 - include: lustre_clients.yml
   when: lustre_type == "client"
+
 - include: lustre_server.yml
   when: lustre_type == "server"

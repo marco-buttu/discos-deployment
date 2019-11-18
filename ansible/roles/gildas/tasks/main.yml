@@ -10,8 +10,10 @@
 
 - name: Download GILDAS
   get_url:
-    url: "{{ gildas_url }}"
-    dest: "{{ local_repository_path }}/{{ gildas_sources_archive }}"
+    url: "{{ remote_repository_download_url }}/{{ gildas_sources_archive }}"
+    dest: "{{ local_repository_path }}"
+    headers:
+      Authorization: "token {{ repository_token }}"
   delegate_to: localhost
   run_once: True
   when: gildas_file_exists.stat.exists == False
