@@ -5,7 +5,7 @@ if [ -f $HOME/bin/_discos-check-branch ]; then
 	if [ -n "${CHECK_OUTPUT}" ]; then
 		echo -e "${pur}WARNING:${txtrst} $CHECK_OUTPUT"
         alias make="
-        echo -e \"${pur}WARNING:${txtrst} the make command has been disabled in order to avoid messing up the default introot!\"
+        echo -e \"${pur}WARNING:${txtrst} the 'make' command has been disabled in order to avoid messing up the default introot!\"
         echo \"         Set your desired branch using the 'discos-set' command before compiling and installing!\""
     else
         unalias make 2>/dev/null
