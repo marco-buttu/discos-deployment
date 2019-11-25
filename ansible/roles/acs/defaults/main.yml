@@ -17,6 +17,7 @@ container_services: "{{ acssw }}/lib/python/site-packages/Acspy/Servants/Contain
 acs_command_center: "{{ acssw }}/Sources/acscommandcenter/"
 execute_container: "{{ acs_command_center }}/src/alma/acs/commandcenter/engine/ExecuteContainer.java"
 executor: "{{ acs_command_center }}/src/alma/acs/commandcenter/engine/Executor.java"
+enumpropAlarm: "{{ acssw }}/Sources/enumprop/ws/"
 
 
 ###############################

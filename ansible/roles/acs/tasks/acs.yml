@@ -311,6 +311,25 @@
   become_user: "{{ user.name }}"
 
 
+- name: Fix enumpropAlarm.h
+  lineinfile:
+    path: "{{ enumpropAlarm }}/include/enumpropAlarm.h"
+    regexp: "  ACS::TimeInterval interval_m;"
+    line: "  long long unsigned int interval_m;"
+    state: present
+    backup: True
+
+
+- name: Install enumpropAlarm.i
+  shell: "make install"
+  args:
+    chdir: "{{ enumpropAlarm }}/src"
+  become: True
+  become_user: "{{ user.name }}"
+  become_flags: "-i"
+  failed_when: False
+
+
 ##################################
 # Load ACS libraries to the system
 ##################################
