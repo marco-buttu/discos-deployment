@@ -311,12 +311,13 @@
   become_user: "{{ user.name }}"
 
 
-- name: Fix enumpropAlarm.h
-  lineinfile:
-    path: "{{ enumpropAlarm }}/include/enumpropAlarm.h"
-    regexp: "  ACS::TimeInterval interval_m;"
-    line: "  long long unsigned int interval_m;"
-    state: present
+- name: Patch enumpropAlarm.i
+  template:
+    src: "enumpropAlarm.i"
+    dest: "{{ enumpropAlarm }}/include/enumpropAlarm.i"
+    owner: "{{ user.name }}"
+    group: "{{ user.group }}"
+    mode: 0755
     backup: True
 
 
