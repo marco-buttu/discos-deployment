@@ -7,7 +7,7 @@
     owner: "{{ user.name }}"
     group: "{{ user.group }}"
     mode: 0770
-    recurse: yes
+    recurse: True
 
 
 - name: Check if ACS binaries exist in the local repository
@@ -124,7 +124,7 @@
   unarchive:
     src: "{{ remote_build_path }}/{{ item }}"
     dest: "{{ remote_build_path }}"
-    remote_src: yes
+    remote_src: True
   with_items:
     - "{{ acs_dest.file }}"
     - "{{ extprod_dest.file }}"
@@ -170,7 +170,7 @@
     owner: "{{ user.name }}"
     group: "{{ user.group }}"
     mode: 0755
-    recurse: yes
+    recurse: True
 
 
 - name: Copy the acsStartContainer with debugger
@@ -218,97 +218,14 @@
 # Apply some patch to ACS
 #########################
 
-
-- name: Read the ContainerServices.py file
-  shell: "cat {{ container_services }}"
-  register: container_services_content
-
-
-- name: Replace ContainerServices.py
-  template:
-    src: ContainerServices.py
-    dest: "{{ container_services }}"
-    owner: "{{ user.name }}"
-    group: "{{ user.group }}"
-    mode: 0644
-    force: yes
-  when: container_services_content.stdout.find('getattr') == -1
-
-
-- name: Read the BaciHelper.py file
-  shell: "cat {{ baci_helper }}"
-  register: baci_helper_content
-
-
-- name: Replace BaciHelper.py
-  template:
-    src: BaciHelper.py
-    dest: "{{ baci_helper }}"
-    owner: "{{ user.name }}"
-    group: "{{ user.group }}"
-    mode: 0644
-    force: yes
-  when: baci_helper_content.stdout.find('getattr') == -1
-
-
-- name: Replace ExecuteContainer.java
-  template:
-    src: ExecuteContainer.java
-    dest: "{{ execute_container }}"
-    owner: "{{ user.name }}"
-    group: "{{ user.group }}"
-    mode: 0755
-    backup: yes
-
-
-- name: Replace Executor.java
-  template:
-    src: Executor.java
-    dest: "{{ executor }}"
-    owner: "{{ user.name }}"
-    group: "{{ user.group }}"
-    mode: 0755
-    backup: yes
-
-
-- name: Create the idl directory under acscommandcenter
-  file:
-    path: "{{ acs_command_center }}/idl"
-    owner: "{{ user.name }}"
-    group: "{{ user.group }}"
-    state: directory
-    mode: 0755
-
-
-- name: Copy interfaces to acscommandcenter
-  command: "cp {{ acssw }}/idl/{{ item }} {{ acs_command_center }}/idl/"
-  with_items:
-    - AcsCommandCenterEntities.xml
-    - AcsCommandCenterProject.xsd
-    - AcsCommandCenterTools.xsd
-  become: True
-  become_user: "{{ user.name }}"
-
-
-- name: Build acscommandcenter
-  shell: "{{ item }}"
-  args:
-    chdir: "{{ acs_command_center }}/src"
-  with_items:
-      - make clean
-      - make
-  become: True
-  become_user: "{{ user.name }}"
-  become_flags: "-i"
-
-
-- name: Copy Acs Command Center .jar files
-  shell: "cp -b {{ acs_command_center }}/lib/{{ item }} {{ acssw }}/lib/"
-  with_items:
-      - acscommandcenter.jar
-      - AcsCommandCenterEntities.jar
-  become: True
-  become_user: "{{ user.name }}"
+- include: "{{ patch_file }}"
+  vars:
+    params:
+      files:
+        - "patches/{{ acs_tag }}.yml"
+  loop: "{{ q('first_found', params, errors='ignore') }}"
+  loop_control:
+    loop_var: patch_file
 
 
 ##################################
