@@ -9,6 +9,6 @@ quicklook_server_port: 8080
 quicklook_workers: 7
 quicklook_polling: True
 
-monitor_receivers = True
+monitor_receivers: True
 
 users: { user: "{{ user }}", observer: "{{ observer }}" }
