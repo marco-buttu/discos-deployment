@@ -21,4 +21,3 @@
     - statsmodels
     - numba
     - watchdog
-    - Zdaemon
