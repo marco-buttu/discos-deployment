@@ -62,4 +62,8 @@
       - net-snmp
       - rsync
       - telnet
+      - iperf
+      - vnstat
+      - iozone
+      - tree
     state: present
