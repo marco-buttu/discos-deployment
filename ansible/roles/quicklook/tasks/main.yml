@@ -1,7 +1,7 @@
 ---
 
 - name: Install ZDAEMON pip package
-  command: "pip 3.6 install Zdaemon"
+  command: "pip3.6 install Zdaemon"
 
 
 - name: Copy the quicklook service template
