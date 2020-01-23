@@ -3,9 +3,9 @@
 import os
 import shutil
 try:
-    from setuptools import setup, find_packages
+    from setuptools import setup
 except ImportError:
-    from distutils.core import setup, find_packages
+    from distutils.core import setup
 
 scripts = ['discos-deploy', 'discos-vms', 'discos-vnc', 'discos-login']
 scripts = [os.path.join('scripts', s) for s in scripts]

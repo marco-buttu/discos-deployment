@@ -64,6 +64,5 @@
       - telnet
       - iperf
       - vnstat
-      - iozone
       - tree
     state: present
