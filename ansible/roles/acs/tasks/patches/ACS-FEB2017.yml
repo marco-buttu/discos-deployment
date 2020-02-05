@@ -122,3 +122,12 @@
   become_user: "{{ user.name }}"
   become_flags: "-i"
   failed_when: False
+
+
+- name: Patch killACS in order for it to avoid killing gnome-panel
+  lineinfile:
+    path: "{{ acssw }}/bin/killACS"
+    state: present
+    insertafter: '^IGNORE_PROCS ='
+    line: 'IGNORE_PROCS += ["panel"]'
+    backup: True
