@@ -4,7 +4,7 @@
 Production
 **********
 
-Unlike the Development environment, that uses Vagrant pre-configured virtual
+Unlike the development environment, that uses Vagrant pre-configured virtual
 machines, when dealing with production machines, you have to perform some
 preliminary tasks in order for the provisioning procedure to be completed
 successfully. It is required that you configure the to-be-provisioned
@@ -87,13 +87,13 @@ tag you want to install on the machines:
 Replace the Manager in case of failure
 --------------------------------------
 In case the Manager machine suffers a failure of some sort, it has to be
-replaced. In order to do this, the first thing to do is perform again the
+replaced. In order to do this, the first thing to do is, perform the
 provisioning procedure on a newly installed machine (after putting the new
-Manager's IP address in the Ansible inventory's hosts file). In order for
-the whole system to behave correctly it is also necessary to perform some
-manual tweaking on the other DISCOS machines as well (in case the DISCOS
-control system is running on a distributed environment. This is the case
-for the SRT and Medicina stations).
+Manager's IP address in the Ansible inventory's hosts file). In order
+for the whole system to behave correctly it is also necessary to perform
+some manual tweaking on the other DISCOS machines as well (in case the
+DISCOS control system is running on a distributed environment. This is the
+case for the SRT and Medicina stations).
 
 The tweaks to be performed in order for the DISCOS control system to work as
 expected are the following:
