@@ -1,7 +1,10 @@
 ---
 
-- name: Install ZDAEMON pip package
-  command: "pip3.6 install Zdaemon"
+- name: Install quicklook python dependencies
+  command: "pip3.6 install {{ item }}"
+  with_itesm:
+    - Zdaemon
+    - tornado
 
 
 - name: Copy the quicklook service template
