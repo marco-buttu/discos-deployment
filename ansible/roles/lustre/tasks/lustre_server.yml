@@ -128,7 +128,7 @@
   parted:
     device: "{{ lustre_device }}"
     label: gpt
-  when: initialize_lustre_disk
+  when: initialize_lustre_disk and lustre_device is defined
 
 
 - set_fact:

@@ -9,5 +9,11 @@
 - include: lustre_clients.yml
   when: lustre_type == "client"
 
-- include: lustre_server.yml
+- block:
+  - name: Check if lustre is already configured on server
+    stat:
+      path: /usr/lib/systemd/system/lustre.service
+    register: lustre_configured
+  - include: lustre_server.yml
+    when: not lustre_configured.stat.exists
   when: lustre_type == "server"
