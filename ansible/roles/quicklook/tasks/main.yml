@@ -2,7 +2,7 @@
 
 - name: Install quicklook python dependencies
   command: "pip3.6 install {{ item }}"
-  with_itesm:
+  with_items:
     - Zdaemon
     - tornado
 

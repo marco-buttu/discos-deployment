@@ -3,10 +3,18 @@
 - name: Install SDTools required yum packages
   yum:
     name:
+      - llvm
       - python36u-pip
       - python36u-devel
       - python36u-tkinter
     state: present
+
+
+- name: Upgrade pip3.6 to latest version
+  command: "{{ item }}"
+  with_items:
+    - "pip3.6 install --upgrade pip"
+    - "cp /usr/local/bin/pip3 /usr/local/bin/pip3.6"
 
 
 - name: Install SDTools python dependencies
@@ -19,5 +27,5 @@
     - pyyaml
     - h5py
     - statsmodels
-    - numba
+    - numba==0.50.1
     - watchdog
