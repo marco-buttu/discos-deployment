@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os
 import argparse
+import subprocess
 
 
 BRANCH_ROOT = os.environ['HOME']
@@ -47,3 +48,6 @@ open(load_branch, 'w').writelines(lines)
 
 os.symlink('/{{ discos_sw_dir }}/introots/%s' % args.branch, '/{{ discos_sw_dir }}/introots/tmp')
 os.rename('/{{ discos_sw_dir }}/introots/tmp', '/{{ discos_sw_dir }}/introots/default')
+
+FNULL = open(os.devnull, 'w')
+subprocess.call(['ifrCacheInvalidate'], stdout=FNULL, stderr=FNULL)
