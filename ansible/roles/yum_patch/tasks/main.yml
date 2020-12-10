@@ -1,0 +1,16 @@
+---
+
+- name: Replace CentOS-Base repo sources
+  template:
+    src: CentOS-Base.repo
+    dest: /etc/yum.repos.d/CentOS-Base.repo
+    mode: 0644
+    backup: yes
+    force: yes
+
+
+- name: Clean yum cache
+  command: "yum clean all"
+  args:
+    warn: false
+
