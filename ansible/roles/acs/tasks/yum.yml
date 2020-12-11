@@ -76,6 +76,7 @@
       - java-1.8.0-openjdk
       - git-core
       - bash-completion
+      - python-argparse
       - "@X Window System"
       - "@Desktop"
       - "@fonts"
