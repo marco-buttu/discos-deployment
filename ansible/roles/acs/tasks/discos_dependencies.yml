@@ -755,3 +755,46 @@
     limit_type: '-'
     limit_item: nproc
     value: '63266'
+
+
+############
+# SlaLibrary
+############
+
+- name: Check if the SlaLibrary is installed
+  stat:
+    path: "/{{ discos_sw_dir }}/SlaLibrary"
+  register: slalibrary_present
+
+
+- name: Download the SlaLibrary archive
+  get_url:
+    url: "{{ remote_repository_download_url }}/{{ slalibrary_file }}"
+    dest: "{{ local_repository_path }}"
+    headers:
+      Authorization: "token {{ repository_token }}"
+  when:
+    - slalibrary_present.stat.exists == False
+  delegate_to: localhost
+  run_once: true
+
+
+- name: Create the SlaLibrary directory under {{ discos_sw_dir }}
+  file:
+    path: "/{{ discos_sw_dir }}/SlaLibrary"
+    state: directory
+    owner: "{{ user.name }}"
+    group: "{{ user.group }}"
+    mode: 0755
+  when:
+    - slalibrary_present.stat.exists == False
+
+
+- name: Extract the SlaLibrary archive to the remote
+  unarchive:
+    src: "{{ local_repository_path }}/{{ slalibrary_file }}"
+    dest: "/{{ discos_sw_dir }}/SlaLibrary/"
+    owner: "{{ user.name }}"
+    group: "{{ user.group }}"
+  when:
+    - slalibrary_present.stat.exists == False
