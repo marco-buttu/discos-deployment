@@ -90,6 +90,10 @@ except subprocess.TimeoutExpired:
 if code:
     sys.exit(code)
 else:
+    os.symlink(
+        '/{{ discos_sw_dir }}/SlaLibrary',
+        '%s/Common/Libraries/SlaLibrary' % BRANCH_PATH
+    )
     print('Repository cloned into %s' % BRANCH_PATH)
 
 

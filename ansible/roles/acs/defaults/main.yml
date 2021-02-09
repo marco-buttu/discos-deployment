@@ -43,6 +43,8 @@ pyqt_file: "{{ pyqt_build_dir }}.tar.gz"
 pyqwt_build_dir: PyQwt-5.2.0
 pyqwt_file: "{{ pyqwt_build_dir }}.tar.gz"
 
+slalibrary_file: "SlaLibrary.tar.gz"
+
 
 #######################
 # IUS Release Variables
