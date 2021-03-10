@@ -1,4 +1,16 @@
 ---
+- name: Patch yum sources
+  hosts: manager:acs
+  roles:
+    - yum_patch
+
+
+- name: Install yum packages
+  hosts: manager
+  remote_user: root
+  roles:
+    - yum
+
 
 - name: Check presence of dependencies on local repository
   hosts: all
@@ -17,24 +29,11 @@
       with_dict: "{{ users }}"
 
 
-- name: Patch yum sources
-  hosts: acs
-  roles:
-    - yum_patch
-
-
 - name: Configure SELINUX
   hosts: all
   remote_user: root
   roles:
     - selinux
-
-
-- name: Install yum packages
-  hosts: all
-  remote_user: root
-  roles:
-    - yum
 
 
 - name: Configure network

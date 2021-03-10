@@ -40,10 +40,23 @@
     state: absent
 
 
+- name: Remove old version of git
+  yum:
+    name: 
+        - git-all
+        - git-core
+    state: absent
+
 - name: Install epel-release yum package
   yum:
     name: epel-release
     state: present
+
+
+- name: Install git 2 from IUS
+  yum:
+    name:
+      - git2u-all
 
 
 - name: Install common required yum packages
