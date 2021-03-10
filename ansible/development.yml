@@ -17,12 +17,6 @@
       with_dict: "{{ users }}"
 
 
-- name: Patch yum sources
-  hosts: acs
-  roles:
-    - yum_patch
-
-
 - name: Configure SELINUX
   hosts: manager
   remote_user: root
