@@ -186,7 +186,7 @@
 
 - name: Copy some system Python libraries into ACS path
   copy:
-    src: "/usr/lib64/python2.6/lib-dynload/{{ item }}"
+    src: "/usr/lib64/python2.7/lib-dynload/{{ item }}"
     dest: "/alma/{{ acs_tag }}/Python/lib/python2.7/lib-dynload/"
     remote_src: True
   with_items:

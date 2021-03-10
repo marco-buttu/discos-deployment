@@ -50,7 +50,7 @@ slalibrary_file: "SlaLibrary.tar.gz"
 # IUS Release Variables
 #######################
 
-ius_release: { file: 'ius-release-el6.rpm' }
+ius_release: { file: 'ius-release-el7.rpm' }
 
 
 ################
