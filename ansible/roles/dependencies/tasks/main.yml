@@ -1,4 +1,17 @@
 ---
+- name: Remove old version of git
+  yum:
+    name: 
+        - git-all
+        - git-core
+    state: absent
+
+
+- name: Install git 2 from IUS
+  yum:
+    name:
+      - git2u-all
+
 
 - name: Check if the token for the dependencies repository is missing
   stat:

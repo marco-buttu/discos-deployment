@@ -4,11 +4,6 @@
   roles:
     - yum_patch
 
-- name: Install yum packages
-  hosts: manager
-  remote_user: root
-  roles:
-    - yum
 
 - name: Check presence of dependencies on local repository
   hosts: manager
@@ -32,6 +27,13 @@
   remote_user: root
   roles:
     - selinux
+
+
+- name: Install yum packages
+  hosts: manager
+  remote_user: root
+  roles:
+    - yum
 
 
 - name: Configure network
