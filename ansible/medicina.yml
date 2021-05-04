@@ -30,7 +30,7 @@
 
 
 - name: Install yum packages
-  hosts: manager
+  hosts: all
   remote_user: root
   roles:
     - yum
