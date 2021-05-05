@@ -1,5 +1,20 @@
 ---
 
+- name: Install IUS Archive repo sources
+  template:
+    src: ius-archive-6.repo
+    dest: /etc/yum.repos.d/ius-archive-6.repo
+    mode: 0644
+    backup: yes
+    force: yes
+
+
+- name: Clean yum cache
+  command: "yum clean all"
+  args:
+    warn: false
+
+
 - name: Install SDTools required yum packages
   yum:
     name:
@@ -13,8 +28,7 @@
 - name: Upgrade pip3.6 to latest version
   command: "{{ item }}"
   with_items:
-    - "pip3.6 install --upgrade pip"
-    - "cp /usr/local/bin/pip3 /usr/local/bin/pip3.6"
+    - "easy_install-3.6 -U pip"
 
 
 - name: Install SDTools python dependencies
