@@ -41,25 +41,19 @@
 
 - name: Make sure the default git yum package is not installed
   yum:
-    name: git
+    name:
+      - git
+      - git-core
     state: absent
-
-
-- name: Check if the git224-core-2.24.3-1.el6.ius.x86_64.rpm package exists in the local repository
-  stat:
-    path: "{{ local_repository_path }}/git224-core-2.24.3-1.el6.ius.x86_64.rpm"
-  delegate_to: localhost
-  run_once: true
-  register: git_package
 
 
 - name: Download git224-core-2.24.3-1.el6.ius.x86_64.rpm yum package
   get_url:
     url: "{{ remote_repository_download_url }}/git224-core-2.24.3-1.el6.ius.x86_64.rpm"
     dest: "{{ local_repository_path }}"
+    force: false
     headers:
       Authorization: "token {{ repository_token }}"
-  when: git_package.stat.exists == False
   delegate_to: localhost
   run_once: true
 
